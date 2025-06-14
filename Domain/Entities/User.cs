@@ -5,11 +5,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace PropertyManagementAPI.Domain.Entities
 {
     [Table("Users")]
-    public class Users
+
+    public class User
     {
         [Key]
         public int UserId { get; set; }
-
         [Required, MaxLength(50)]
         public string UserName { get; set; }
 

@@ -1,11 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementAPI.Application.Services;
 using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
-using PropertyManagementAPI.Infrastructure.Repositories;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PropertyManagementAPI.API.Controllers
@@ -32,6 +27,14 @@ namespace PropertyManagementAPI.API.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.UserId }, createdUser);
         }
 
+        // ✅ Get all users
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userService.GetAllUsersAsync();
+            return Ok(users);
+        }
+
         // ✅ Get a user by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
@@ -55,11 +58,30 @@ namespace PropertyManagementAPI.API.Controllers
             return NoContent(); // ✅ HTTP 204 - Update successful
         }
 
-        // ✅ Delete a user
+        // ✅ Delete a user by ID
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var deleted = await _userService.DeleteUserAsync(id);
+            if (!deleted) return NotFound();
+
+            return NoContent(); // ✅ HTTP 204 - Deletion successful
+        }
+
+        [HttpDelete("username/{username}")]
+        public async Task<IActionResult> DeleteUserByUsername(string username)
+        {
+            var deleted = await _userService.DeleteUserByUsernameAsync(username);
+            if (!deleted) return NotFound();
+
+            return NoContent(); // ✅ HTTP 204 - Deletion successful
+        }
+
+        // ✅ Delete a user by email
+        [HttpDelete("email/{email}")]
+        public async Task<IActionResult> DeleteUserByEmail(string email)
+        {
+            var deleted = await _userService.DeleteUserByEmailAsync(email);
             if (!deleted) return NotFound();
 
             return NoContent(); // ✅ HTTP 204 - Deletion successful
