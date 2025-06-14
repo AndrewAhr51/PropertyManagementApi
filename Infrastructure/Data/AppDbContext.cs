@@ -17,6 +17,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Emails> Emails { get; set; }
         public DbSet<Permissions> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
-        
+        public DbSet<Owner> Owners { get; set; }
+
     }
 }

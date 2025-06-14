@@ -51,10 +51,10 @@ INSERT INTO [dbo].[Tenants] ([UserId], [FirstName], [LastName], [PhoneNumber], [
 GO
 
 -- ✅ Insert seed data into Property table
-INSERT INTO [dbo].[Property] ([Name], [Address], [Address1], [City], [State], [PostalCode], [Country], [Bedrooms], [Bathrooms], [SquareFeet], [IsAvailable]) VALUES
-('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 1),
-('Ocean Breeze Condo', '456 Beach Ave', 'Unit 5', 'Miami', 'FL', '33101', 'USA', 2, 2, 1200, 1),
-('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, 1);
+INSERT INTO [dbo].[Property] ([Name], [Address], [Address1], [City], [State], [PostalCode], [Country], [Bedrooms], [Bathrooms], [SquareFeet], [IsAvailable], [IsActive]) VALUES
+('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 1, 1),
+('Ocean Breeze Condo', '456 Beach Ave', 'Unit 5', 'Miami', 'FL', '33101', 'USA', 2, 2, 1200, 1, 1),
+('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, 1, 1);
 GO
 
 -- ✅ Insert seed data into PropertyPhotos table
@@ -72,10 +72,10 @@ INSERT INTO [dbo].[Pricing] ([PropertyId], [RentalAmount], [DepositAmount], [Lea
 GO
 
 -- ✅ Insert seed data into Owners table
-INSERT INTO [dbo].[Owners] ([FirstName], [LastName], [Email], [Phone], [Address1], [Address2], [City], [State], [PostalCode], [Country]) VALUES
-('Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA'),
-('Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA'),
-('Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA');
+INSERT INTO [dbo].[Owners] ([FirstName], [LastName], [Email], [Phone], [Address1], [Address2], [City], [State], [PostalCode], [Country], [IsActive]) VALUES
+('Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA',1),
+('Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA',1),
+('Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA',1);
 GO
 
 -- ✅ Insert seed data into PropertyOwners table
