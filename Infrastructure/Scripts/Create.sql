@@ -58,11 +58,12 @@ CREATE TABLE [dbo].[Tenants] (
     FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId])
 );
 GO
--- Properties and Pricing
-CREATE TABLE [dbo].[Properties] (
+-- Property and Pricing
+CREATE TABLE [dbo].[Property] (
     [PropertyId] INT PRIMARY KEY IDENTITY(1,1),
     [Name] NVARCHAR(255),
     [Address] NVARCHAR(255),
+	[Address1] NVARCHAR(255),
     [City] NVARCHAR(100),
     [State] NVARCHAR(100),
     [PostalCode] NVARCHAR(20),
@@ -73,6 +74,26 @@ CREATE TABLE [dbo].[Properties] (
     [IsAvailable] BIT DEFAULT 1
 );
 GO
+CREATE TABLE [dbo].[PropertyPhotos](
+	[PhotoId] [int] IDENTITY(1,1) NOT NULL,
+	[PropertyId] [int] NOT NULL,
+	[PhotoUrl] [nvarchar](500) NOT NULL,
+	[Caption] [nvarchar](255) NULL,
+	[UploadedAt] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[PhotoId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[PropertyPhotos] ADD  DEFAULT (getdate()) FOR [UploadedAt]
+GO
+
+ALTER TABLE [dbo].[PropertyPhotos]  WITH CHECK ADD FOREIGN KEY([PropertyId])
+REFERENCES [dbo].[Property] ([PropertyId])
+
+GO
 CREATE TABLE [dbo].[Pricing] (
     [PriceId] INT PRIMARY KEY IDENTITY(1,1),
     [PropertyId] INT NOT NULL,
@@ -80,7 +101,33 @@ CREATE TABLE [dbo].[Pricing] (
     [DepositAmount] DECIMAL(10,2),
     [LeaseTerm] NVARCHAR(50),
     [UtilitiesIncluded] BIT DEFAULT 0,
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId]) ON DELETE CASCADE
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]) ON DELETE CASCADE
+);
+GO
+-- ✅ Create the Owners Table
+CREATE TABLE Owners (
+    OwnerId INT IDENTITY(1,1) PRIMARY KEY,
+    FirstName NVARCHAR(100) NOT NULL,
+    LastName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(255) UNIQUE NOT NULL,
+    Phone NVARCHAR(50) NULL,
+    Address1 NVARCHAR(255) NULL, -- Primary address
+    Address2 NVARCHAR(255) NULL, -- Secondary address
+    City NVARCHAR(100) NULL,
+    State NVARCHAR(100) NULL,
+    PostalCode NVARCHAR(20) NULL,
+    Country NVARCHAR(100) NULL
+);
+GO
+-- ✅ Create the Association Table (PropertyOwners)
+CREATE TABLE PropertyOwners (
+    PropertyId INT NOT NULL,
+    OwnerId INT NOT NULL,
+    OwnershipPercentage DECIMAL(5,2) DEFAULT 100, -- Supports co-owners
+
+    CONSTRAINT PK_PropertyOwners PRIMARY KEY (PropertyId, OwnerId),
+    CONSTRAINT FK_PropertyOwners_Property FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
+    CONSTRAINT FK_PropertyOwners_Owner FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId) ON DELETE CASCADE
 );
 GO
 -- Transactions and Billing
@@ -100,7 +147,7 @@ CREATE TABLE [dbo].[Payments] (
     [TransactionDate] DATETIME DEFAULT GETDATE(),
     [ReferenceNumber] NVARCHAR(100),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId]),
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([PaymentMethodId]) REFERENCES [dbo].[PaymentMethods]([PaymentMethodId])
 );
 GO
@@ -115,7 +162,7 @@ CREATE TABLE [dbo].[CreditCardInfo] (
     [CVV] VARBINARY(256),
     [CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId])
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
 -- Billing Address
@@ -140,7 +187,7 @@ CREATE TABLE [dbo].[SpecialInstructions] (
     [InstructionText] NVARCHAR(MAX),
     [CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId]),
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([PaymentId]) REFERENCES [dbo].[Payments]([PaymentId])
 );
 GO
@@ -174,7 +221,7 @@ CREATE TABLE [dbo].[MaintenanceRequests] (
 
     -- Foreign Keys
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]) ON DELETE CASCADE,
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId]) ON DELETE CASCADE
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]) ON DELETE CASCADE
 );
 GO
 CREATE TABLE [dbo].[Vendors] (
@@ -193,14 +240,7 @@ CREATE TABLE [dbo].[AccessLogs] (
     FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId])
 );
 GO
-CREATE TABLE [dbo].[PropertyPhotos] (
-    [PhotoId] INT PRIMARY KEY IDENTITY(1,1),
-    [PropertyId] INT NOT NULL,
-    [PhotoUrl] NVARCHAR(500) NOT NULL,
-    [Caption] NVARCHAR(255),
-    [UploadedAt] DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId]) ON DELETE CASCADE
-);
+
 CREATE TABLE [dbo].[Leases] (
     [LeaseId] INT PRIMARY KEY IDENTITY(1,1),
     [TenantId] INT NOT NULL,
@@ -212,7 +252,7 @@ CREATE TABLE [dbo].[Leases] (
     [IsActive] BIT DEFAULT 1,
     [SignedDate] DATE DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId])
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
 CREATE TABLE [dbo].[Invoices] (
@@ -224,7 +264,7 @@ CREATE TABLE [dbo].[Invoices] (
     [IsPaid] BIT DEFAULT 0,
     [CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId])
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
 CREATE TABLE [dbo].[Notes] (
@@ -236,7 +276,7 @@ CREATE TABLE [dbo].[Notes] (
     [CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Users]([UserId]),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId])
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
 CREATE TABLE [dbo].[Documents] (
@@ -247,7 +287,7 @@ CREATE TABLE [dbo].[Documents] (
     [FileUrl] NVARCHAR(500),
     [Category] NVARCHAR(100), -- Lease, ID, Receipt, etc.
     [UploadedAt] DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId]),
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId])
 );
 GO
@@ -259,9 +299,15 @@ CREATE TABLE [dbo].[PaymentReminders] (
     [ReminderDate] DATETIME NOT NULL,  -- When the reminder should be sent
     [Status] NVARCHAR(50) DEFAULT 'Pending', -- Pending, Sent, Failed
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Properties]([PropertyId]),
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[Invoices]([InvoiceId])
 );
 GO
 CREATE INDEX IX_ResetToken ON Users (ResetToken);
 CREATE INDEX IX_UserEmail ON Users (Email);
+CREATE INDEX IX_Property_City ON Property(City);
+CREATE INDEX IX_Property_State ON Property(State);
+CREATE INDEX IX_Property_IsAvailable ON Property(IsAvailable);
+CREATE INDEX IX_Owners_Email ON Owners(Email);
+CREATE INDEX IX_PropertyOwners_PropertyId ON PropertyOwners(PropertyId);
+CREATE INDEX IX_PropertyOwners_OwnerId ON PropertyOwners(OwnerId);
