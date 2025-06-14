@@ -58,21 +58,32 @@ CREATE TABLE [dbo].[Tenants] (
     FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId])
 );
 GO
--- Property and Pricing
-CREATE TABLE [dbo].[Property] (
-    [PropertyId] INT PRIMARY KEY IDENTITY(1,1),
-    [Name] NVARCHAR(255),
-    [Address] NVARCHAR(255),
-	[Address1] NVARCHAR(255),
-    [City] NVARCHAR(100),
-    [State] NVARCHAR(100),
-    [PostalCode] NVARCHAR(20),
-    [Country] NVARCHAR(100),
-    [Bedrooms] INT,
-    [Bathrooms] INT,
-    [SquareFeet] INT,
-    [IsAvailable] BIT DEFAULT 1
-);
+
+CREATE TABLE [dbo].[Property](
+	[PropertyId] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](255) NOT NULL,
+	[Address] [nvarchar](255) NOT NULL,
+	[Address1] [nvarchar](255) NULL,
+	[City] [nvarchar](100) NOT NULL,
+	[State] [nvarchar](100) NOT NULL,
+	[PostalCode] [nvarchar](20) NOT NULL,
+	[Country] [nvarchar](100) NOT NULL,
+	[Bedrooms] [int] NOT NULL,
+	[Bathrooms] [int] NOT NULL,
+	[SquareFeet] [int] NOT NULL,
+	[IsAvailable] [bit] NOT NULL,
+	[IsActive] [bit] NOT NULL
+PRIMARY KEY CLUSTERED 
+(
+	[PropertyId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Property] ADD  DEFAULT ((1)) FOR [IsAvailable]
+GO
+
+
 GO
 CREATE TABLE [dbo].[PropertyPhotos](
 	[PhotoId] [int] IDENTITY(1,1) NOT NULL,
@@ -105,19 +116,31 @@ CREATE TABLE [dbo].[Pricing] (
 );
 GO
 -- ✅ Create the Owners Table
-CREATE TABLE Owners (
-    OwnerId INT IDENTITY(1,1) PRIMARY KEY,
-    FirstName NVARCHAR(100) NOT NULL,
-    LastName NVARCHAR(100) NOT NULL,
-    Email NVARCHAR(255) UNIQUE NOT NULL,
-    Phone NVARCHAR(50) NULL,
-    Address1 NVARCHAR(255) NULL, -- Primary address
-    Address2 NVARCHAR(255) NULL, -- Secondary address
-    City NVARCHAR(100) NULL,
-    State NVARCHAR(100) NULL,
-    PostalCode NVARCHAR(20) NULL,
-    Country NVARCHAR(100) NULL
-);
+CREATE TABLE [dbo].[Owners](
+	[OwnerId] [int] IDENTITY(1,1) NOT NULL,
+	[FirstName] [nvarchar](100) NOT NULL,
+	[LastName] [nvarchar](100) NOT NULL,
+	[Email] [nvarchar](255) NOT NULL,
+	[Phone] [nvarchar](50) NOT NULL,
+	[Address1] [nvarchar](255) NOT NULL,
+	[Address2] [nvarchar](255) NULL,
+	[City] [nvarchar](100) NOT NULL,
+	[State] [nvarchar](100) NOT NULL,
+	[PostalCode] [nvarchar](20) NOT NULL,
+	[Country] [nvarchar](100) NOT NULL,
+	[IsActive] [bit] NOT NULL
+PRIMARY KEY CLUSTERED 
+(
+	[OwnerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[Email] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
 GO
 -- ✅ Create the Association Table (PropertyOwners)
 CREATE TABLE PropertyOwners (
@@ -169,12 +192,12 @@ GO
 CREATE TABLE [dbo].[BillingAddress] (
     [BillingAddressId] INT PRIMARY KEY IDENTITY(1,1),
     [CardId] INT NOT NULL,
-    [StreetAddressLine1] NVARCHAR(255),
-    [StreetAddressLine2] NVARCHAR(255),
-    [City] NVARCHAR(100),
-    [State] NVARCHAR(100),
-    [PostalCode] NVARCHAR(20),
-    [Country] NVARCHAR(100),
+    [AddressLine] NVARCHAR(255) NOT NULL,
+    [AddressLine2] NVARCHAR(255) NULL,
+    [City] NVARCHAR(100) NOT NULL,
+    [State] NVARCHAR(100) NOT NULL,
+    [PostalCode] NVARCHAR(20) NOT NULL,
+    [Country] NVARCHAR(100) NOT NULL,
     FOREIGN KEY ([CardId]) REFERENCES [dbo].[CreditCardInfo]([CardId]) ON DELETE CASCADE
 );
 GO

@@ -3,7 +3,6 @@
     public class UserDto
     {
         public int UserId { get; set; }  // Unique Identifier
-
         public required string UserName { get; set; } = string.Empty;  // ✅ Ensures non-null value
         public required string Email { get; set; } = string.Empty;  // ✅ Default empty string
         public required int Role { get; set; }  // ✅ Integer remains unchanged (Admin, Manager, Viewer)

@@ -26,6 +26,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IOwnerRepository, OwnerRepository>();
+builder.Services.AddScoped<IOwnersService, OwnersService>();
 builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
