@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
+using System.Security;
 
 namespace PropertyManagementAPI.Domain.Entities
 {
-    public class RolePermissions
+    public class RolePermission
     {
         [Column(Order = 1)]
         public int RolePermissionId { get; set; }

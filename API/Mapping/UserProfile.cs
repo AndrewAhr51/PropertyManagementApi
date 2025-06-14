@@ -9,8 +9,8 @@ namespace PropertyManagementAPI.API.Mapping
     {
         public UserProfile()
         {
-            CreateMap<CreateUserDto, Users>(); // ✅ Maps DTO to Entity
-            CreateMap<Users, CreateUserDto>(); // ✅ Reverse Mapping
+            CreateMap<CreateUserDto, User>(); // ✅ Maps DTO to Entity
+            CreateMap<User, CreateUserDto>(); // ✅ Reverse Mapping
         }
     }
 }

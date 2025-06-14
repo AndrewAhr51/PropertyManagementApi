@@ -31,13 +31,13 @@ public class AuthService : IAuthService
             return null;
 
         // Convert User? to Users (if needed)
-        if (user is not Users usersEntity)
+        if (user is not User usersEntity)
             throw new InvalidCastException("User repository did not return a Users entity.");
 
         return GenerateJwtToken(usersEntity);
     }
 
-    private string GenerateJwtToken(Users user)
+    private string GenerateJwtToken(User user)
     {
         var secretKey = _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("SecretKey is not configured.");
         var issuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("Issuer is not configured.");
@@ -80,7 +80,7 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetByUsernameAsync(username);
         if (user is null) return null;
 
-        if (user is not Users usersEntity)
+        if (user is not User usersEntity)
             throw new InvalidCastException("User repository did not return a Users entity.");
 
         return GenerateJwtToken(usersEntity);

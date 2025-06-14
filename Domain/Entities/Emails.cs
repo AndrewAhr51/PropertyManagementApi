@@ -38,7 +38,7 @@ namespace PropertyManagementAPI.Domain.Entities
         public int? PropertyId { get; set; }
 
         // Navigation properties
-        public Users Sender { get; set; }
+        public User Sender { get; set; }
 
         public bool IsDelivered { get; set; } = false;  // ✅ Delivery status
     }

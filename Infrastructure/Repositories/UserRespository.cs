@@ -17,7 +17,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
         }
 
         // ✅ Create a new user
-        public async Task<Users> AddAsync(Users user)
+        public async Task<User> AddAsync(User user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -25,25 +25,25 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
         }
 
         // ✅ Retrieve a user by ID
-        public async Task<Users?> GetByIdAsync(int id)
+        public async Task<User?> GetByIdAsync(int id)
         {
             return await _context.Users.FindAsync(id);
         }
 
         // ✅ Retrieve a user by username
-        public async Task<Users?> GetByUsernameAsync(string username)
+        public async Task<User?> GetByUsernameAsync(string username)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
         }
 
         // ✅ Retrieve a user by email
-        public async Task<Users?> GetByEmailAsync(string email)
+        public async Task<User?> GetByEmailAsync(string email)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         // ✅ Update user details
-        public async Task<bool> UpdateAsync(Users user)
+        public async Task<bool> UpdateAsync(User user)
         {
             _context.Users.Update(user);
             return await _context.SaveChangesAsync() > 0;

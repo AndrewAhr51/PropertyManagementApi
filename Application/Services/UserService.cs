@@ -21,7 +21,7 @@ namespace PropertyManagementAPI.Application.Services
             var hashedPassword = HashPassword(userDto.Password);
             var roleId = await GetRoleId(userDto.Role);
 
-            var newUser = new Users
+            var newUser = new User
             {
                 UserName = userDto.Username,
                 Email = userDto.Email,

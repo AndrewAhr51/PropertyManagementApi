@@ -2,11 +2,11 @@
 
 public interface IUserRepository
 {
-    Task<Users> AddAsync(Users user);  // ✅ Create a new user
-    Task<Users?> GetByIdAsync(int id);  // ✅ Retrieve a user by ID
-    Task<Users?> GetByUsernameAsync(string username);  // ✅ Retrieve a user by username
-    Task<Users?> GetByEmailAsync(string email);  // ✅ Retrieve a user by email
-    Task<bool> UpdateAsync(Users user);  // ✅ Update user details
+    Task<User> AddAsync(User user);  // ✅ Create a new user
+    Task<User?> GetByIdAsync(int id);  // ✅ Retrieve a user by ID
+    Task<User?> GetByUsernameAsync(string username);  // ✅ Retrieve a user by username
+    Task<User?> GetByEmailAsync(string email);  // ✅ Retrieve a user by email
+    Task<bool> UpdateAsync(User user);  // ✅ Update user details
     Task<bool> DeleteAsync(int id);  // ✅ Remove a user by ID
     Task<int> GetRoleIdAsync(string role);  // ✅ Retrieve role ID by role name
 
