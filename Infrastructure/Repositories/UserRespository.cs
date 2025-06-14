@@ -24,6 +24,11 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             return user;
         }
 
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
+
         // ✅ Retrieve a user by ID
         public async Task<User?> GetByIdAsync(int id)
         {
@@ -59,6 +64,22 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<bool> DeleteByEmailAsync(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null) return false;
+
+            _context.Users.Remove(user);
+            return await _context.SaveChangesAsync() > 0;
+        }
+        public async Task<bool> DeleteUserByUsernameAsync(string username)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+            if (user == null) return false;
+
+            _context.Users.Remove(user);
+            return await _context.SaveChangesAsync() > 0;
+        }
         // ✅ Retrieve role ID by role name
         public async Task<int> GetRoleIdAsync(string role)
         {
@@ -139,8 +160,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword); // ✅ Secure hashing
             return await UpdateAsync(user);
         }
-
-
+        
         public async Task<DateTimeOffset?> GetMfaCodeExpirationAsync(string email)
         {
             return await _context.Users
@@ -187,6 +207,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 
             return expiration.HasValue ? expiration.Value.DateTime : (DateTime?)null;
         }
+      
 
     }
 }

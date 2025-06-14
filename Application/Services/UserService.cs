@@ -30,15 +30,41 @@ namespace PropertyManagementAPI.Application.Services
             };
 
             var createdUser = await _userRepository.AddAsync(newUser);
-            return new UserDto { UserId = createdUser.UserId, UserName = createdUser.UserName, Email = createdUser.Email, Role = createdUser.RoleId };
+            return new UserDto
+            {
+                UserId = createdUser.UserId,
+                UserName = createdUser.UserName,
+                Email = createdUser.Email,
+                Role = createdUser.RoleId
+            };
+        }
+
+        // ✅ Retrieve all users
+        public async Task<List<UserDto>> GetAllUsersAsync()
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            return users.Select(user => new UserDto
+            {
+                UserId = user.UserId,
+                UserName = user.UserName,
+                Email = user.Email,
+                Role = user.RoleId,
+                IsActive = user.IsActive,
+                DateCreated = user.CreatedAt
+            }).ToList();
         }
 
         // ✅ Retrieve a user by ID
         public async Task<UserDto?> GetUserByIdAsync(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null) return null;
-            return new UserDto { UserId = user.UserId, UserName = user.UserName, Email = user.Email, Role = user.RoleId };
+            return user == null ? null : new UserDto
+            {
+                UserId = user.UserId,
+                UserName = user.UserName,
+                Email = user.Email,
+                Role = user.RoleId
+            };
         }
 
         // ✅ Update user details
@@ -58,19 +84,18 @@ namespace PropertyManagementAPI.Application.Services
             return await _userRepository.UpdateAsync(user);
         }
 
+        // ✅ Retrieve a user by email
         public async Task<UserDto?> GetByEmailAsync(string email)
         {
             var user = await _userRepository.GetByEmailAsync(email);
-            if (user == null) return null;
-
-            return new UserDto
+            return user == null ? null : new UserDto
             {
                 UserId = user.UserId,
                 UserName = user.UserName,
                 Email = user.Email,
                 Role = user.RoleId,
                 IsActive = user.IsActive,
-                DateCreated = DateTime.UtcNow
+                DateCreated = user.CreatedAt
             };
         }
 
@@ -80,9 +105,19 @@ namespace PropertyManagementAPI.Application.Services
             return await _userRepository.DeleteAsync(id);
         }
 
+        // ✅ Delete a user by email
+        public async Task<bool> DeleteUserByEmailAsync(string email)
+        {
+            return await _userRepository.DeleteByEmailAsync(email);
+        }
+        public async Task<bool> DeleteUserByUsernameAsync(string username)
+        {
+            return await _userRepository.DeleteUserByUsernameAsync(username);
+        }
+
         private string HashPassword(string password)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt());
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         private async Task<int> GetRoleId(string role)
