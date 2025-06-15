@@ -48,16 +48,7 @@ ALTER TABLE Users ADD CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES 
 -- ✅ Add Indexes for Faster Lookups
 CREATE INDEX IX_MfaCode ON Users (MfaCode);
 GO
-CREATE TABLE [dbo].[Tenants] (
-    [TenantId] INT PRIMARY KEY IDENTITY(1,1),
-    [UserId] INT NOT NULL,
-    [FirstName] NVARCHAR(100),
-    [LastName] NVARCHAR(100),
-    [PhoneNumber] NVARCHAR(20),
-    [MoveInDate] DATE,
-    FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId])
-);
-GO
+
 
 CREATE TABLE [dbo].[Property](
 	[PropertyId] [int] IDENTITY(1,1) NOT NULL,
@@ -102,6 +93,19 @@ GO
 
 ALTER TABLE [dbo].[PropertyPhotos]  WITH CHECK ADD FOREIGN KEY([PropertyId])
 REFERENCES [dbo].[Property] ([PropertyId])
+GO
+
+CREATE TABLE [dbo].[Tenants] (
+    [TenantId] INT PRIMARY KEY IDENTITY(1,1),
+	[PropertyId] INT NOT NULL,
+    [UserId] INT NOT NULL,
+    [FirstName] NVARCHAR(100),
+    [LastName] NVARCHAR(100),
+    [PhoneNumber] NVARCHAR(20),
+    [MoveInDate] DATE,
+    FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId]),
+	FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
+);
 
 GO
 CREATE TABLE [dbo].[Pricing] (
@@ -180,7 +184,8 @@ CREATE TABLE [dbo].[CreditCardInfo] (
     [PropertyId] INT NOT NULL,
     [CardHolderName] NVARCHAR(255),
     [CardNumber] VARBINARY(256),
-    [ExpirationDate] DATE,
+	[LastFourDigits] NVARCHAR(4),
+    [ExpirationDate] NVARCHAR(7),
     [CVV] VARBINARY(256),
     [CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),

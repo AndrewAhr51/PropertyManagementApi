@@ -32,6 +32,8 @@ builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IPropertyPhotosRepository, PropertyPhotosRepository>();
 builder.Services.AddScoped<IPropertyPhotosService, PropertyPhotosService>();
+builder.Services.AddScoped<IPaymentMethodsRepository, PaymentMethodsRepository>();
+builder.Services.AddScoped<IPaymentMethodsService, PaymentMethodsService>();
 builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
