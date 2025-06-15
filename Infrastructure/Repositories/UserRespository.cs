@@ -160,7 +160,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword); // ✅ Secure hashing
             return await UpdateAsync(user);
         }
-        
+
         public async Task<DateTimeOffset?> GetMfaCodeExpirationAsync(string email)
         {
             return await _context.Users
@@ -246,7 +246,5 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
-
-
     }
 }

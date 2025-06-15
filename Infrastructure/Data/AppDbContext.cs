@@ -20,6 +20,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Owner> Owners { get; set; }
         public DbSet<Property> Property { get; set; }
         public DbSet<PropertyOwner> PropertyOwners{ get; set; }
+        public DbSet<PropertyPhotos> PropertyPhotos { get; set; }
 
     }
 }
