@@ -166,7 +166,7 @@ CREATE TABLE dbo.PropertyOwners (
 );
 GO
 -- Transactions and Billing
-CREATE TABLE [dbo].[PaymentMethods] (
+CREATE TABLE [dbo].[lkupPaymentMethods] (
     [PaymentMethodId] INT PRIMARY KEY IDENTITY(1,1),
     [MethodName] NVARCHAR(100) NOT NULL UNIQUE,
     [Description] NVARCHAR(255),
@@ -185,7 +185,7 @@ CREATE TABLE [dbo].[Payments] (
 	[CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
-    FOREIGN KEY ([PaymentMethodId]) REFERENCES [dbo].[PaymentMethods]([PaymentMethodId])
+    FOREIGN KEY ([PaymentMethodId]) REFERENCES [dbo].[lkupPaymentMethods]([PaymentMethodId])
 );
 GO
 -- Credit Card Info (optional encryption layer required)
@@ -348,6 +348,12 @@ CREATE TABLE [dbo].[PaymentReminders] (
     FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[Invoices]([InvoiceId])
 );
 GO
+CREATE TABLE lkupCategory (
+    CategoryId INT PRIMARY KEY IDENTITY(1,1),
+    CategoryName NVARCHAR(100) NOT NULL UNIQUE
+);
+GO
+
 CREATE INDEX IX_ResetToken ON Users (ResetToken);
 CREATE INDEX IX_UserEmail ON Users (Email);
 CREATE INDEX IX_Property_City ON Property(City);

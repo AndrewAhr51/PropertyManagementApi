@@ -2,6 +2,7 @@
 GO
 
 -- ✅ Drop tables with foreign key dependencies first
+DROP TABLE IF EXISTS lkupCategory;
 DROP TABLE IF EXISTS PaymentReminders;
 DROP TABLE IF EXISTS Documents;
 DROP TABLE IF EXISTS Notes;
@@ -15,7 +16,7 @@ DROP TABLE IF EXISTS SpecialInstructions;
 DROP TABLE IF EXISTS BillingAddress;
 DROP TABLE IF EXISTS CreditCardInfo;
 DROP TABLE IF EXISTS Payments;
-DROP TABLE IF EXISTS PaymentMethods;
+DROP TABLE IF EXISTS [lkupPaymentMethods];
 DROP TABLE IF EXISTS PropertyOwners;
 DROP TABLE IF EXISTS Owners;
 DROP TABLE IF EXISTS Pricing;
