@@ -44,12 +44,6 @@ INSERT INTO [dbo].[Users] ([UserName], [Email], [PasswordHash], [RoleId], [Creat
 ('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, GETUTCDATE(), 1, 1);
 GO
 
--- ✅ Insert seed data into Tenants table
-INSERT INTO [dbo].[Tenants] ([UserId], [FirstName], [LastName], [PhoneNumber], [MoveInDate]) VALUES
-(3, 'John', 'Doe', '555-1234', '2024-01-15'), -- ✅ Tenant UserId = 3
-(5, 'Michael', 'Johnson', '555-9876', '2022-09-20'); -- ✅ Another Tenant UserId = 5
-GO
-
 -- ✅ Insert seed data into Property table
 INSERT INTO [dbo].[Property] ([Name], [Address], [Address1], [City], [State], [PostalCode], [Country], [Bedrooms], [Bathrooms], [SquareFeet], [IsAvailable], [IsActive]) VALUES
 ('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 1, 1),
@@ -58,10 +52,10 @@ INSERT INTO [dbo].[Property] ([Name], [Address], [Address1], [City], [State], [P
 GO
 
 -- ✅ Insert seed data into PropertyPhotos table
-INSERT INTO [dbo].[PropertyPhotos] ([PropertyId], [PhotoUrl], [Caption], [UploadedAt]) VALUES
-(1, 'https://example.com/photos/sunset_villa.jpg', 'Front view of Sunset Villa', GETDATE()),
-(2, 'https://example.com/photos/ocean_breeze.jpg', 'Balcony view of Ocean Breeze Condo', GETDATE()),
-(3, 'https://example.com/photos/mountain_retreat.jpg', 'Scenic view from Mountain Retreat', GETDATE());
+INSERT INTO [dbo].[PropertyPhotos] ([PropertyId], [PhotoUrl],[Room], [Caption], [UploadedAt]) VALUES
+(1, 'https://example.com/photos/sunset_villa.jpg','Front Room', 'Front view of Sunset Villa', GETDATE()),
+(2, 'https://example.com/photos/ocean_breeze.jpg', 'Balcony', 'Balcony view of Ocean Breeze Condo', GETDATE()),
+(3, 'https://example.com/photos/mountain_retreat.jpg', 'Scenic', 'Scenic view from Mountain Retreat', GETDATE());
 GO
 
 -- ✅ Insert seed data into Pricing table
@@ -85,6 +79,13 @@ INSERT INTO [dbo].[PropertyOwners] ([PropertyId], [OwnerId], [OwnershipPercentag
 (3, 3, 100.00);
 GO
 
+-- ✅ Insert seed data into Tenants table
+INSERT INTO [dbo].[Tenants] ([UserId], [PropertyId], [FirstName], [LastName], [PhoneNumber], [MoveInDate]) VALUES
+(3, 1, 'John', 'Doe', '555-1234', '2024-01-15'), -- ✅ Tenant UserId = 3
+(5, 2, 'Michael', 'Johnson', '555-9876', '2022-09-20'); -- ✅ Another Tenant UserId = 5
+GO
+
+
 -- ✅ Insert seed data into PaymentMethods table
 INSERT INTO [dbo].[PaymentMethods] ([MethodName], [Description], [IsActive]) VALUES
 ('Credit Card', 'Payments made via credit card', 1),
@@ -100,7 +101,7 @@ INSERT INTO [dbo].[Payments] ([TenantId], [PropertyId], [Amount], [PaymentMethod
 GO
 
 -- ✅ Insert seed data into CreditCardInfo table
-INSERT INTO [dbo].[CreditCardInfo] ([TenantId], [PropertyId], [CardHolderName], [CardNumber], [ExpirationDate], [CVV], [CreatedAt]) VALUES
-(1, 1, 'John Doe', CONVERT(VARBINARY(256), '4111111111111111'), '2026-05-01', CONVERT(VARBINARY(256), '123'), GETDATE()),
-(2, 3, 'Michael Johnson', CONVERT(VARBINARY(256), '378282246310005'), '2025-12-10', CONVERT(VARBINARY(256), '789'), GETDATE());
+INSERT INTO [dbo].[CreditCardInfo] ([TenantId], [PropertyId], [CardHolderName], [CardNumber], [LastFourDigits], [ExpirationDate], [CVV], [CreatedAt]) VALUES
+(1, 1, 'John Doe', CONVERT(VARBINARY(256), '4111111111111111'),'1111', '05/2026', CONVERT(VARBINARY(256), '123'), GETDATE()),
+(2, 3, 'Michael Johnson', CONVERT(VARBINARY(256), '378282246310005'),'0005','12/2025', CONVERT(VARBINARY(256), '789'), GETDATE());
 GO
