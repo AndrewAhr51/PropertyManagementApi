@@ -24,6 +24,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
+builder.Services.AddScoped<ILeaseService, LeaseService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IOwnerRepository, OwnerRepository>();
@@ -40,6 +44,9 @@ builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IMaintenanceRequestRepository, MaintenanceRequestRepository>();
 builder.Services.AddScoped<IMaintenanceRequestService, MaintenanceRequestService>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+
 
 builder.Services.AddControllers();
 

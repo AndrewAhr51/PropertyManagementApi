@@ -59,10 +59,10 @@ INSERT INTO [dbo].[PropertyPhotos] ([PropertyId], [PhotoUrl],[Room], [Caption], 
 GO
 
 -- ✅ Insert seed data into Pricing table
-INSERT INTO [dbo].[Pricing] ([PropertyId], [RentalAmount], [DepositAmount], [LeaseTerm], [UtilitiesIncluded]) VALUES
-(1, 2500.00, 5000.00, '12 Months', 1),
-(2, 1800.00, 3600.00, '6 Months', 0),
-(3, 3200.00, 6400.00, '24 Months', 1);
+INSERT INTO [dbo].[Pricing] ([PropertyId],[EffectiveDate], [RentalAmount], [DepositAmount], [LeaseTerm], [UtilitiesIncluded]) VALUES
+(1,'12/12/2024', 2500.00, 5000.00, '12 Months', 1),
+(2,'12/12/2024',1800.00, 3600.00, '6 Months', 0),
+(3,'12/12/2024', 3200.00, 6400.00, '24 Months', 1);
 GO
 
 -- ✅ Insert seed data into Owners table
@@ -87,7 +87,7 @@ GO
 
 
 -- ✅ Insert seed data into PaymentMethods table
-INSERT INTO [dbo].[PaymentMethods] ([MethodName], [Description], [IsActive]) VALUES
+INSERT INTO [dbo].[lkupPaymentMethods] ([MethodName], [Description], [IsActive]) VALUES
 ('Credit Card', 'Payments made via credit card', 1),
 ('Bank Transfer', 'Direct bank transfer payments', 1),
 ('PayPal', 'Online payments via PayPal', 1),
@@ -104,4 +104,15 @@ GO
 INSERT INTO [dbo].[CreditCardInfo] ([TenantId], [PropertyId], [CardHolderName], [CardNumber], [LastFourDigits], [ExpirationDate], [CVV], [CreatedAt]) VALUES
 (1, 1, 'John Doe', CONVERT(VARBINARY(256), '4111111111111111'),'1111', '05/2026', CONVERT(VARBINARY(256), '123'), GETDATE()),
 (2, 3, 'Michael Johnson', CONVERT(VARBINARY(256), '378282246310005'),'0005','12/2025', CONVERT(VARBINARY(256), '789'), GETDATE());
+GO
+INSERT INTO lkupCategory (CategoryName)
+VALUES 
+    ('Lease'),
+    ('ID'),
+    ('Receipt'),
+    ('Maintenance'),
+    ('Inspection'),
+    ('Notice'),
+    ('Insurance'),
+    ('Other');
 GO

@@ -24,6 +24,9 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
         public DbSet<Pricing> Pricing { get; set; }
         public DbSet<MaintenanceRequests> MaintenanceRequests { get; set; }
+        public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<Lease> Leases { get; set; }
+        public DbSet<Document> Documents { get; set; }
 
 
 
