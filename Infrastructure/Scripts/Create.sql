@@ -247,7 +247,7 @@ CREATE TABLE [dbo].[Emails] (
 
 CREATE TABLE [dbo].[MaintenanceRequests] (
     [RequestId] INT PRIMARY KEY IDENTITY(1,1),
-    [TenantId] INT NOT NULL,           -- Who submitted the request
+    [UserId] INT NOT NULL,           -- Who submitted the request
     [PropertyId] INT NOT NULL,         -- Where the issue is
     [RequestDate] DATETIME DEFAULT GETDATE(),  -- When it was submitted
     [Category] NVARCHAR(100),          -- e.g., Plumbing, Electrical, HVAC
@@ -261,7 +261,7 @@ CREATE TABLE [dbo].[MaintenanceRequests] (
 	[CreatedAt] DATETIME DEFAULT GETDATE(),
 
     -- Foreign Keys
-    FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]) ON DELETE CASCADE,
+    FOREIGN KEY (UserId) REFERENCES [dbo].Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]) ON DELETE CASCADE
 );
 GO
