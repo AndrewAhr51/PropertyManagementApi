@@ -143,14 +143,14 @@ GO
 
 GO
 -- ✅ Create the Association Table (PropertyOwners)
-CREATE TABLE PropertyOwners (
+CREATE TABLE dbo.PropertyOwners (
     PropertyId INT NOT NULL,
     OwnerId INT NOT NULL,
-    OwnershipPercentage DECIMAL(5,2) DEFAULT 100, -- Supports co-owners
+    OwnershipPercentage DECIMAL(5,2) NOT NULL CONSTRAINT DF_PropertyOwners_OwnershipPercentage DEFAULT 100,
 
     CONSTRAINT PK_PropertyOwners PRIMARY KEY (PropertyId, OwnerId),
-    CONSTRAINT FK_PropertyOwners_Property FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId) ON DELETE CASCADE,
-    CONSTRAINT FK_PropertyOwners_Owner FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId) ON DELETE CASCADE
+    CONSTRAINT FK_PropertyOwners_Property FOREIGN KEY (PropertyId) REFERENCES dbo.Property(PropertyId) ON DELETE CASCADE,
+    CONSTRAINT FK_PropertyOwners_Owner FOREIGN KEY (OwnerId) REFERENCES dbo.Owners(OwnerId) ON DELETE CASCADE
 );
 GO
 -- Transactions and Billing

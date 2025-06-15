@@ -124,5 +124,10 @@ namespace PropertyManagementAPI.Application.Services
         {
             return await _userRepository.GetRoleIdAsync(role);
         }
+
+        public async Task<bool> SetActivateUserAsync(int propertyId)
+        {
+            return await _userRepository.SetActivateUserAsync(propertyId);
+        }
     }
 }

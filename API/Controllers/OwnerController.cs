@@ -116,7 +116,7 @@ public class OwnerController : ControllerBase
         return NoContent();
     }
 
-    [HttpPut("{ownerId}/inactivate")]
+    [HttpPut("{ownerId}/setactivate")]
     public async Task<IActionResult> SetActivateOwner(int ownerId)
     {
         var success = await _ownersService.SetActivateOwnerAsync(ownerId);
