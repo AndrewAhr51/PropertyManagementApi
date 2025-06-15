@@ -13,5 +13,6 @@ namespace PropertyManagementAPI.Application.Services
         Task<bool> DeleteUserAsync(int id);
         Task<bool> DeleteUserByEmailAsync(string email);
         Task<bool> DeleteUserByUsernameAsync(string username);
+        Task<bool> SetActivateUserAsync(int propertyId);
     }
 }

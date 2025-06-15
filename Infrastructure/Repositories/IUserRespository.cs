@@ -11,7 +11,8 @@ public interface IUserRepository
     Task<bool> DeleteAsync(int id);  // ✅ Remove a user by ID
     Task<bool> DeleteByEmailAsync(string email);
     Task<bool> DeleteUserByUsernameAsync(string username);
-    Task<int> GetRoleIdAsync(string role);  // ✅ Retrieve role ID by role name
+    Task<int> GetRoleIdAsync(string role);  // ✅ Retrieve role ID by role name    
+    Task<bool> SetActivateUserAsync(int id); 
 
     // 🔹 Forgot Password Methods
     Task<bool> StoreResetTokenAsync(string email, string token, DateTime expiration); // ✅ Stores reset token securely

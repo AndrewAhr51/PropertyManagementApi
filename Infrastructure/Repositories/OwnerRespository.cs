@@ -136,15 +136,37 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 
         public async Task<bool> SetActivateOwnerAsync(int ownerId)
         {
-            var owner = await _context.Owners.FindAsync(ownerId);
-            if (owner == null) return false;
-
-            // ✅ Toggle IsActive to the opposite value
-            owner.IsActive = !owner.IsActive;
-
             try
             {
+                var owner = await _context.Owners.FindAsync(ownerId);
+                if (owner == null) return false;
+
+                // ✅ Toggle IsActive to the opposite value
+                owner.IsActive = !owner.IsActive;
+
+                var isActive = owner.IsActive;
+
                 await _context.SaveChangesAsync();
+
+                // ✅ Step 2: Get all PropertyIds owned by this owner
+                var propertyIds = await _context.PropertyOwners
+                    .Where(po => po.OwnerId == owner.OwnerId)
+                    .Select(po => po.PropertyId)
+                    .ToListAsync();
+
+                // ✅ Step 3: Update IsActive on each property
+                var properties = await _context.Property
+                    .Where(p => propertyIds.Contains(p.PropertyId))
+                    .ToListAsync();
+
+                foreach (var property in properties)
+                {
+                    property.IsActive = isActive;
+                }
+
+                await _context.SaveChangesAsync();
+
+
             }
             catch (Exception ex)
             {

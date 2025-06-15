@@ -18,6 +18,8 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Permissions> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Owner> Owners { get; set; }
+        public DbSet<Property> Property { get; set; }
+        public DbSet<PropertyOwner> PropertyOwners{ get; set; }
 
     }
 }
