@@ -83,12 +83,11 @@ GO
 ALTER TABLE [dbo].[Property] ADD  DEFAULT ((1)) FOR [IsAvailable]
 GO
 
-
-GO
 CREATE TABLE [dbo].[PropertyPhotos](
 	[PhotoId] [int] IDENTITY(1,1) NOT NULL,
 	[PropertyId] [int] NOT NULL,
 	[PhotoUrl] [nvarchar](500) NOT NULL,
+	[Room]  [nvarchar](500) NOT NULL,
 	[Caption] [nvarchar](255) NULL,
 	[UploadedAt] [datetime] NULL,
 PRIMARY KEY CLUSTERED 
