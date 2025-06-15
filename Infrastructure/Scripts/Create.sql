@@ -4,13 +4,15 @@ GO
 CREATE TABLE [dbo].[Roles] (
     [RoleId] INT PRIMARY KEY IDENTITY(1,1),
     [Name] NVARCHAR(50) NOT NULL UNIQUE,
-    [Description] NVARCHAR(255)
+    [Description] NVARCHAR(255),
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 );
 GO
 CREATE TABLE [dbo].[Permissions] (
     [PermissionId] INT PRIMARY KEY IDENTITY(1,1),
     [Name] NVARCHAR(100) NOT NULL UNIQUE,
-    [Description] NVARCHAR(255)
+    [Description] NVARCHAR(255),
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 );
 GO
 CREATE TABLE RolePermissions (
@@ -39,7 +41,7 @@ CREATE TABLE Users (
     MfaCodeExpiration DATETIMEOFFSET NULL,
 	
 	IsMfaEnabled BIT DEFAULT 1,
-    IsActive BIT DEFAULT 1
+    IsActive BIT DEFAULT 1,
 );
 
 -- ✅ Add Foreign Key for RoleId
@@ -63,7 +65,8 @@ CREATE TABLE [dbo].[Property](
 	[Bathrooms] [int] NOT NULL,
 	[SquareFeet] [int] NOT NULL,
 	[IsAvailable] [bit] NOT NULL,
-	[IsActive] [bit] NOT NULL
+	[IsActive] [bit] NOT NULL,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 PRIMARY KEY CLUSTERED 
 (
 	[PropertyId] ASC
@@ -81,6 +84,7 @@ CREATE TABLE [dbo].[PropertyPhotos](
 	[Room]  [nvarchar](500) NOT NULL,
 	[Caption] [nvarchar](255) NULL,
 	[UploadedAt] [datetime] NULL,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 PRIMARY KEY CLUSTERED 
 (
 	[PhotoId] ASC
@@ -103,6 +107,7 @@ CREATE TABLE [dbo].[Tenants] (
     [LastName] NVARCHAR(100),
     [PhoneNumber] NVARCHAR(20),
     [MoveInDate] DATE,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId]),
 	FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
@@ -111,10 +116,13 @@ GO
 CREATE TABLE [dbo].[Pricing] (
     [PriceId] INT PRIMARY KEY IDENTITY(1,1),
     [PropertyId] INT NOT NULL,
-    [RentalAmount] DECIMAL(10,2),
+    [EffectiveDate] DATE NOT NULL,
+	[RentalAmount] DECIMAL(10,2),
     [DepositAmount] DECIMAL(10,2),
     [LeaseTerm] NVARCHAR(50),
     [UtilitiesIncluded] BIT DEFAULT 0,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]) ON DELETE CASCADE
 );
 GO
@@ -131,7 +139,8 @@ CREATE TABLE [dbo].[Owners](
 	[State] [nvarchar](100) NOT NULL,
 	[PostalCode] [nvarchar](20) NOT NULL,
 	[Country] [nvarchar](100) NOT NULL,
-	[IsActive] [bit] NOT NULL
+	[IsActive] [bit] NOT NULL,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 PRIMARY KEY CLUSTERED 
 (
 	[OwnerId] ASC
@@ -161,7 +170,8 @@ CREATE TABLE [dbo].[PaymentMethods] (
     [PaymentMethodId] INT PRIMARY KEY IDENTITY(1,1),
     [MethodName] NVARCHAR(100) NOT NULL UNIQUE,
     [Description] NVARCHAR(255),
-    [IsActive] BIT NOT NULL
+    [IsActive] BIT NOT NULL,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 );
 GO
 CREATE TABLE [dbo].[Payments] (
@@ -172,6 +182,7 @@ CREATE TABLE [dbo].[Payments] (
     [PaymentMethodId] INT,
     [TransactionDate] DATETIME DEFAULT GETDATE(),
     [ReferenceNumber] NVARCHAR(100),
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([PaymentMethodId]) REFERENCES [dbo].[PaymentMethods]([PaymentMethodId])
@@ -202,6 +213,7 @@ CREATE TABLE [dbo].[BillingAddress] (
     [State] NVARCHAR(100) NOT NULL,
     [PostalCode] NVARCHAR(20) NOT NULL,
     [Country] NVARCHAR(100) NOT NULL,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([CardId]) REFERENCES [dbo].[CreditCardInfo]([CardId]) ON DELETE CASCADE
 );
 GO
@@ -227,6 +239,7 @@ CREATE TABLE [dbo].[Emails] (
     [SentDate] DATETIME DEFAULT GETUTCDATE(),  -- ✅ Auto-populate timestamp
     [Status] NVARCHAR(50) DEFAULT 'Pending',  -- ✅ Tracks email status ('Pending', 'Sent', 'Failed')
     [IsDelivered] BIT DEFAULT 0,  -- ✅ Tracks delivery status
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 
     -- Foreign Keys
     FOREIGN KEY ([SenderId]) REFERENCES [dbo].[Users]([UserId]) ON DELETE CASCADE,
@@ -245,6 +258,7 @@ CREATE TABLE [dbo].[MaintenanceRequests] (
     [ResolutionNotes] NVARCHAR(MAX) NULL,  -- Technician feedback
     [ResolvedDate] DATETIME NULL,     -- When the issue was closed
     [LastUpdated] DATETIME DEFAULT GETDATE(),
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 
     -- Foreign Keys
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]) ON DELETE CASCADE,
@@ -256,7 +270,8 @@ CREATE TABLE [dbo].[Vendors] (
     [Name] NVARCHAR(255) NOT NULL,
     [ServiceType] NVARCHAR(100),
     [ContactEmail] NVARCHAR(255),
-    [PhoneNumber] NVARCHAR(20)
+    [PhoneNumber] NVARCHAR(20),
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
 );
 GO
 CREATE TABLE [dbo].[AccessLogs] (
@@ -278,6 +293,7 @@ CREATE TABLE [dbo].[Leases] (
     [DepositPaid] BIT DEFAULT 0,
     [IsActive] BIT DEFAULT 1,
     [SignedDate] DATE DEFAULT GETDATE(),
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
@@ -314,6 +330,7 @@ CREATE TABLE [dbo].[Documents] (
     [FileUrl] NVARCHAR(500),
     [Category] NVARCHAR(100), -- Lease, ID, Receipt, etc.
     [UploadedAt] DATETIME DEFAULT GETDATE(),
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId])
 );
@@ -325,6 +342,7 @@ CREATE TABLE [dbo].[PaymentReminders] (
     [InvoiceId] INT NOT NULL,
     [ReminderDate] DATETIME NOT NULL,  -- When the reminder should be sent
     [Status] NVARCHAR(50) DEFAULT 'Pending', -- Pending, Sent, Failed
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[Invoices]([InvoiceId])
