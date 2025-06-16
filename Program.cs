@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using PropertyManagementAPI.API.Mapping;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories;
@@ -21,11 +22,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("NCFConnection")));
 
 // ✅ Register Repositories & Services 
+builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
+builder.Services.AddSingleton<EncryptionHelper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<ICreditCardInfoRepository, CreditCardInfoRepository>();
+builder.Services.AddScoped<ICreditCardInfoService, CreditCardInfoService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
 builder.Services.AddScoped<ILeaseService, LeaseService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
@@ -67,6 +72,7 @@ if (string.IsNullOrEmpty(jwtSettings.SecretKey))
 }
 
 builder.Services.Configure<JwtSettings>(jwtSettingsSection);
+builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
 
 // ✅ Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
