@@ -28,5 +28,6 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Lease> Leases { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<CreditCardInfo> CreditCardInfo { get; set; }
+        public DbSet<Vendor> Vendors { get; set; }
     }
 }
