@@ -182,3 +182,18 @@ INSERT INTO [dbo].[lkupServiceTypes] ([TypeName]) VALUES
 ('Retail'),
 ('Manufacturing'),
 ('Handy Man');
+GO
+INSERT INTO [dbo].[lkupInvoiceType] ([InvoiceType], [Description])
+VALUES 
+    ('Rent', 'Monthly rent payment from tenants'),
+    ('Maintenance', 'Charges for maintenance and repairs'),
+    ('Utilities', 'Utility bills such as water, gas, or electricity'),
+    ('PropertyTax', 'Annual or quarterly property tax assessments'),
+    ('Insurance', 'Insurance premium payments for the property'),
+    ('HOAFees', 'Homeowners Association fees'),
+    ('SecurityDeposit', 'Initial security deposit from tenants'),
+    ('LateFees', 'Fees for overdue rent or payments'),
+    ('ParkingFees', 'Charges for tenant parking spaces'),
+    ('CleaningFees', 'Charges for professional cleaning services'),
+    ('LeaseTermination', 'Fees related to early lease termination'),
+    ('LegalFees', 'Legal service charges for disputes or contracts');

@@ -1,5 +1,55 @@
 ﻿USE [PropertyManagement]
 GO
+CREATE TABLE [dbo].[lkupCategory] (
+    [CategoryId] INT PRIMARY KEY IDENTITY(1,1),
+    [CategoryName] NVARCHAR(100) NOT NULL UNIQUE
+);
+GO
+
+CREATE TABLE [dbo].[lkupCreditCards] (
+    [CreditCardID] INT PRIMARY KEY IDENTITY(1,1),
+    [CreditCardName] VARCHAR(50) NOT NULL UNIQUE
+);
+GO
+
+CREATE TABLE [dbo].[lkupMaintenanceRequestTypes] (
+    [RequestTypeID] INT PRIMARY KEY IDENTITY(1,1),
+    [RequestTypeName] VARCHAR(100) NOT NULL UNIQUE,
+    [Description] VARCHAR(255) NULL
+);
+GO
+
+CREATE TABLE [dbo].[lkupPropertyRooms] (
+    [RoomID] INT PRIMARY KEY IDENTITY(1,1),
+    [RoomName] VARCHAR(100) NOT NULL UNIQUE,
+    [Description] VARCHAR(255) NULL
+);
+GO
+CREATE TABLE [dbo].[lkupInvoiceType](
+    [InvoiceTypeId] [int] IDENTITY(1,1) NOT NULL,
+    [InvoiceTypeName] [nvarchar](50) NOT NULL,
+    [Description] [nvarchar](255) NULL,
+PRIMARY KEY CLUSTERED 
+(
+    [InvoiceTypeId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
+ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+-- Service Types table for normalization
+CREATE TABLE [dbo].[lkupServiceTypes] (
+    [ServiceTypeId] INT PRIMARY KEY IDENTITY(1,1),
+    [TypeName] NVARCHAR(100) NOT NULL UNIQUE
+);
+GO
+CREATE TABLE [dbo].[lkupInvoiceType] (
+    [InvoiceTypeId] INT IDENTITY(1,1) PRIMARY KEY,
+    [InvoiceType] NVARCHAR(50) NOT NULL UNIQUE,
+    [Description] NVARCHAR(255) NULL,
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    [UpdatedAt] DATETIME DEFAULT GETDATE()
+);
+GO
 -- Roles and Permissions
 CREATE TABLE [dbo].[Roles] (
     [RoleId] INT PRIMARY KEY IDENTITY(1,1),
@@ -123,7 +173,7 @@ CREATE TABLE [dbo].[Pricing] (
     [UtilitiesIncluded] BIT DEFAULT 0,
 	[CreatedAt] DATETIME DEFAULT GETDATE(),
 	
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]) ON DELETE CASCADE
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
 -- ✅ Create the Owners Table
@@ -161,8 +211,8 @@ CREATE TABLE dbo.PropertyOwners (
     OwnershipPercentage DECIMAL(5,2) NOT NULL CONSTRAINT DF_PropertyOwners_OwnershipPercentage DEFAULT 100,
 
     CONSTRAINT PK_PropertyOwners PRIMARY KEY (PropertyId, OwnerId),
-    CONSTRAINT FK_PropertyOwners_Property FOREIGN KEY (PropertyId) REFERENCES dbo.Property(PropertyId) ON DELETE CASCADE,
-    CONSTRAINT FK_PropertyOwners_Owner FOREIGN KEY (OwnerId) REFERENCES dbo.Owners(OwnerId) ON DELETE CASCADE
+    CONSTRAINT FK_PropertyOwners_Property FOREIGN KEY (PropertyId) REFERENCES dbo.Property(PropertyId),
+    CONSTRAINT FK_PropertyOwners_Owner FOREIGN KEY (OwnerId) REFERENCES dbo.Owners(OwnerId) 
 );
 GO
 -- Transactions and Billing
@@ -214,7 +264,7 @@ CREATE TABLE [dbo].[BillingAddress] (
     [PostalCode] NVARCHAR(20) NOT NULL,
     [Country] NVARCHAR(100) NOT NULL,
 	[CreatedAt] DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY ([CardId]) REFERENCES [dbo].[CreditCardInfo]([CardId]) ON DELETE CASCADE
+    FOREIGN KEY ([CardId]) REFERENCES [dbo].[CreditCardInfo]([CardId])
 );
 GO
 -- Special Instructions
@@ -242,7 +292,7 @@ CREATE TABLE [dbo].[Emails] (
 	[CreatedAt] DATETIME DEFAULT GETDATE(),
 
     -- Foreign Keys
-    FOREIGN KEY ([SenderId]) REFERENCES [dbo].[Users]([UserId]) ON DELETE CASCADE,
+    FOREIGN KEY ([SenderId]) REFERENCES [dbo].[Users]([UserId]),
 );
 
 CREATE TABLE [dbo].[MaintenanceRequests] (
@@ -261,19 +311,39 @@ CREATE TABLE [dbo].[MaintenanceRequests] (
 	[CreatedAt] DATETIME DEFAULT GETDATE(),
 
     -- Foreign Keys
-    FOREIGN KEY (UserId) REFERENCES [dbo].Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]) ON DELETE CASCADE
+    FOREIGN KEY (UserId) REFERENCES [dbo].Users(UserId),
+    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]) 
 );
 GO
 CREATE TABLE [dbo].[Vendors] (
     [VendorId] INT PRIMARY KEY IDENTITY(1,1),
     [Name] NVARCHAR(255) NOT NULL,
-    [ServiceType] NVARCHAR(100),
-    [ContactEmail] NVARCHAR(255),
+	[ContactFirstName] NVARCHAR(255) NOT NULL,
+	[ContactLastName] NVARCHAR(255) NOT NULL,
+    [ServiceTypeId] int,
+    [ContactEmail] NVARCHAR(255) UNIQUE NOT NULL,
     [PhoneNumber] NVARCHAR(20),
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+    [Address] NVARCHAR(255),
+    [Address1] NVARCHAR(255),
+    [City] NVARCHAR(100),
+    [State] NVARCHAR(50),
+    [PostalCode] NVARCHAR(20),
+    [AccountNumber] NVARCHAR(50) UNIQUE NOT NULL,
+    [Notes] NVARCHAR(MAX),
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    [UpdatedAt] DATETIME DEFAULT GETDATE(),
+	[IsActive] [bit] DEFAULT 1,
+    FOREIGN KEY ([ServiceTypeId]) REFERENCES [dbo].[lkupServiceTypes]([ServiceTypeId])
 );
-GO
+
+-- Indexes for optimized querying
+CREATE INDEX IX_Vendors_ServiceType ON [dbo].[Vendors] ([ServiceTypeId]);
+CREATE INDEX IX_Vendors_ContactEmail ON [dbo].[Vendors] ([ContactEmail]);
+CREATE INDEX IX_Vendors_AccountNumber ON [dbo].[Vendors] ([AccountNumber]);
+CREATE INDEX IX_Vendors_City ON [dbo].[Vendors] ([City]);
+CREATE INDEX IX_Vendors_State ON [dbo].[Vendors] ([State]);
+CREATE INDEX IX_Vendors_PostalCode ON [dbo].[Vendors] ([PostalCode]);
+
 CREATE TABLE [dbo].[AccessLogs] (
     [LogId] INT PRIMARY KEY IDENTITY(1,1),
     [UserId] INT NOT NULL,
@@ -298,17 +368,43 @@ CREATE TABLE [dbo].[Leases] (
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
-CREATE TABLE [dbo].[Invoices] (
-    [InvoiceId] INT PRIMARY KEY IDENTITY(1,1),
-    [TenantId] INT NOT NULL,
-    [PropertyId] INT NOT NULL,
-    [AmountDue] DECIMAL(10,2) NOT NULL,
-    [DueDate] DATE NOT NULL,
-    [IsPaid] BIT DEFAULT 0,
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
-);
+CREATE TABLE [dbo].[Invoices](
+    [InvoiceId] [int] IDENTITY(1,1) NOT NULL,
+    [TenantId] [int] NOT NULL,
+    [PropertyId] [int] NOT NULL,
+    [AmountDue] [decimal](10, 2) NOT NULL,
+    [DueDate] [date] NOT NULL,
+    [BillingPeriod] [nvarchar](20) NOT NULL DEFAULT ('Monthly'), -- Monthly, Quarterly, Annual
+    [BillingMonth] [nvarchar](10) NOT NULL DEFAULT FORMAT(GETDATE(), 'MMMM'), -- Stores month name
+    [LateFee] [decimal](10, 2) NULL DEFAULT (0), -- Late payment penalty
+    [DiscountsApplied] [decimal](10, 2) NULL DEFAULT (0), -- Discounts or promotions
+    [IsPaid] [bit] NULL DEFAULT (0),
+    [PaymentDate] [datetime] NULL, -- Date when payment was made
+    [PaymentMethod] [nvarchar](50) NULL, -- Payment method (Credit Card, Bank Transfer, etc.)
+    [PaymentReference] [nvarchar](100) NULL, -- Transaction ID for reconciliation
+    [InvoiceStatus] [nvarchar](20) NOT NULL DEFAULT ('Pending'), -- Pending, Paid, Overdue
+    [InvoiceType] [nvarchar](50) NOT NULL DEFAULT ('Rent'), -- Rent, Maintenance, Utilities, etc.
+    [GeneratedBy] [nvarchar](50) NULL DEFAULT ('Web'),
+    [Notes] [nvarchar](500) NULL, -- Additional comments or metadata
+    [CreatedAt] [datetime] NULL DEFAULT (getdate()),
+    [UpdatedAt] [datetime] NULL DEFAULT (getdate()),
+PRIMARY KEY CLUSTERED 
+(
+    [InvoiceId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
+ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- Foreign Key Constraints
+ALTER TABLE [dbo].[Invoices]  WITH CHECK ADD FOREIGN KEY([PropertyId])
+REFERENCES [dbo].[Property] ([PropertyId])
+GO
+
+ALTER TABLE [dbo].[Invoices]  WITH CHECK ADD FOREIGN KEY([TenantId])
+REFERENCES [dbo].[Tenants] ([TenantId])
+GO
+
 GO
 CREATE TABLE [dbo].[Notes] (
     [NoteId] INT PRIMARY KEY IDENTITY(1,1),
@@ -348,31 +444,7 @@ CREATE TABLE [dbo].[PaymentReminders] (
     FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[Invoices]([InvoiceId])
 );
 GO
-CREATE TABLE [dbo].[lkupCategory] (
-    [CategoryId] INT PRIMARY KEY IDENTITY(1,1),
-    [CategoryName] NVARCHAR(100) NOT NULL UNIQUE
-);
-GO
 
-CREATE TABLE [dbo].[lkupCreditCards] (
-    [CreditCardID] INT PRIMARY KEY IDENTITY(1,1),
-    [CreditCardName] VARCHAR(50) NOT NULL UNIQUE
-);
-GO
-
-CREATE TABLE [dbo].[lkupMaintenanceRequestTypes] (
-    [RequestTypeID] INT PRIMARY KEY IDENTITY(1,1),
-    [RequestTypeName] VARCHAR(100) NOT NULL UNIQUE,
-    [Description] VARCHAR(255) NULL
-);
-GO
-
-CREATE TABLE [dbo].[lkupPropertyRooms] (
-    [RoomID] INT PRIMARY KEY IDENTITY(1,1),
-    [RoomName] VARCHAR(100) NOT NULL UNIQUE,
-    [Description] VARCHAR(255) NULL
-);
-GO
 
 CREATE INDEX IX_ResetToken ON Users (ResetToken);
 CREATE INDEX IX_UserEmail ON Users (Email);
