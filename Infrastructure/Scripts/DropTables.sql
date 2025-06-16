@@ -32,5 +32,4 @@ DROP TABLE IF EXISTS [dbo].[lkupMaintenanceRequestTypes];
 DROP TABLE IF EXISTS [dbo].[lkupPropertyRooms];
 DROP TABLE IF EXISTS [dbo].[lkupInvoiceType];
 DROP TABLE IF EXISTS [dbo].[lkupServiceTypes];
-DROP TABLE IF EXISTS [dbo].[lkupServiceTypes];
 GO

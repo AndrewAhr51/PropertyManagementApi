@@ -10,11 +10,11 @@ namespace PropertyManagementAPI.Infrastructure.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-
         // Custom entities
         public DbSet<User> Users { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Permissions> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Owner> Owners { get; set; }
@@ -27,7 +27,9 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Lease> Leases { get; set; }
         public DbSet<Document> Documents { get; set; }
+        public DbSet<DocumentStorage> DocumentStorage { get; set; }
         public DbSet<CreditCardInfo> CreditCardInfo { get; set; }
         public DbSet<Vendor> Vendors { get; set; }
+        public DbSet<Note> Notes { get; set; }
     }
 }
