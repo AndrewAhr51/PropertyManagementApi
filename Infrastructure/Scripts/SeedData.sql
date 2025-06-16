@@ -100,12 +100,7 @@ INSERT INTO [dbo].[Payments] ([TenantId], [PropertyId], [Amount], [PaymentMethod
 (2, 3, 3200.00, 3, GETDATE(), 'REF345678');
 GO
 
--- ✅ Insert seed data into CreditCardInfo table
-INSERT INTO [dbo].[CreditCardInfo] ([TenantId], [PropertyId], [CardHolderName], [CardNumber], [LastFourDigits], [ExpirationDate], [CVV], [CreatedAt]) VALUES
-(1, 1, 'John Doe', CONVERT(VARBINARY(256), '4111111111111111'),'1111', '05/2026', CONVERT(VARBINARY(256), '123'), GETDATE()),
-(2, 3, 'Michael Johnson', CONVERT(VARBINARY(256), '378282246310005'),'0005','12/2025', CONVERT(VARBINARY(256), '789'), GETDATE());
-GO
-INSERT INTO lkupCategory (CategoryName)
+INSERT INTO [dbo].[lkupCategory] ([CategoryName])
 VALUES 
     ('Lease'),
     ('ID'),
@@ -116,7 +111,7 @@ VALUES
     ('Insurance'),
     ('Other');
 GO
-INSERT INTO lkupCreditCards (CreditCardName) VALUES
+INSERT INTO  [dbo].[lkupCreditCards] ([CreditCardName]) VALUES
     ('Visa'),
     ('MasterCard'),
     ('American Express'),
@@ -128,7 +123,7 @@ INSERT INTO lkupCreditCards (CreditCardName) VALUES
 	('Coinbase');
 
 GO
-INSERT INTO lkupMaintenanceRequestTypes (RequestTypeName, Description) VALUES
+INSERT INTO  [dbo].[lkupMaintenanceRequestTypes] ([RequestTypeName], [Description]) VALUES
     ('Plumbing', 'Issues related to leaks, clogged drains, or faulty fixtures'),
     ('Electrical', 'Repair or installation of wiring, outlets, or circuit breakers'),
     ('HVAC', 'Heating, ventilation, and air conditioning system maintenance'),
@@ -140,7 +135,7 @@ INSERT INTO lkupMaintenanceRequestTypes (RequestTypeName, Description) VALUES
     ('Security Systems', 'Maintenance of cameras, alarms, or door locks'),
     ('General Repairs', 'Miscellaneous maintenance and minor home fixes');
 GO
-INSERT INTO lkupPropertyRooms (RoomName, Description) VALUES
+INSERT INTO  [dbo].[lkupPropertyRooms] ([RoomName], [Description]) VALUES
     ('Living Room', 'Main communal area for relaxation and gatherings'),
     ('Kitchen', 'Area for cooking and food preparation'),
     ('Dining Room', 'Space for eating meals'),
@@ -160,3 +155,30 @@ INSERT INTO lkupPropertyRooms (RoomName, Description) VALUES
     ('Playroom', 'Space for children’s activities and toys'),
     ('Gym', 'Home fitness area'),
     ('Library', 'Room for books, reading, and study');
+GO
+-- Seed Data for Common Invoice Types
+INSERT INTO [dbo].[lkupInvoiceType] ([InvoiceTypeName], [Description]) VALUES 
+('Rent', 'Monthly rental payment for tenants'),
+('Maintenance', 'Charges for property maintenance and repairs'),
+('Utilities', 'Water, electricity, gas, and other utility bills'),
+('Security Deposit', 'Refundable deposit for new tenants'),
+('Late Fee', 'Penalty for overdue payments'),
+('Parking Fee', 'Charges for parking space usage'),
+('HOA Fees', 'Homeowners Association fees for shared property management'),
+('Cleaning Fee', 'Charges for cleaning services'),
+('Lease Termination', 'Fees for early lease termination'),
+('Miscellaneous', 'Other property-related charges');
+
+GO
+INSERT INTO [dbo].[lkupServiceTypes] ([TypeName]) VALUES
+('IT Services'),
+('Legal Consulting'),
+('Marketing'),
+('Financial Advisory'),
+('Logistics'),
+('Healthcare Services'),
+('Construction'),
+('Education'),
+('Retail'),
+('Manufacturing'),
+('Handy Man');
