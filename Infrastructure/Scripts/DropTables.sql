@@ -27,4 +27,7 @@ DROP TABLE IF EXISTS RolePermissions;
 DROP TABLE IF EXISTS Permissions;
 DROP TABLE IF EXISTS Roles;
 DROP TABLE IF EXISTS Vendors;
+DROP TABLE IF EXISTS lkupCreditCards;
+DROP TABLE IF EXISTS lkupMaintenanceRequestTypes;
+DROP TABLE IF EXISTS lkupPropertyRooms;
 GO

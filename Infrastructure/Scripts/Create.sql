@@ -348,9 +348,29 @@ CREATE TABLE [dbo].[PaymentReminders] (
     FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[Invoices]([InvoiceId])
 );
 GO
-CREATE TABLE lkupCategory (
-    CategoryId INT PRIMARY KEY IDENTITY(1,1),
-    CategoryName NVARCHAR(100) NOT NULL UNIQUE
+CREATE TABLE [dbo].[lkupCategory] (
+    [CategoryId] INT PRIMARY KEY IDENTITY(1,1),
+    [CategoryName] NVARCHAR(100) NOT NULL UNIQUE
+);
+GO
+
+CREATE TABLE [dbo].[lkupCreditCards] (
+    [CreditCardID] INT PRIMARY KEY IDENTITY(1,1),
+    [CreditCardName] VARCHAR(50) NOT NULL UNIQUE
+);
+GO
+
+CREATE TABLE [dbo].[lkupMaintenanceRequestTypes] (
+    [RequestTypeID] INT PRIMARY KEY IDENTITY(1,1),
+    [RequestTypeName] VARCHAR(100) NOT NULL UNIQUE,
+    [Description] VARCHAR(255) NULL
+);
+GO
+
+CREATE TABLE [dbo].[lkupPropertyRooms] (
+    [RoomID] INT PRIMARY KEY IDENTITY(1,1),
+    [RoomName] VARCHAR(100) NOT NULL UNIQUE,
+    [Description] VARCHAR(255) NULL
 );
 GO
 

@@ -116,3 +116,47 @@ VALUES
     ('Insurance'),
     ('Other');
 GO
+INSERT INTO lkupCreditCards (CreditCardName) VALUES
+    ('Visa'),
+    ('MasterCard'),
+    ('American Express'),
+    ('Discover'),
+    ('Diners Club'),
+    ('JCB'),
+    ('UnionPay'),
+	('PayPal'),
+	('Coinbase');
+
+GO
+INSERT INTO lkupMaintenanceRequestTypes (RequestTypeName, Description) VALUES
+    ('Plumbing', 'Issues related to leaks, clogged drains, or faulty fixtures'),
+    ('Electrical', 'Repair or installation of wiring, outlets, or circuit breakers'),
+    ('HVAC', 'Heating, ventilation, and air conditioning system maintenance'),
+    ('Roofing', 'Roof inspections, leaks, or repairs'),
+    ('Appliance Repair', 'Fixing or replacing household appliances'),
+    ('Pest Control', 'Treatment for infestations or prevention measures'),
+    ('Landscaping', 'Lawn care, tree trimming, or irrigation system repairs'),
+    ('Painting', 'Interior or exterior painting work'),
+    ('Security Systems', 'Maintenance of cameras, alarms, or door locks'),
+    ('General Repairs', 'Miscellaneous maintenance and minor home fixes');
+GO
+INSERT INTO lkupPropertyRooms (RoomName, Description) VALUES
+    ('Living Room', 'Main communal area for relaxation and gatherings'),
+    ('Kitchen', 'Area for cooking and food preparation'),
+    ('Dining Room', 'Space for eating meals'),
+    ('Bedroom', 'Private sleeping area'),
+    ('Bathroom', 'Room with bath/shower, sink, and toilet'),
+    ('Home Office', 'Dedicated workspace for remote work or study'),
+    ('Laundry Room', 'Space for washing and drying clothes'),
+    ('Garage', 'Storage and parking area for vehicles'),
+    ('Basement', 'Underground storage or living space'),
+    ('Attic', 'Top-floor storage space'),
+    ('Hallway', 'Connecting space between rooms'),
+    ('Closet', 'Storage space for clothing and items'),
+    ('Sunroom', 'Glass-enclosed space for natural light exposure'),
+    ('Pantry', 'Small storage space for food and kitchen essentials'),
+    ('Mudroom', 'Entryway for shoes, coats, and outdoor gear'),
+    ('Guest Room', 'Dedicated sleeping space for visitors'),
+    ('Playroom', 'Space for children’s activities and toys'),
+    ('Gym', 'Home fitness area'),
+    ('Library', 'Room for books, reading, and study');
