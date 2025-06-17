@@ -20,8 +20,8 @@ DROP TABLE IF EXISTS [dbo].[lkupPaymentMethods];
 DROP TABLE IF EXISTS [dbo].[PropertyOwners];
 DROP TABLE IF EXISTS [dbo].[Owners];
 DROP TABLE IF EXISTS [dbo].[Pricing];
-DROP TABLE IF EXISTS [dbo].[Property];
 DROP TABLE IF EXISTS [dbo].[Tenants];
+DROP TABLE IF EXISTS [dbo].[Property]
 DROP TABLE IF EXISTS [dbo].[Users];
 DROP TABLE IF EXISTS [dbo].[RolePermissions];
 DROP TABLE IF EXISTS [dbo].[Permissions];
