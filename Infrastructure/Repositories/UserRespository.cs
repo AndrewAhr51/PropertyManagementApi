@@ -9,9 +9,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public UserRepository(AppDbContext context)
+        public UserRepository(SQLServerDbContext context)
         {
             _context = context;
         }

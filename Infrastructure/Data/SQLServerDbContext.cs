@@ -6,9 +6,9 @@ using System.Security;
 namespace PropertyManagementAPI.Infrastructure.Data
 {
 
-    public class AppDbContext : DbContext
+    public class SQLServerDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public SQLServerDbContext(DbContextOptions<SQLServerDbContext> options) : base(options) { }
 
         // Custom entities
         public DbSet<User> Users { get; set; }

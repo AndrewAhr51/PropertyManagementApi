@@ -5,9 +5,9 @@ using PropertyManagementAPI.Infrastructure.Data;
 
 public class LeaseRepository : ILeaseRepository
 {
-    private readonly AppDbContext _context;
+    private readonly SQLServerDbContext _context;
 
-    public LeaseRepository(AppDbContext context)
+    public LeaseRepository(SQLServerDbContext context)
     {
         _context = context;
     }

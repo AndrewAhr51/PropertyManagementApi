@@ -8,9 +8,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class DocumentStorageRepository : IDocumentStorageRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public DocumentStorageRepository(AppDbContext context)
+        public DocumentStorageRepository(SQLServerDbContext context)
         {
             _context = context;
         }

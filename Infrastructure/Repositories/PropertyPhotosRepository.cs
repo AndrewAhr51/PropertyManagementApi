@@ -7,9 +7,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class PropertyPhotosRepository : IPropertyPhotosRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public PropertyPhotosRepository(AppDbContext context)
+        public PropertyPhotosRepository(SQLServerDbContext context)
         {
             _context = context;
         }

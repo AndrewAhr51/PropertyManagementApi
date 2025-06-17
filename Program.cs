@@ -19,8 +19,14 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // ✅ Configure SQL Server Database Context
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("NCFConnection")));
+builder.Services.AddDbContext<SQLServerDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SQLServerConnection")));
+
+builder.Services.AddDbContext<MySqlDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"),
+    new MySqlServerVersion(new Version(8, 0, 32))));
+
+
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
