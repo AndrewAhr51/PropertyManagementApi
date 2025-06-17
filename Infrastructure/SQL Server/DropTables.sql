@@ -1,35 +1,90 @@
-﻿USE [PropertyManagement];
+﻿USE PropertyManagement;
 GO
 
--- ✅ Drop tables with foreign key dependencies first
-DROP TABLE IF EXISTS [dbo].[lkupCategory];
-DROP TABLE IF EXISTS [dbo].[PaymentReminders];
-DROP TABLE IF EXISTS [dbo].[Documents];
-DROP TABLE IF EXISTS [dbo].[Notes];
-DROP TABLE IF EXISTS [dbo].[Invoices];
-DROP TABLE IF EXISTS [dbo].[Leases];
-DROP TABLE IF EXISTS [dbo].[PropertyPhotos];
-DROP TABLE IF EXISTS [dbo].[AccessLogs];
-DROP TABLE IF EXISTS [dbo].[MaintenanceRequests];
-DROP TABLE IF EXISTS [dbo].[Emails];
-DROP TABLE IF EXISTS [dbo].[SpecialInstructions];
-DROP TABLE IF EXISTS [dbo].[BillingAddress];
-DROP TABLE IF EXISTS [dbo].[CreditCardInfo];
-DROP TABLE IF EXISTS [dbo].[Payments];
-DROP TABLE IF EXISTS [dbo].[lkupPaymentMethods];
-DROP TABLE IF EXISTS [dbo].[PropertyOwners];
-DROP TABLE IF EXISTS [dbo].[Owners];
-DROP TABLE IF EXISTS [dbo].[Pricing];
-DROP TABLE IF EXISTS [dbo].[Tenants];
-DROP TABLE IF EXISTS [dbo].[Property]
-DROP TABLE IF EXISTS [dbo].[Users];
-DROP TABLE IF EXISTS [dbo].[RolePermissions];
-DROP TABLE IF EXISTS [dbo].[Permissions];
-DROP TABLE IF EXISTS [dbo].[Roles];
-DROP TABLE IF EXISTS [dbo].[Vendors];
-DROP TABLE IF EXISTS [dbo].[lkupCreditCards];
-DROP TABLE IF EXISTS [dbo].[lkupMaintenanceRequestTypes];
-DROP TABLE IF EXISTS [dbo].[lkupPropertyRooms];
-DROP TABLE IF EXISTS [dbo].[lkupInvoiceType];
-DROP TABLE IF EXISTS [dbo].[lkupServiceTypes];
+-- ✅ Drop foreign key constraints first
+ALTER TABLE Payments DROP CONSTRAINT IF EXISTS FK_Payments_Tenants;
+GO
+ALTER TABLE Payments DROP CONSTRAINT IF EXISTS FK_Payments_PaymentMethods;
+GO
+ALTER TABLE Tenants DROP CONSTRAINT IF EXISTS FK_Tenants_Users;
+GO
+ALTER TABLE Tenants DROP CONSTRAINT IF EXISTS FK_Tenants_Property;
+GO
+ALTER TABLE PropertyOwners DROP CONSTRAINT IF EXISTS FK_PropertyOwners_Owners;
+GO
+ALTER TABLE PropertyOwners DROP CONSTRAINT IF EXISTS FK_PropertyOwners_Property;
+GO
+ALTER TABLE RolePermissions DROP CONSTRAINT IF EXISTS FK_RolePermissions_Roles;
+GO
+ALTER TABLE RolePermissions DROP CONSTRAINT IF EXISTS FK_RolePermissions_Permissions;
+GO
+ALTER TABLE Users DROP CONSTRAINT IF EXISTS FK_Users_Roles;
+GO
+
+-- ✅ Drop tables with dependencies first
+DROP TABLE IF EXISTS Payments;
+GO
+DROP TABLE IF EXISTS lkupPaymentMethods;
+GO
+DROP TABLE IF EXISTS PropertyOwners;
+GO
+DROP TABLE IF EXISTS Owners;
+GO
+DROP TABLE IF EXISTS Pricing;
+GO
+DROP TABLE IF EXISTS Property;
+GO
+DROP TABLE IF EXISTS Tenants;
+GO
+DROP TABLE IF EXISTS Users;
+GO
+DROP TABLE IF EXISTS RolePermissions;
+GO
+DROP TABLE IF EXISTS Permissions;
+GO
+DROP TABLE IF EXISTS Roles;
+GO
+
+-- ✅ Drop remaining tables
+DROP TABLE IF EXISTS PaymentReminders;
+GO
+DROP TABLE IF EXISTS Documents;
+GO
+DROP TABLE IF EXISTS DocumentStorage;
+GO
+DROP TABLE IF EXISTS Notes;
+GO
+DROP TABLE IF EXISTS Invoices;
+GO
+DROP TABLE IF EXISTS Leases;
+GO
+DROP TABLE IF EXISTS PropertyPhotos;
+GO
+DROP TABLE IF EXISTS AccessLogs;
+GO
+DROP TABLE IF EXISTS MaintenanceRequests;
+GO
+DROP TABLE IF EXISTS Emails;
+GO
+DROP TABLE IF EXISTS SpecialInstructions;
+GO
+DROP TABLE IF EXISTS BillingAddress;
+GO
+DROP TABLE IF EXISTS CreditCardInfo;
+GO
+DROP TABLE IF EXISTS Vendors;
+GO
+DROP TABLE IF EXISTS lkupCreditCards;
+GO
+DROP TABLE IF EXISTS lkupMaintenanceRequestTypes;
+GO
+DROP TABLE IF EXISTS lkupPropertyRooms;
+GO
+DROP TABLE IF EXISTS lkupInvoiceType;
+GO
+DROP TABLE IF EXISTS lkupServiceTypes;
+GO
+DROP TABLE IF EXISTS lkupDocumentType;
+GO
+DROP TABLE IF EXISTS lkupCategory;
 GO

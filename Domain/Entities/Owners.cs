@@ -24,28 +24,34 @@ namespace PropertyManagementAPI.Domain.Entities
         [EmailAddress]
         public string Email { get; set; }
 
+        [Required]
         [MaxLength(50)]
         public string Phone { get; set; }
 
+        [Required]
         [MaxLength(255)]
         public string Address1 { get; set; }
 
         [MaxLength(255)]
-        public string Address2 { get; set; }
+        public string? Address2 { get; set; }
 
+        [Required]
         [MaxLength(100)]
         public string City { get; set; }
 
+        [Required]
         [MaxLength(100)]
         public string State { get; set; }
 
+        [Required]
         [MaxLength(20)]
         public string PostalCode { get; set; }
 
+        [Required]
         [MaxLength(100)]
         public string Country { get; set; }
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
 
         // ✅ Navigation property with explicit foreign key
         [ForeignKey(nameof(UserId))]

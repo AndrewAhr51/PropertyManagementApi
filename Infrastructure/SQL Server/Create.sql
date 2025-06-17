@@ -42,14 +42,6 @@ CREATE TABLE [dbo].[lkupServiceTypes] (
     [TypeName] NVARCHAR(100) NOT NULL UNIQUE
 );
 GO
-CREATE TABLE [dbo].[lkupInvoiceType] (
-    [InvoiceTypeId] INT IDENTITY(1,1) PRIMARY KEY,
-    [InvoiceType] NVARCHAR(50) NOT NULL UNIQUE,
-    [Description] NVARCHAR(255) NULL,
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
-    [UpdatedAt] DATETIME DEFAULT GETDATE()
-);
-GO
 -- Roles and Permissions
 CREATE TABLE [dbo].[Roles] (
     [RoleId] INT PRIMARY KEY IDENTITY(1,1),
@@ -101,6 +93,39 @@ ALTER TABLE Users ADD CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES 
 CREATE INDEX IX_MfaCode ON Users (MfaCode);
 GO
 
+CREATE TABLE [dbo].[Owners](
+	[OwnerId] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [int] NOT NULL,
+	[FirstName] [nvarchar](100) NOT NULL,
+	[LastName] [nvarchar](100) NOT NULL,
+	[Email] [nvarchar](255) NOT NULL,
+	[Phone] [nvarchar](50) NOT NULL,
+	[Address1] [nvarchar](255) NOT NULL,
+	[Address2] [nvarchar](255) NULL,
+	[City] [nvarchar](100) NOT NULL,
+	[State] [nvarchar](100) NOT NULL,
+	[PostalCode] [nvarchar](20) NOT NULL,
+	[Country] [nvarchar](100) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreatedAt] DATETIME DEFAULT GETDATE(),
+PRIMARY KEY CLUSTERED 
+(
+	[OwnerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[Email] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- ✅ Add Foreign Key for UserId in Owners table
+ALTER TABLE Owners 
+ADD CONSTRAINT FK_Owners_Users 
+FOREIGN KEY (UserId) 
+REFERENCES Users(UserId);
+
+GO
 
 CREATE TABLE [dbo].[Property](
 	[PropertyId] [int] IDENTITY(1,1) NOT NULL,
@@ -177,31 +202,6 @@ CREATE TABLE [dbo].[Pricing] (
 );
 GO
 -- ✅ Create the Owners Table
-CREATE TABLE [dbo].[Owners](
-	[OwnerId] [int] IDENTITY(1,1) NOT NULL,
-	[FirstName] [nvarchar](100) NOT NULL,
-	[LastName] [nvarchar](100) NOT NULL,
-	[Email] [nvarchar](255) NOT NULL,
-	[Phone] [nvarchar](50) NOT NULL,
-	[Address1] [nvarchar](255) NOT NULL,
-	[Address2] [nvarchar](255) NULL,
-	[City] [nvarchar](100) NOT NULL,
-	[State] [nvarchar](100) NOT NULL,
-	[PostalCode] [nvarchar](20) NOT NULL,
-	[Country] [nvarchar](100) NOT NULL,
-	[IsActive] [bit] NOT NULL,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
-PRIMARY KEY CLUSTERED 
-(
-	[OwnerId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
-UNIQUE NONCLUSTERED 
-(
-	[Email] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
 
 GO
 -- ✅ Create the Association Table (PropertyOwners)
@@ -445,7 +445,26 @@ CREATE TABLE [dbo].[PaymentReminders] (
 );
 GO
 
-
+CREATE TABLE [dbo].[DocumentStorage] (
+    [DocumentStorageId] INT IDENTITY(1,1) PRIMARY KEY,
+    [DocumentId] INT NOT NULL, -- Foreign key reference to Documents
+	[InvoiceId] INT NOT NULL, 
+    [FileName] NVARCHAR(255) NOT NULL,
+    [FileType] NVARCHAR(50) NOT NULL, -- PDF, DOCX, JPG, etc.
+    [FileData] VARBINARY(MAX) NOT NULL, -- Blob storage
+    [UploadedAt] DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_Document FOREIGN KEY ([DocumentId]) 
+    REFERENCES [dbo].[Documents]([DocumentId]) ON DELETE CASCADE
+);
+GO
+CREATE TABLE [dbo].[lkupDocumentType] (
+    [DocumentTypeId] INT IDENTITY(1,1) PRIMARY KEY,
+    [DocumentType] NVARCHAR(50) NOT NULL UNIQUE,
+    [Description] NVARCHAR(255) NULL,
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    [UpdatedAt] DATETIME DEFAULT GETDATE()
+);
+GO
 CREATE INDEX IX_ResetToken ON Users (ResetToken);
 CREATE INDEX IX_UserEmail ON Users (Email);
 CREATE INDEX IX_Property_City ON Property(City);

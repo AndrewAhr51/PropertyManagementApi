@@ -38,7 +38,7 @@ namespace PropertyManagementAPI.Controllers
 
         // 🔹 Generate Password Reset Token
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> GenerateResetToken([FromBody] string email)
+        public async Task<IActionResult> GenerateResetToken([FromBody] EmailDto email)
         {
             var token = await _authService.GenerateResetTokenAsync(email);
             if (token == null) return NotFound("User not found.");
@@ -48,7 +48,7 @@ namespace PropertyManagementAPI.Controllers
 
         // 🔹 Send Password Reset Email
         [HttpPost("send-reset-email")]
-        public async Task<IActionResult> SendResetEmail([FromBody] string email)
+        public async Task<IActionResult> SendResetEmail([FromBody] EmailDto email)
         {
             var success = await _authService.SendResetEmailAsync(email);
             if (!success) return NotFound("User not found or email failed to send.");
@@ -56,11 +56,15 @@ namespace PropertyManagementAPI.Controllers
             return Ok("Password reset email sent successfully.");
         }
 
-        // 🔹 Validate Reset Token
+        // Fix for CS1503: Argument 1: cannot convert from 'string' to 'PropertyManagementAPI.Domain.DTOs.EmailDto'
+        // The ValidateResetTokenAsync method expects an EmailDto object as the first argument.
+        // Update the code to create an EmailDto instance using the provided email string.
+
         [HttpPost("validate-reset-token")]
         public async Task<IActionResult> ValidateResetToken([FromBody] ValidateResetDto validateResetDto)
         {
-            var isValid = await _authService.ValidateResetTokenAsync(validateResetDto.Email, validateResetDto.Token);
+            var emailDto = new EmailDto { EmailAddress = validateResetDto.Email }; // Create EmailDto instance
+            var isValid = await _authService.ValidateResetTokenAsync(emailDto, validateResetDto.Token); // Pass EmailDto instead of string
             if (!isValid) return BadRequest("Invalid or expired reset token.");
 
             return Ok("Reset token is valid.");
@@ -70,10 +74,11 @@ namespace PropertyManagementAPI.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
-            var success = await _authService.ResetPasswordAsync(resetPasswordDto.Email, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+            var emailDto = new EmailDto { EmailAddress = resetPasswordDto.Email };
+            var success = await _authService.ResetPasswordAsync(emailDto, resetPasswordDto.Token, resetPasswordDto.NewPassword);
             if (!success) return BadRequest("Password reset failed.");
 
             return Ok("Password reset successfully.");
-        }
+        }   
     }
-}
+}   

@@ -64,18 +64,23 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 
         public async Task<IEnumerable<Owner>> GetAllOwnersAsync()
         {
-            return await _context.Owners.ToListAsync();
+            return await _context.Owners
+                .Include(o => o.User) // ✅ Ensures User is loaded
+                .ToListAsync();
         }
 
         public async Task<Owner?> GetOwnerByIdAsync(int ownerId)
         {
-            return await _context.Owners.FindAsync(ownerId);
+            return await _context.Owners
+                .Include(o => o.User) // ✅ Ensures User is loaded
+                .FirstOrDefaultAsync(o => o.OwnerId == ownerId);
         }
 
         public async Task<Owner?> GetOwnerByUserNameAsync(string username)
         {
-            return await _context.Owners.Include(o => o.User)
-                .Where(o => o.User.UserName == username && o.User.RoleId == 4)
+            return await _context.Owners
+                .Include(o => o.User) // ✅ Ensures User is loaded
+                .Where(o => o.User != null && o.User.UserName == username && o.User.RoleId == 4) // ✅ Prevents null reference issues
                 .FirstOrDefaultAsync();
         }
 

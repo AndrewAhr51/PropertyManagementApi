@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Domain.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories
@@ -14,23 +15,29 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             _context = context;
         }
 
-        // ✅ Log a sent email
         public async Task<bool> LogSentEmailAsync(Emails emailLog)
         {
             await _context.Emails.AddAsync(emailLog);
             return await _context.SaveChangesAsync() > 0;
         }
 
-        // ✅ Retrieve an email log by ID
-        public async Task<Emails?> GetEmailByIdAsync(int id)
+        public async Task<Emails?> GetEmailByIdAsync(int emailId)
         {
-            return await _context.Emails.FindAsync(id);
+            return await _context.Emails
+                .Include(e => e.Sender) // ✅ Ensures User (Sender) is loaded
+                .FirstOrDefaultAsync(e => e.EmailId == emailId);
         }
 
-        // ✅ Update email status (Sent, Failed)
-        public async Task<bool> UpdateEmailStatusAsync(int id, bool isDelivered)
+        public async Task<IEnumerable<Emails>> GetAllEmailsAsync()
         {
-            var emailLog = await _context.Emails.FindAsync(id);
+            return await _context.Emails
+                .Include(e => e.Sender) // ✅ Ensures User (Sender) is loaded
+                .ToListAsync();
+        }
+
+        public async Task<bool> UpdateEmailStatusAsync(int emailId, bool isDelivered)
+        {
+            var emailLog = await _context.Emails.FindAsync(emailId);
             if (emailLog == null) return false;
 
             emailLog.IsDelivered = isDelivered;
