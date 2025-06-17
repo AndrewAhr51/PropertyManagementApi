@@ -7,9 +7,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class PaymentMethodsRepository : IPaymentMethodsRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public PaymentMethodsRepository(AppDbContext context)
+        public PaymentMethodsRepository(SQLServerDbContext context)
         {
             _context = context;
         }

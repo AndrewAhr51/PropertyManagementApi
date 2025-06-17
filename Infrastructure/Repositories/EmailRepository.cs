@@ -7,9 +7,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class EmailRepository : IEmailRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public EmailRepository(AppDbContext context)
+        public EmailRepository(SQLServerDbContext context)
         {
             _context = context;
         }

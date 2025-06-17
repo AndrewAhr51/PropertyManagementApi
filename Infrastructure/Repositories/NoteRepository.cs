@@ -6,9 +6,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class NoteRepository : INoteRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public NoteRepository(AppDbContext context)
+        public NoteRepository(SQLServerDbContext context)
         {
             _context = context;
         }

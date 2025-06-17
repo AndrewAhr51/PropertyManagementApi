@@ -5,9 +5,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class RoleRepository : IRoleRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public RoleRepository(AppDbContext context)
+        public RoleRepository(SQLServerDbContext context)
         {
             _context = context;
         }

@@ -5,9 +5,9 @@ using PropertyManagementAPI.Infrastructure.Data;
 
 public class PricingRepository : IPricingRepository
 {
-    private readonly AppDbContext _context;
+    private readonly SQLServerDbContext _context;
 
-    public PricingRepository(AppDbContext context)
+    public PricingRepository(SQLServerDbContext context)
     {
         _context = context;
     }

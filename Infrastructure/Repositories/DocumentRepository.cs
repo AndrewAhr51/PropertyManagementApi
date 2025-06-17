@@ -5,9 +5,9 @@ using PropertyManagementAPI.Infrastructure.Data;
 
 public class DocumentRepository : IDocumentRepository
 {
-    private readonly AppDbContext _context;
+    private readonly SQLServerDbContext _context;
 
-    public DocumentRepository(AppDbContext context)
+    public DocumentRepository(SQLServerDbContext context)
     {
         _context = context;
     }

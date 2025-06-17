@@ -6,9 +6,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class VendorRepository : IVendorRepository
     {
-        private readonly AppDbContext _context;
+        private readonly SQLServerDbContext _context;
 
-        public VendorRepository(AppDbContext context)
+        public VendorRepository(SQLServerDbContext context)
         {
             _context = context;
         }
