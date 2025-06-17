@@ -1,46 +1,51 @@
-﻿
-using System.Net;
-using System.Net.Mail;
-using Microsoft.Extensions.Configuration;
+﻿using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Infrastructure.Repositories;
+using System.Threading.Tasks;
 
-namespace PropertyManagementAPI.Application.Services;
-
-public class EmailService : IEmailService
+namespace PropertyManagementAPI.Application.Services
 {
-    private readonly IConfiguration _config;
-
-    public EmailService(IConfiguration config)
+    public class EmailService : IEmailService
     {
-        _config = config;
-    }
+        private readonly IEmailRepository _emailRepository;
 
-    public async Task<bool> SendEmailAsync(string to, string subject, string body)
-    {
-        var smtpClient = new SmtpClient(_config["EmailSettings:SmtpServer"])
+        public EmailService(IEmailRepository emailRepository)
         {
-            Port = int.Parse(_config["EmailSettings:Port"]),
-            Credentials = new NetworkCredential(_config["EmailSettings:Username"], _config["EmailSettings:Password"]),
-            EnableSsl = true
-        };
-
-        var mailMessage = new MailMessage
-        {
-            From = new MailAddress(_config["EmailSettings:SenderEmail"], _config["EmailSettings:SenderName"]),
-            Subject = subject,
-            Body = body,
-            IsBodyHtml = true
-        };
-
-        mailMessage.To.Add(to);
-
-        try
-        {
-            await smtpClient.SendMailAsync(mailMessage);
-            return true;
+            _emailRepository = emailRepository;
         }
-        catch
+
+        // ✅ Send an email and log it in the database
+        public async Task<bool> SendEmailAsync(string to, string subject, string body, int senderId)
         {
-            return false;
+            var email = new Emails
+            {
+                SenderId = senderId,
+                Recipient = to,
+                Subject = subject,
+                Body = body,
+                SentDate = DateTime.UtcNow,
+                Status = "Pending"
+            };
+
+            return await _emailRepository.LogSentEmailAsync(email);
+        }
+
+        // ✅ Retrieve an email by ID
+        public async Task<Emails?> GetEmailByIdAsync(int emailId)
+        {
+            return await _emailRepository.GetEmailByIdAsync(emailId);
+        }
+
+        // ✅ Retrieve all emails
+        public async Task<IEnumerable<Emails>> GetAllEmailsAsync()
+        {
+            return await _emailRepository.GetAllEmailsAsync();
+        }
+
+        // ✅ Update email delivery status
+        public async Task<bool> UpdateEmailStatusAsync(int emailId, bool isDelivered)
+        {
+            return await _emailRepository.UpdateEmailStatusAsync(emailId, isDelivered);
         }
     }
 }

@@ -34,6 +34,12 @@ INSERT INTO [dbo].[RolePermissions] ([RoleId], [PermissionId]) VALUES
 -- Owner can view and edit their properties
 (4, 1), (4, 2);
 GO
+-- ✅ Insert seed data into Property table
+INSERT INTO [dbo].[Property] ([Name], [Address], [Address1], [City], [State], [PostalCode], [Country], [Bedrooms], [Bathrooms], [SquareFeet], [IsAvailable], [IsActive]) VALUES
+('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 1, 1),
+('Ocean Breeze Condo', '456 Beach Ave', 'Unit 5', 'Miami', 'FL', '33101', 'USA', 2, 2, 1200, 1, 1),
+('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, 1, 1);
+GO
 
 -- ✅ Insert seed data into Users table
 INSERT INTO [dbo].[Users] ([UserName], [Email], [PasswordHash], [RoleId], [CreatedAt], [IsMfaEnabled], [IsActive]) VALUES
@@ -41,15 +47,29 @@ INSERT INTO [dbo].[Users] ([UserName], [Email], [PasswordHash], [RoleId], [Creat
 ('manager_user', 'manager@example.com', 'hashed_password_2', 2, GETUTCDATE(), 1, 1),
 ('john_doe', 'tenant@example.com', 'hashed_password_3', 3, GETUTCDATE(), 1, 1),
 ('jane_smith', 'owner@example.com', 'hashed_password_4', 4, GETUTCDATE(), 1, 1),
-('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, GETUTCDATE(), 1, 1);
+('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, GETUTCDATE(), 1, 1),
+('alice_johnson', 'alice.johnson@example.com', 'hashed_password_6', 4, GETUTCDATE(), 1, 1),
+('bob_williams', 'bob.williams@example.com', 'hashed_password_7', 4, GETUTCDATE(), 1, 1),
+('charlie_brown', 'charlie.brown@example.com', 'hashed_password_8', 4, GETUTCDATE(), 1, 1);
 GO
 
--- ✅ Insert seed data into Property table
-INSERT INTO [dbo].[Property] ([Name], [Address], [Address1], [City], [State], [PostalCode], [Country], [Bedrooms], [Bathrooms], [SquareFeet], [IsAvailable], [IsActive]) VALUES
-('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 1, 1),
-('Ocean Breeze Condo', '456 Beach Ave', 'Unit 5', 'Miami', 'FL', '33101', 'USA', 2, 2, 1200, 1, 1),
-('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, 1, 1);
+-- ✅ Insert seed data into Owners table (Using UserIds from Users table)
+INSERT INTO [dbo].[Owners] ([UserId], [FirstName], [LastName], [Email], [Phone], [Address1], [Address2], [City], [State], [PostalCode], [Country], [IsActive]) 
+SELECT [UserId], 'Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA', 1 FROM [dbo].[Users] WHERE [Email] = 'alice.johnson@example.com'
+UNION ALL
+SELECT [UserId], 'Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', 1 FROM [dbo].[Users] WHERE [Email] = 'bob.williams@example.com'
+UNION ALL
+SELECT [UserId], 'Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', 1 FROM [dbo].[Users] WHERE [Email] = 'charlie.brown@example.com';
 GO
+
+-- ✅ Insert seed data into Tenants table (Using UserIds from Users table)
+INSERT INTO [dbo].[Tenants] ([UserId], [PropertyId], [FirstName], [LastName], [PhoneNumber], [MoveInDate]) 
+SELECT [UserId], 1, 'John', 'Doe', '555-1234', '2024-01-15' FROM [dbo].[Users] WHERE [Email] = 'tenant@example.com'
+UNION ALL
+SELECT [UserId], 2, 'Michael', 'Johnson', '555-9876', '2022-09-20' FROM [dbo].[Users] WHERE [Email] = 'michael.johnson@example.com';
+GO
+
+
 
 -- ✅ Insert seed data into PropertyPhotos table
 INSERT INTO [dbo].[PropertyPhotos] ([PropertyId], [PhotoUrl],[Room], [Caption], [UploadedAt]) VALUES
@@ -65,26 +85,12 @@ INSERT INTO [dbo].[Pricing] ([PropertyId],[EffectiveDate], [RentalAmount], [Depo
 (3,'12/12/2024', 3200.00, 6400.00, '24 Months', 1);
 GO
 
--- ✅ Insert seed data into Owners table
-INSERT INTO [dbo].[Owners] ([FirstName], [LastName], [Email], [Phone], [Address1], [Address2], [City], [State], [PostalCode], [Country], [IsActive]) VALUES
-('Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA',1),
-('Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA',1),
-('Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA',1);
-GO
-
 -- ✅ Insert seed data into PropertyOwners table
 INSERT INTO [dbo].[PropertyOwners] ([PropertyId], [OwnerId], [OwnershipPercentage]) VALUES
 (1, 1, 100.00),
 (2, 2, 100.00),
 (3, 3, 100.00);
 GO
-
--- ✅ Insert seed data into Tenants table
-INSERT INTO [dbo].[Tenants] ([UserId], [PropertyId], [FirstName], [LastName], [PhoneNumber], [MoveInDate]) VALUES
-(3, 1, 'John', 'Doe', '555-1234', '2024-01-15'), -- ✅ Tenant UserId = 3
-(5, 2, 'Michael', 'Johnson', '555-9876', '2022-09-20'); -- ✅ Another Tenant UserId = 5
-GO
-
 
 -- ✅ Insert seed data into PaymentMethods table
 INSERT INTO [dbo].[lkupPaymentMethods] ([MethodName], [Description], [IsActive]) VALUES
@@ -183,7 +189,7 @@ INSERT INTO [dbo].[lkupServiceTypes] ([TypeName]) VALUES
 ('Manufacturing'),
 ('Handy Man');
 GO
-INSERT INTO [dbo].[lkupInvoiceType] ([InvoiceType], [Description])
+INSERT INTO [dbo].[lkupInvoiceType] ([InvoiceTypeName], [Description])
 VALUES 
     ('Rent', 'Monthly rent payment from tenants'),
     ('Maintenance', 'Charges for maintenance and repairs'),

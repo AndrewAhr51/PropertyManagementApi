@@ -29,6 +29,8 @@ namespace PropertyManagementAPI.Domain.Entities
         [Column(TypeName = "datetime")]
         public DateTime SentDate { get; set; } = DateTime.UtcNow;  // ✅ Auto-populate timestamp
 
+        public bool IsDelivered { get; set; } = false;  // ✅ Delivery status
+
         [Required]
         [MaxLength(50)]
         public string Status { get; set; } = "Pending";  // ✅ Tracks email status ('Pending', 'Sent', 'Failed')
@@ -40,6 +42,6 @@ namespace PropertyManagementAPI.Domain.Entities
         // Navigation properties
         public User Sender { get; set; }
 
-        public bool IsDelivered { get; set; } = false;  // ✅ Delivery status
+     
     }
 }

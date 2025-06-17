@@ -108,72 +108,72 @@ public class AuthService : IAuthService
     }
 
     // 🔹 Forgot Password Implementation
-    public async Task<string?> GenerateResetTokenAsync(string email)
+    public async Task<string?> GenerateResetTokenAsync(EmailDto email)
     {
-        var user = await _userRepository.GetByEmailAsync(email);
+        var user = await _userRepository.GetByEmailAsync(email.EmailAddress);
         if (user is null) return null;
 
         var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-        await _userRepository.StoreResetTokenAsync(email, token, DateTime.UtcNow.AddMinutes(30));
+        await _userRepository.StoreResetTokenAsync(email.EmailAddress, token, DateTime.UtcNow.AddMinutes(30));
         return token;
     }
 
-    public async Task<bool> SendResetEmailAsync(string email)
+    public async Task<bool> SendResetEmailAsync(EmailDto email)
     {
-        var token = await GenerateResetTokenAsync(email);
+        var token = await GenerateResetTokenAsync(email); // Fix: Pass the EmailDto object instead of email.EmailAddress
         if (token == null) return false;
 
-        var resetLink = $"https://yourapp.com/reset-password?token={token}&email={email}";
-        return await _emailService.SendEmailAsync(email, "Password Reset", $"Click here to reset your password: {resetLink}");
+        var resetLink = $"https://yourapp.com/reset-password?token={token}&email={email.EmailAddress}";
+        return await _emailService.SendEmailAsync(email.EmailAddress, "Password Reset", $"Click here to reset your password: {resetLink}", 1);
     }
 
-    public async Task<bool> ValidateResetTokenAsync(string email, string token)
+    public async Task<bool> ValidateResetTokenAsync(EmailDto email, string token)
     {
-        var storedToken = await _userRepository.GetResetTokenAsync(email);
-        var expiration = await _userRepository.GetTokenExpirationAsync(email);
+        var storedToken = await _userRepository.GetResetTokenAsync(email.EmailAddress);
+        var expiration = await _userRepository.GetTokenExpirationAsync(email.EmailAddress);
 
         return storedToken == token && expiration > DateTime.UtcNow;
     }
 
-    public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
+    public async Task<bool> ResetPasswordAsync(EmailDto email, string token, string newPassword)
     {
         if (!await ValidateResetTokenAsync(email, token)) return false;
 
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        return await _userRepository.UpdateUserPasswordAsync(email, hashedPassword);
+        return await _userRepository.UpdateUserPasswordAsync(email.EmailAddress, hashedPassword);
     }
 
-    public async Task<bool> InvalidateResetTokenAsync(string email)
+    public async Task<bool> InvalidateResetTokenAsync(EmailDto email)
     {
-        return await _userRepository.DeleteResetTokenAsync(email);
+        return await _userRepository.DeleteResetTokenAsync(email.EmailAddress);
     }
 
     // 🔹 Multi-Factor Authentication (MFA)
-    public async Task<string?> GenerateMfaCodeAsync(string email)
+    public async Task<string?> GenerateMfaCodeAsync(EmailDto email)
     {
-        var user = await _userRepository.GetByEmailAsync(email);
+        var user = await _userRepository.GetByEmailAsync(email.EmailAddress);
         if (user is null) return null;
 
         var code = new Random().Next(100000, 999999).ToString();
-        await _userRepository.StoreMfaCodeAsync(email, code, DateTime.UtcNow.AddMinutes(5));
+        await _userRepository.StoreMfaCodeAsync(email.EmailAddress, code, DateTime.UtcNow.AddMinutes(5));
         return code;
     }
 
-    public async Task<bool> ValidateMfaCodeAsync(string email, string code)
+    public async Task<bool> ValidateMfaCodeAsync(EmailDto email, string code)
     {
-        var storedCode = await _userRepository.GetMfaCodeAsync(email);
-        var expiration = await _userRepository.GetMfaCodeExpirationAsync(email);
+        var storedCode = await _userRepository.GetMfaCodeAsync(email.EmailAddress);
+        var expiration = await _userRepository.GetMfaCodeExpirationAsync(email.EmailAddress);
 
         return storedCode == code && expiration > DateTime.UtcNow;
     }
 
-    public async Task<bool> EnableMfaAsync(string email)
+    public async Task<bool> EnableMfaAsync(EmailDto email)
     {
-        return await _userRepository.EnableMfaAsync(email);
+        return await _userRepository.EnableMfaAsync(email.EmailAddress);
     }
 
-    public async Task<bool> DisableMfaAsync(string email)
+    public async Task<bool> DisableMfaAsync(EmailDto email)
     {
-        return await _userRepository.DisableMfaAsync(email);
+        return await _userRepository.DisableMfaAsync(email.EmailAddress);
     }
 }
