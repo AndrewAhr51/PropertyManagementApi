@@ -26,7 +26,6 @@ builder.Services.AddDbContext<MySqlDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"),
     new MySqlServerVersion(new Version(8, 0, 32))));
 
-
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 

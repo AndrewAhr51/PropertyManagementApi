@@ -5,9 +5,9 @@ using PropertyManagementAPI.Infrastructure.Data;
 
 public class PricingRepository : IPricingRepository
 {
-    private readonly SQLServerDbContext _context;
+    private readonly MySqlDbContext _context;
 
-    public PricingRepository(SQLServerDbContext context)
+    public PricingRepository(MySqlDbContext context)
     {
         _context = context;
     }

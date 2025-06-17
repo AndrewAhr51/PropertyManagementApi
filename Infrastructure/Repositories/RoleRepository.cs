@@ -5,9 +5,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class RoleRepository : IRoleRepository
     {
-        private readonly SQLServerDbContext _context;
+        private readonly MySqlDbContext _context;
 
-        public RoleRepository(SQLServerDbContext context)
+        public RoleRepository(MySqlDbContext context)
         {
             _context = context;
         }

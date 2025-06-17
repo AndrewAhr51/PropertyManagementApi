@@ -5,9 +5,9 @@ using PropertyManagementAPI.Infrastructure.Data;
 
 public class LeaseRepository : ILeaseRepository
 {
-    private readonly SQLServerDbContext _context;
+    private readonly MySqlDbContext _context;
 
-    public LeaseRepository(SQLServerDbContext context)
+    public LeaseRepository(MySqlDbContext context)
     {
         _context = context;
     }

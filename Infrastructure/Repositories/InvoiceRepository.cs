@@ -6,9 +6,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories;
 
 public class InvoiceRepository : IInvoiceRepository
 {
-    private readonly SQLServerDbContext _context;
+    private readonly MySqlDbContext _context;
 
-    public InvoiceRepository(SQLServerDbContext context)
+    public InvoiceRepository(MySqlDbContext context)
     {
         _context = context;
     }

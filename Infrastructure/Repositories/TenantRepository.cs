@@ -5,9 +5,9 @@ using PropertyManagementAPI.Infrastructure.Data;
 
 public class TenantRepository : ITenantRepository
 {
-    private readonly SQLServerDbContext _context;
+    private readonly MySqlDbContext _context;
 
-    public TenantRepository(SQLServerDbContext context)
+    public TenantRepository(MySqlDbContext context)
     {
         _context = context;
     }
