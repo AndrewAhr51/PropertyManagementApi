@@ -40,7 +40,7 @@ namespace PropertyManagementAPI.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> GenerateResetToken([FromBody] EmailDto email)
         {
-            var token = await _authService.GenerateResetTokenAsync(email);
+            var token = await _authService.GenerateResetTokenAsync(email.EmailAddress);
             if (token == null) return NotFound("User not found.");
 
             return Ok(new { ResetToken = token });
@@ -64,7 +64,7 @@ namespace PropertyManagementAPI.Controllers
         public async Task<IActionResult> ValidateResetToken([FromBody] ValidateResetDto validateResetDto)
         {
             var emailDto = new EmailDto { EmailAddress = validateResetDto.Email }; // Create EmailDto instance
-            var isValid = await _authService.ValidateResetTokenAsync(emailDto, validateResetDto.Token); // Pass EmailDto instead of string
+            var isValid = await _authService.ValidateResetTokenAsync(emailDto.EmailAddress, validateResetDto.Token); // Pass EmailDto instead of string
             if (!isValid) return BadRequest("Invalid or expired reset token.");
 
             return Ok("Reset token is valid.");
@@ -75,7 +75,7 @@ namespace PropertyManagementAPI.Controllers
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
             var emailDto = new EmailDto { EmailAddress = resetPasswordDto.Email };
-            var success = await _authService.ResetPasswordAsync(emailDto, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+            var success = await _authService.ResetPasswordAsync(emailDto.EmailAddress, resetPasswordDto.Token, resetPasswordDto.NewPassword);
             if (!success) return BadRequest("Password reset failed.");
 
             return Ok("Password reset successfully.");

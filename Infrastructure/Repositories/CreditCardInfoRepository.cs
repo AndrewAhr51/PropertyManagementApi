@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 public class CreditCardInfoRepository : ICreditCardInfoRepository
 {
-    private readonly SQLServerDbContext _context;
+    private readonly MySqlDbContext _context;
     private readonly EncryptionHelper _encryptionHelper;
 
-    public CreditCardInfoRepository(SQLServerDbContext context, EncryptionHelper encryptionHelper)
+    public CreditCardInfoRepository(MySqlDbContext context, EncryptionHelper encryptionHelper)
     {
         _context = context;
         _encryptionHelper = encryptionHelper;

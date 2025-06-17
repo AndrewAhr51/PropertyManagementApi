@@ -7,9 +7,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class PropertyPhotosRepository : IPropertyPhotosRepository
     {
-        private readonly SQLServerDbContext _context;
+        private readonly MySqlDbContext _context;
 
-        public PropertyPhotosRepository(SQLServerDbContext context)
+        public PropertyPhotosRepository(MySqlDbContext context)
         {
             _context = context;
         }

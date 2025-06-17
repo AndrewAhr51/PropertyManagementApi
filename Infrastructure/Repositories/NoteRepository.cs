@@ -6,9 +6,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 {
     public class NoteRepository : INoteRepository
     {
-        private readonly SQLServerDbContext _context;
+        private readonly MySqlDbContext _context;
 
-        public NoteRepository(SQLServerDbContext context)
+        public NoteRepository(MySqlDbContext context)
         {
             _context = context;
         }

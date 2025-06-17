@@ -6,9 +6,9 @@ using PropertyManagementAPI.Infrastructure.Data;
 
 public class MaintenanceRequestRepository : IMaintenanceRequestRepository
 {
-    private readonly SQLServerDbContext _context;
+    private readonly MySqlDbContext _context;
 
-    public MaintenanceRequestRepository(SQLServerDbContext context)
+    public MaintenanceRequestRepository(MySqlDbContext context)
     {
         _context = context;
     }
