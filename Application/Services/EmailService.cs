@@ -1,6 +1,7 @@
-﻿using PropertyManagementAPI.Application.Services;
+﻿using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Infrastructure.Repositories;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PropertyManagementAPI.Application.Services
@@ -14,32 +15,69 @@ namespace PropertyManagementAPI.Application.Services
             _emailRepository = emailRepository;
         }
 
-        // ✅ Send an email and log it in the database
-        public async Task<bool> SendEmailAsync(string to, string subject, string body, int senderId)
+        // ✅ Send an email (Simulated sending logic)
+        public async Task<bool> SendEmailAsync(EmailDto emailDto)
         {
-            var email = new Emails
+            // Simulate email sending logic (e.g., SMTP, third-party API)
+            var success = true; // Assume email is sent successfully
+
+            if (success)
             {
-                SenderId = senderId,
-                Recipient = to,
-                Subject = subject,
-                Body = body,
+                return await LogSentEmailAsync(emailDto);
+            }
+
+            return false;
+        }
+
+        // ✅ Log sent email in the database
+        public async Task<bool> LogSentEmailAsync(EmailDto emailDto)
+        {
+            var emailEntity = new Emails
+            {
+                SenderId = emailDto.SenderId ?? 0,
+                Recipient = emailDto.EmailAddress,
+                Subject = emailDto.Subject,
+                Body = emailDto.Body,
                 SentDate = DateTime.UtcNow,
-                Status = "Pending"
+                Status = "Sent"
             };
 
-            return await _emailRepository.LogSentEmailAsync(email);
+            return await _emailRepository.LogSentEmailAsync(emailEntity);
         }
 
         // ✅ Retrieve an email by ID
-        public async Task<Emails?> GetEmailByIdAsync(int emailId)
+        public async Task<EmailDto?> GetEmailByIdAsync(int emailId)
         {
-            return await _emailRepository.GetEmailByIdAsync(emailId);
+            var emailEntity = await _emailRepository.GetEmailByIdAsync(emailId);
+            if (emailEntity == null) return null;
+
+            return new EmailDto
+            {
+                EmailAddress = emailEntity.Recipient,
+                Subject = emailEntity.Subject,
+                Body = emailEntity.Body,
+                SenderId = emailEntity.SenderId
+            };
         }
 
         // ✅ Retrieve all emails
-        public async Task<IEnumerable<Emails>> GetAllEmailsAsync()
+        public async Task<IEnumerable<EmailDto>> GetAllEmailsAsync()
         {
-            return await _emailRepository.GetAllEmailsAsync();
+            var emailEntities = await _emailRepository.GetAllEmailsAsync();
+            var emailDtos = new List<EmailDto>();
+
+            foreach (var email in emailEntities)
+            {
+                emailDtos.Add(new EmailDto
+                {
+                    EmailAddress = email.Recipient,
+                    Subject = email.Subject,
+                    Body = email.Body,
+                    SenderId = email.SenderId
+                });
+            }
+
+            return emailDtos;
         }
 
         // ✅ Update email delivery status
