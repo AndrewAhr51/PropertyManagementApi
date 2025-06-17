@@ -1,19 +1,14 @@
-﻿using PropertyManagementAPI.Domain.Entities;
+﻿using System.Threading.Tasks;
+using PropertyManagementAPI.Domain.DTOs;
 
-namespace PropertyManagementAPI.Application.Services;
-
-public interface IEmailService
+namespace PropertyManagementAPI.Application.Services
 {
-    // ✅ Send an email and log it in the database
-    Task<bool> SendEmailAsync(string to, string subject, string body, int senderId);
-
-    // ✅ Retrieve an email by ID
-    Task<Emails?> GetEmailByIdAsync(int emailId);
-
-    // ✅ Retrieve all emails
-    Task<IEnumerable<Emails>> GetAllEmailsAsync();
-
-    // ✅ Update email delivery status
-    Task<bool> UpdateEmailStatusAsync(int emailId, bool isDelivered);
+    public interface IEmailService
+    {
+        Task<bool> SendEmailAsync(EmailDto emailDto); // ✅ Sends an email
+        Task<bool> LogSentEmailAsync(EmailDto emailDto); // ✅ Logs email in the database
+        Task<EmailDto?> GetEmailByIdAsync(int emailId); // ✅ Retrieves an email by ID
+        Task<IEnumerable<EmailDto>> GetAllEmailsAsync(); // ✅ Retrieves all emails
+        Task<bool> UpdateEmailStatusAsync(int emailId, bool isDelivered); // ✅ Updates email delivery status
+    }
 }
-

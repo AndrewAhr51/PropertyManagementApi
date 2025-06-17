@@ -9,171 +9,180 @@ using BCrypt.Net;
 using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.Entities;
 
-namespace PropertyManagementAPI.Application.Services;
-
-public class AuthService : IAuthService
+namespace PropertyManagementAPI.Application.Services
 {
-    private readonly IConfiguration _configuration;
-    private readonly IUserRepository _userRepository;
-    private readonly IEmailService _emailService;
-
-    public AuthService(IConfiguration configuration, IUserRepository userRepository, IEmailService emailService)
+    public class AuthService : IAuthService
     {
-        _configuration = configuration;
-        _userRepository = userRepository;
-        _emailService = emailService;
-    }
+        private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
+        private readonly IEmailService _emailService;
 
-    public async Task<string?> AuthenticateAsync(LoginDto loginDto)
-    {
-        var user = await _userRepository.GetByUsernameAsync(loginDto.UserName);
-        if (user is null || !VerifyPassword(user.PasswordHash, loginDto.Password))
-            return null;
-
-        // Convert User? to Users (if needed)
-        if (user is not User usersEntity)
-            throw new InvalidCastException("User repository did not return a Users entity.");
-
-        return GenerateJwtToken(usersEntity);
-    }
-
-    private string GenerateJwtToken(User user)
-    {
-        var secretKey = _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("SecretKey is not configured.");
-        var issuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("Issuer is not configured.");
-        var audience = _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("Audience is not configured.");
-        var expirationMinutesStr = _configuration["JwtSettings:ExpirationMinutes"] ?? throw new InvalidOperationException("ExpirationMinutes is not configured.");
-        var expirationMinutes = int.Parse(expirationMinutesStr);
-
-        var key = Encoding.UTF8.GetBytes(secretKey);
-        var claims = new List<Claim>
+        public AuthService(IConfiguration configuration, IUserRepository userRepository, IEmailService emailService)
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+            _configuration = configuration;
+            _userRepository = userRepository;
+            _emailService = emailService;
+        }
 
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
-            signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    private bool VerifyPassword(string storedHash, string providedPassword)
-    {
-        return BCrypt.Net.BCrypt.Verify(providedPassword, storedHash);
-    }
-
-    public async Task<string?> RefreshTokenAsync(string expiredToken)
-    {
-        var principal = GetPrincipalFromExpiredToken(expiredToken);
-        if (principal == null) return null;
-
-        var username = principal.Identity?.Name;
-        if (string.IsNullOrEmpty(username)) return null;
-
-        var user = await _userRepository.GetByUsernameAsync(username);
-        if (user is null) return null;
-
-        if (user is not User usersEntity)
-            throw new InvalidCastException("User repository did not return a Users entity.");
-
-        return GenerateJwtToken(usersEntity);
-    }
-
-    private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
-    {
-        var secretKey = _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("SecretKey is not configured.");
-        var issuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("Issuer is not configured.");
-        var audience = _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("Audience is not configured.");
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var validationParameters = new TokenValidationParameters
+        // ✅ Authenticate user and generate JWT token
+        public async Task<string?> AuthenticateAsync(LoginDto loginDto)
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = false,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
-        };
+            var user = await _userRepository.GetByUsernameAsync(loginDto.UserName);
+            if (user is null || !VerifyPassword(user.PasswordHash, loginDto.Password))
+                return null;
 
-        return tokenHandler.ValidateToken(token, validationParameters, out _);
-    }
+            return GenerateJwtToken(user);
+        }
 
-    // 🔹 Forgot Password Implementation
-    public async Task<string?> GenerateResetTokenAsync(EmailDto email)
-    {
-        var user = await _userRepository.GetByEmailAsync(email.EmailAddress);
-        if (user is null) return null;
+        private string GenerateJwtToken(User user)
+        {
+            var secretKey = _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("SecretKey is not configured.");
+            var issuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("Issuer is not configured.");
+            var audience = _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("Audience is not configured.");
+            var expirationMinutes = int.Parse(_configuration["JwtSettings:ExpirationMinutes"] ?? throw new InvalidOperationException("ExpirationMinutes is not configured."));
 
-        var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-        await _userRepository.StoreResetTokenAsync(email.EmailAddress, token, DateTime.UtcNow.AddMinutes(30));
-        return token;
-    }
+            var key = Encoding.UTF8.GetBytes(secretKey);
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
-    public async Task<bool> SendResetEmailAsync(EmailDto email)
-    {
-        var token = await GenerateResetTokenAsync(email); // Fix: Pass the EmailDto object instead of email.EmailAddress
-        if (token == null) return false;
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
+                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+            );
 
-        var resetLink = $"https://yourapp.com/reset-password?token={token}&email={email.EmailAddress}";
-        return await _emailService.SendEmailAsync(email.EmailAddress, "Password Reset", $"Click here to reset your password: {resetLink}", 1);
-    }
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
 
-    public async Task<bool> ValidateResetTokenAsync(EmailDto email, string token)
-    {
-        var storedToken = await _userRepository.GetResetTokenAsync(email.EmailAddress);
-        var expiration = await _userRepository.GetTokenExpirationAsync(email.EmailAddress);
+        private bool VerifyPassword(string storedHash, string providedPassword)
+        {
+            return BCrypt.Net.BCrypt.Verify(providedPassword, storedHash);
+        }
 
-        return storedToken == token && expiration > DateTime.UtcNow;
-    }
+        // ✅ Refresh JWT token
+        public async Task<string?> RefreshTokenAsync(string expiredToken)
+        {
+            var principal = GetPrincipalFromExpiredToken(expiredToken);
+            if (principal == null) return null;
 
-    public async Task<bool> ResetPasswordAsync(EmailDto email, string token, string newPassword)
-    {
-        if (!await ValidateResetTokenAsync(email, token)) return false;
+            var username = principal.Identity?.Name;
+            if (string.IsNullOrEmpty(username)) return null;
 
-        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        return await _userRepository.UpdateUserPasswordAsync(email.EmailAddress, hashedPassword);
-    }
+            var user = await _userRepository.GetByUsernameAsync(username);
+            if (user is null) return null;
 
-    public async Task<bool> InvalidateResetTokenAsync(EmailDto email)
-    {
-        return await _userRepository.DeleteResetTokenAsync(email.EmailAddress);
-    }
+            return GenerateJwtToken(user);
+        }
 
-    // 🔹 Multi-Factor Authentication (MFA)
-    public async Task<string?> GenerateMfaCodeAsync(EmailDto email)
-    {
-        var user = await _userRepository.GetByEmailAsync(email.EmailAddress);
-        if (user is null) return null;
+        private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+        {
+            var secretKey = _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("SecretKey is not configured.");
+            var issuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("Issuer is not configured.");
+            var audience = _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("Audience is not configured.");
 
-        var code = new Random().Next(100000, 999999).ToString();
-        await _userRepository.StoreMfaCodeAsync(email.EmailAddress, code, DateTime.UtcNow.AddMinutes(5));
-        return code;
-    }
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = issuer,
+                ValidAudience = audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+            };
 
-    public async Task<bool> ValidateMfaCodeAsync(EmailDto email, string code)
-    {
-        var storedCode = await _userRepository.GetMfaCodeAsync(email.EmailAddress);
-        var expiration = await _userRepository.GetMfaCodeExpirationAsync(email.EmailAddress);
+            return tokenHandler.ValidateToken(token, validationParameters, out _);
+        }
 
-        return storedCode == code && expiration > DateTime.UtcNow;
-    }
+        // ✅ Password Reset Implementation
+        public async Task<bool> SendResetEmailAsync(EmailDto emailDto)
+        {
+            var user = await _userRepository.GetByEmailAsync(emailDto.EmailAddress);
+            if (user is null) return false;
 
-    public async Task<bool> EnableMfaAsync(EmailDto email)
-    {
-        return await _userRepository.EnableMfaAsync(email.EmailAddress);
-    }
+            var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            await _userRepository.StoreResetTokenAsync(emailDto.EmailAddress, token, DateTime.UtcNow.AddMinutes(30));
 
-    public async Task<bool> DisableMfaAsync(EmailDto email)
-    {
-        return await _userRepository.DisableMfaAsync(email.EmailAddress);
+            var resetLink = $"https://yourapp.com/reset-password?token={token}&email={emailDto.EmailAddress}";
+            emailDto.Subject = "Password Reset";
+            emailDto.Body = $"Click here to reset your password: {resetLink}";
+
+            return await _emailService.SendEmailAsync(emailDto);
+        }
+
+        public async Task<bool> ValidateResetTokenAsync(string email, string token)
+        {
+            var storedToken = await _userRepository.GetResetTokenAsync(email);
+            var expiration = await _userRepository.GetTokenExpirationAsync(email);
+
+            return storedToken == token && expiration > DateTime.UtcNow;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            if (!await ValidateResetTokenAsync(email, token)) return false;
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            return await _userRepository.UpdateUserPasswordAsync(email, hashedPassword);
+        }
+
+        public async Task<bool> InvalidateResetTokenAsync(string email)
+        {
+            return await _userRepository.DeleteResetTokenAsync(email);
+        }
+
+        // ✅ Multi-Factor Authentication (MFA)
+        public async Task<string?> GenerateMfaCodeAsync(EmailDto emailDto)
+        {
+            var user = await _userRepository.GetByEmailAsync(emailDto.EmailAddress);
+            if (user is null) return null;
+
+            var code = new Random().Next(100000, 999999).ToString();
+            await _userRepository.StoreMfaCodeAsync(emailDto.EmailAddress, code, DateTime.UtcNow.AddMinutes(5));
+
+            emailDto.Subject = "Your MFA Code";
+            emailDto.Body = $"Your multi-factor authentication code is: {code}";
+
+            return await _emailService.SendEmailAsync(emailDto) ? code : null;
+        }
+
+        public async Task<bool> ValidateMfaCodeAsync(EmailDto emailDto, string code)
+        {
+            var storedCode = await _userRepository.GetMfaCodeAsync(emailDto.EmailAddress);
+            var expiration = await _userRepository.GetMfaCodeExpirationAsync(emailDto.EmailAddress);
+
+            return storedCode == code && expiration > DateTime.UtcNow;
+        }
+
+        public async Task<bool> EnableMfaAsync(EmailDto emailDto)
+        {
+            return await _userRepository.EnableMfaAsync(emailDto.EmailAddress);
+        }
+
+        public async Task<bool> DisableMfaAsync(EmailDto emailDto)
+        {
+            return await _userRepository.DisableMfaAsync(emailDto.EmailAddress);
+        }
+
+        public async Task<string?> GenerateResetTokenAsync(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user is null) return null;
+
+            // ✅ Generate a secure reset token
+            var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+            // ✅ Store the token with an expiration time (e.g., 30 minutes)
+            await _userRepository.StoreResetTokenAsync(email, token, DateTime.UtcNow.AddMinutes(30));
+
+            return token;
+        }
     }
 }
