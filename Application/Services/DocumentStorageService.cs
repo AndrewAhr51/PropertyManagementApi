@@ -43,7 +43,7 @@ namespace PropertyManagementAPI.Application.Services
                 FileName = documentStorage.FileName,
                 DocumentTypeId = documentStorage.DocumentTypeId,
                 FileData = documentStorage.FileData,
-                UploadedAt = documentStorage.UploadedAt
+                CreatedDate = documentStorage.CreatedDate
             };
         }
 
@@ -56,7 +56,7 @@ namespace PropertyManagementAPI.Application.Services
                 FileName = dto.FileName,
                 DocumentTypeId = dto.DocumentTypeId,
                 FileData = dto.FileData,
-                UploadedAt = dto.UploadedAt
+                CreatedDate = dto.CreatedDate
             };
         }
     }

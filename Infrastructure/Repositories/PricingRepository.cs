@@ -32,7 +32,7 @@ public class PricingRepository : IPricingRepository
         await _context.SaveChangesAsync();
 
         dto.PriceId = entity.PriceId;
-        dto.CreatedAt = entity.CreatedAt;
+        dto.CreatedBy = entity.CreatedBy;
         return dto;
     }
 
@@ -70,7 +70,7 @@ public class PricingRepository : IPricingRepository
             DepositAmount = p.DepositAmount,
             LeaseTerm = p.LeaseTerm,
             UtilitiesIncluded = p.UtilitiesIncluded,
-            CreatedAt = p.CreatedAt
+            CreatedBy = p.CreatedBy
         };
     }
 
@@ -108,7 +108,7 @@ public class PricingRepository : IPricingRepository
                 DepositAmount = p.DepositAmount,
                 UtilitiesIncluded = p.UtilitiesIncluded,
                 LeaseTerm = p.LeaseTerm,
-                CreatedAt = p.CreatedAt
+                CreatedBy = p.CreatedBy
             })
             .FirstOrDefaultAsync();
 

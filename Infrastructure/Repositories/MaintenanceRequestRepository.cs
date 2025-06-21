@@ -13,38 +13,36 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
         _context = context;
     }
 
-    public async Task<MaintenanceRequestDto> AddAsync(MaintenanceRequestDto dto)
+    public async Task<MaintenanceRequestDto> AddAsync(MaintenanceRequestDto maintenanceRequestDto)
     {
-        var userExists = await _context.Users.AnyAsync(u => u.UserId == dto.UserId);
+        var userExists = await _context.Users.AnyAsync(u => u.UserId == maintenanceRequestDto.UserId);
         if (!userExists)
-            throw new InvalidOperationException($"User with ID {dto.UserId} does not exist.");
+            throw new InvalidOperationException($"User with ID {maintenanceRequestDto.UserId} does not exist.");
 
-        var propertyExists = await _context.Property.AnyAsync(p => p.PropertyId == dto.PropertyId);
+        var propertyExists = await _context.Property.AnyAsync(p => p.PropertyId == maintenanceRequestDto.PropertyId);
         if (!propertyExists)
-            throw new InvalidOperationException($"Property with ID { dto.PropertyId} does not exist.");
+            throw new InvalidOperationException($"Property with ID { maintenanceRequestDto.PropertyId} does not exist.");
 
         var entity = new MaintenanceRequests
         {
-            UserId = dto.UserId,
-            PropertyId = dto.PropertyId,
-            RequestDate = dto.RequestDate == default ? DateTime.UtcNow : dto.RequestDate,
-            Category = dto.Category,
-            Description = dto.Description,
-            PriorityLevel = dto.PriorityLevel ?? "Normal",
+            UserId = maintenanceRequestDto.UserId,
+            PropertyId = maintenanceRequestDto.PropertyId,
+            RequestDate = maintenanceRequestDto.RequestDate == default ? DateTime.UtcNow : maintenanceRequestDto.RequestDate,
+            Category = maintenanceRequestDto.Category,
+            Description = maintenanceRequestDto.Description,
+            PriorityLevel = maintenanceRequestDto.PriorityLevel ?? "Normal",
             Status = "Open",
             AssignedTo = string.Empty,
             ResolutionNotes = string.Empty,
             ResolvedDate = null,
-            LastUpdated = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
         };
 
         _context.MaintenanceRequests.Add(entity);
         await _context.SaveChangesAsync();
 
-        dto.RequestId = entity.RequestId;
-        dto.CreatedAt = entity.CreatedAt;
-        return dto;
+        maintenanceRequestDto.RequestId = entity.RequestId;
+        maintenanceRequestDto.CreatedBy = entity.CreatedBy;
+        return maintenanceRequestDto;
     }
 
     public async Task<IEnumerable<MaintenanceRequestDto>> GetAllAsync()
@@ -63,8 +61,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
                 AssignedTo = r.AssignedTo,
                 ResolutionNotes = r.ResolutionNotes,
                 ResolvedDate = r.ResolvedDate,
-                LastUpdated = r.LastUpdated,
-                CreatedAt = r.CreatedAt
+                CreatedBy = r.CreatedBy
             })
             .ToListAsync();
     }
@@ -85,8 +82,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
             AssignedTo = r.AssignedTo,
             ResolutionNotes = r.ResolutionNotes,
             ResolvedDate = r.ResolvedDate,
-            LastUpdated = r.LastUpdated,
-            CreatedAt = r.CreatedAt
+            CreatedBy = r.CreatedBy
         };
     }
 
@@ -102,7 +98,6 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
         entity.AssignedTo = dto.AssignedTo;
         entity.ResolutionNotes = dto.ResolutionNotes;
         entity.ResolvedDate = dto.ResolvedDate;
-        entity.LastUpdated = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return true;
@@ -138,8 +133,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
                 AssignedTo = r.AssignedTo,
                 ResolutionNotes = r.ResolutionNotes,
                 ResolvedDate = r.ResolvedDate,
-                LastUpdated = r.LastUpdated,
-                CreatedAt = r.CreatedAt
+                CreatedBy = r.CreatedBy
             })
             .ToListAsync();
     }
@@ -165,8 +159,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
                 AssignedTo = r.AssignedTo,
                 ResolutionNotes = r.ResolutionNotes,
                 ResolvedDate = r.ResolvedDate,
-                LastUpdated = r.LastUpdated,
-                CreatedAt = r.CreatedAt
+                CreatedBy = r.CreatedBy
             })
             .ToListAsync();
     }

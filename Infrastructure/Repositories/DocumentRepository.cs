@@ -32,15 +32,13 @@ public class DocumentRepository : IDocumentRepository
             FileName = dto.FileName,
             FileUrl = dto.FileUrl,
             Category = dto.Category,
-            UploadedAt = dto.UploadedAt == default ? DateTime.UtcNow : dto.UploadedAt,
-            CreatedAt = DateTime.UtcNow
         };
 
         _context.Documents.Add(entity);
         await _context.SaveChangesAsync();
 
         dto.DocumentId = entity.DocumentId;
-        dto.CreatedAt = entity.CreatedAt;
+        dto.CreatedBy = entity.CreatedBy;
         return dto;
     }
 
@@ -55,8 +53,8 @@ public class DocumentRepository : IDocumentRepository
                 FileName = d.FileName,
                 FileUrl = d.FileUrl,
                 Category = d.Category,
-                UploadedAt = d.UploadedAt,
-                CreatedAt = d.CreatedAt
+                CreatedDate = d.CreatedDate,
+                CreatedBy = d.CreatedBy
             })
             .ToListAsync();
     }
@@ -72,8 +70,8 @@ public class DocumentRepository : IDocumentRepository
             FileName = d.FileName,
             FileUrl = d.FileUrl,
             Category = d.Category,
-            UploadedAt = d.UploadedAt,
-            CreatedAt = d.CreatedAt
+            CreatedDate = d.CreatedDate,
+            CreatedBy = d.CreatedBy
         };
     }
 
@@ -98,8 +96,8 @@ public class DocumentRepository : IDocumentRepository
             FileName = d.FileName,
             FileUrl = d.FileUrl,
             Category = d.Category,
-            UploadedAt = d.UploadedAt,
-            CreatedAt = d.CreatedAt
+            CreatedDate = d.CreatedDate,
+            CreatedBy = d.CreatedBy
         })
         .ToListAsync();
 }
@@ -116,8 +114,8 @@ public async Task<IEnumerable<DocumentDto>> GetByTenantIdAsync(int tenantId)
             FileName = d.FileName,
             FileUrl = d.FileUrl,
             Category = d.Category,
-            UploadedAt = d.UploadedAt,
-            CreatedAt = d.CreatedAt
+            CreatedDate = d.CreatedDate,
+            CreatedBy = d.CreatedBy
         })
         .ToListAsync();
 }

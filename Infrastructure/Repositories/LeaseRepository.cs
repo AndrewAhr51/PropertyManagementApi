@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿     using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Infrastructure.Data;
@@ -12,7 +12,7 @@ public class LeaseRepository : ILeaseRepository
         _context = context;
     }
 
-    public async Task<LeaseDto> AddAsync(LeaseDto dto)
+    public async Task<LeaseDto> CreateLeaseAsync(LeaseDto dto)
     {
         var propertyExists = await _context.Property
         .AnyAsync(p => p.PropertyId == dto.PropertyId && p.IsActive);
@@ -36,18 +36,17 @@ public class LeaseRepository : ILeaseRepository
             DepositPaid = dto.DepositPaid,
             IsActive = true,
             SignedDate = dto.SignedDate == default ? DateTime.UtcNow : dto.SignedDate,
-            CreatedAt = DateTime.UtcNow
         };
 
         _context.Leases.Add(entity);
         await _context.SaveChangesAsync();
 
         dto.LeaseId = entity.LeaseId;
-        dto.CreatedAt = entity.CreatedAt;
+        dto.CreatedBy = entity.CreatedBy;
         return dto;
     }
 
-    public async Task<IEnumerable<LeaseDto>> GetAllAsync()
+    public async Task<IEnumerable<LeaseDto>> GetAllLeasesAsync()
     {
         return await _context.Leases
             .Where(l => l.IsActive)
@@ -62,12 +61,12 @@ public class LeaseRepository : ILeaseRepository
                 DepositPaid = l.DepositPaid,
                 IsActive = l.IsActive,
                 SignedDate = l.SignedDate,
-                CreatedAt = l.CreatedAt
+                CreatedBy = l.CreatedBy
             })
             .ToListAsync();
     }
 
-    public async Task<LeaseDto?> GetByIdAsync(int leaseId)
+    public async Task<LeaseDto?> GetLeaseByIdAsync(int leaseId)
     {
         var l = await _context.Leases
             .Where(l => l.LeaseId == leaseId && l.IsActive)
@@ -84,11 +83,11 @@ public class LeaseRepository : ILeaseRepository
             DepositPaid = l.DepositPaid,
             IsActive = l.IsActive,
             SignedDate = l.SignedDate,
-            CreatedAt = l.CreatedAt
+            CreatedBy = l.CreatedBy
         };
     }
 
-    public async Task<bool> UpdateAsync(int leaseId, LeaseDto dto)
+    public async Task<bool> UpdateLeaseByIdAsync(int leaseId, LeaseDto dto)
     {
         var entity = await _context.Leases.FindAsync(leaseId);
         if (entity == null || !entity.IsActive) return false;
@@ -103,7 +102,7 @@ public class LeaseRepository : ILeaseRepository
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int leaseId)
+    public async Task<bool> DeleteLeaseByIdAsync(int leaseId)
     {
         var entity = await _context.Leases.FindAsync(leaseId);
         if (entity == null || !entity.IsActive) return false;

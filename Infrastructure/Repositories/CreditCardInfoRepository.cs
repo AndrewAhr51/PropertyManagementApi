@@ -25,10 +25,6 @@ public class CreditCardInfoRepository : ICreditCardInfoRepository
         creditCard.CardNumber = Convert.FromBase64String(_encryptionHelper.Encrypt(creditCard.CardNumber.ToString()));
         creditCard.CVV = Convert.FromBase64String(_encryptionHelper.Encrypt(creditCard.CVV.ToString()));
 
-
-        if (creditCard.CreatedAt == default)
-            creditCard.CreatedAt = DateTime.UtcNow;
-
         _context.Set<CreditCardInfo>().Add(creditCard);
         await _context.SaveChangesAsync();
     }

@@ -22,14 +22,13 @@ public class TenantRepository : ITenantRepository
             LastName = dto.LastName,
             PhoneNumber = dto.PhoneNumber,
             MoveInDate = dto.MoveInDate,
-            CreatedAt = DateTime.UtcNow
         };
 
         _context.Tenants.Add(entity);
         await _context.SaveChangesAsync();
 
         dto.TenantId = entity.TenantId;
-        dto.CreatedAt = entity.CreatedAt;
+        dto.CreatedBy = entity.CreatedBy;
         return dto;
     }
 
@@ -45,7 +44,7 @@ public class TenantRepository : ITenantRepository
                 LastName = t.LastName,
                 PhoneNumber = t.PhoneNumber,
                 MoveInDate = t.MoveInDate,
-                CreatedAt = t.CreatedAt
+                CreatedBy = t.CreatedBy
             })
             .ToListAsync();
     }
@@ -62,7 +61,7 @@ public class TenantRepository : ITenantRepository
             LastName = t.LastName,
             PhoneNumber = t.PhoneNumber,
             MoveInDate = t.MoveInDate,
-            CreatedAt = t.CreatedAt
+            CreatedBy = t.CreatedBy
         };
     }
 

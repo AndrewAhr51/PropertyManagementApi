@@ -50,7 +50,7 @@ namespace PropertyManagementAPI.Application.Services
                 Email = user.Email,
                 Role = user.RoleId,
                 IsActive = user.IsActive,
-                DateCreated = user.CreatedAt
+                DateCreated = user.CreatedDate
             }).ToList();
         }
 
@@ -95,7 +95,6 @@ namespace PropertyManagementAPI.Application.Services
                 Email = user.Email,
                 Role = user.RoleId,
                 IsActive = user.IsActive,
-                DateCreated = user.CreatedAt
             };
         }
 

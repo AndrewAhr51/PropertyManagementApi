@@ -6,31 +6,31 @@ using PropertyManagementAPI.Domain.DTOs;
 [Route("api/creditcards")]
 public class CreditCardInfoController : ControllerBase
 {
-    private readonly ICreditCardInfoService _service;
+    private readonly ICreditCardInfoService _creditCardInfoService;
 
     public CreditCardInfoController(ICreditCardInfoService service)
     {
-        _service = service;
+        _creditCardInfoService = service;
     }
 
     [HttpPost]
     public async Task<IActionResult> AddCreditCard([FromBody] CreditCardInfoDto dto)
     {
-        await _service.AddCreditCardAsync(dto);
+        await _creditCardInfoService.AddCreditCardAsync(dto);
         return Ok("Credit Card Added Successfully!");
     }
 
     [HttpGet("{cardId}")]
     public async Task<IActionResult> GetCreditCard(int cardId)
     {
-        var creditCard = await _service.GetCreditCardAsync(cardId);
+        var creditCard = await _creditCardInfoService.GetCreditCardAsync(cardId);
         return creditCard == null ? NotFound("Credit Card not found.") : Ok(creditCard);
     }
 
     [HttpPut("{cardId}/expiration")]
     public async Task<IActionResult> UpdateExpirationDate(int cardId, [FromBody] string newExpirationDate)
     {
-        await _service.UpdateExpirationDateAsync(cardId, newExpirationDate);
+        await _creditCardInfoService.UpdateExpirationDateAsync(cardId, newExpirationDate);
         return Ok("Expiration date updated successfully!");
     }
 }

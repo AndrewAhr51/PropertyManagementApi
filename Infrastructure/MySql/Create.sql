@@ -1,13 +1,27 @@
 USE propertymanagement;
 
+CREATE TABLE lkupPaymentMethods (
+    PaymentMethodId INT PRIMARY KEY AUTO_INCREMENT,
+    MethodName NVARCHAR(100) NOT NULL UNIQUE,
+    Description NVARCHAR(255),
+    IsActive BOOLEAN DEFAULT TRUE,
+    CreatedBy Char(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE lkupCategory (
     CategoryId INT PRIMARY KEY AUTO_INCREMENT,
-    CategoryName NVARCHAR(100) NOT NULL UNIQUE
+    CategoryName NVARCHAR(100) NOT NULL UNIQUE,
+    CreatedBy Char(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE lkupCreditCards (
     CreditCardID INT PRIMARY KEY AUTO_INCREMENT,
-    CreditCardName VARCHAR(50) NOT NULL UNIQUE
+    CreditCardName VARCHAR(50) NOT NULL UNIQUE,
+    CreatedBy Char(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+    
 );
 
 CREATE TABLE lkupMaintenanceRequestTypes (
@@ -19,20 +33,31 @@ CREATE TABLE lkupMaintenanceRequestTypes (
 CREATE TABLE lkupPropertyRooms (
     RoomID INT PRIMARY KEY AUTO_INCREMENT,
     RoomName VARCHAR(100) NOT NULL UNIQUE,
-    Description VARCHAR(255) NULL
+    Description VARCHAR(255) NULL,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE lkupServiceTypes (
     ServiceTypeId INT PRIMARY KEY AUTO_INCREMENT,
-    TypeName NVARCHAR(100) NOT NULL UNIQUE
+    TypeName NVARCHAR(100) NOT NULL UNIQUE,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE lkupInvoiceType (
     InvoiceTypeId INT PRIMARY KEY AUTO_INCREMENT,
     InvoiceType NVARCHAR(50) NOT NULL UNIQUE,
     Description NVARCHAR(255) NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE lkupInvoiceStatus (
+    Id INT PRIMARY KEY,
+    Name VARCHAR(50) NOT NULL,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Roles Table
@@ -40,7 +65,8 @@ CREATE TABLE Roles (
     RoleId INT PRIMARY KEY AUTO_INCREMENT,
     Name NVARCHAR(50) NOT NULL UNIQUE,
     Description NVARCHAR(255),
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Permissions Table
@@ -48,7 +74,8 @@ CREATE TABLE Permissions (
     PermissionId INT PRIMARY KEY AUTO_INCREMENT,
     Name NVARCHAR(100) NOT NULL UNIQUE,
     Description NVARCHAR(255),
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Role-Permissions Many-to-Many Mapping
@@ -67,7 +94,8 @@ CREATE TABLE Users (
     Email NVARCHAR(100) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(255) NOT NULL,
     RoleId INT NOT NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     -- Password Reset Fields
     ResetToken NVARCHAR(255) NULL,
@@ -102,7 +130,8 @@ CREATE TABLE Property (
     SquareFeet INT NOT NULL,
     IsAvailable BOOLEAN DEFAULT TRUE,
     IsActive BOOLEAN DEFAULT TRUE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- PropertyPhotos Table
@@ -112,8 +141,9 @@ CREATE TABLE PropertyPhotos (
     PhotoUrl NVARCHAR(500) NOT NULL,
     Room NVARCHAR(500) NOT NULL,
     Caption NVARCHAR(255) NULL,
-    UploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
 );
 
@@ -126,7 +156,8 @@ CREATE TABLE Tenants (
     LastName NVARCHAR(100),
     PhoneNumber NVARCHAR(20),
     MoveInDate DATE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
 );
@@ -140,7 +171,8 @@ CREATE TABLE Pricing (
     DepositAmount DECIMAL(10,2),
     LeaseTerm NVARCHAR(50),
     UtilitiesIncluded BOOLEAN DEFAULT FALSE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
 );
 
@@ -158,7 +190,8 @@ CREATE TABLE Owners (
     PostalCode NVARCHAR(20) NOT NULL,
     Country NVARCHAR(100) NOT NULL,
     IsActive BOOLEAN DEFAULT TRUE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- PropertyOwners (Association Table)
@@ -171,14 +204,7 @@ CREATE TABLE PropertyOwners (
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
 );
 
--- Payment Methods Lookup
-CREATE TABLE lkupPaymentMethods (
-    PaymentMethodId INT PRIMARY KEY AUTO_INCREMENT,
-    MethodName NVARCHAR(100) NOT NULL UNIQUE,
-    Description NVARCHAR(255),
-    IsActive BOOLEAN DEFAULT TRUE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+
 
 -- Payments Table
 CREATE TABLE Payments (
@@ -189,7 +215,8 @@ CREATE TABLE Payments (
     PaymentMethodId INT,
     TransactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     ReferenceNumber NVARCHAR(100),
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
     FOREIGN KEY (PaymentMethodId) REFERENCES lkupPaymentMethods(PaymentMethodId)
@@ -205,7 +232,8 @@ CREATE TABLE CreditCardInfo (
     LastFourDigits NVARCHAR(4),
     ExpirationDate NVARCHAR(7),
     CVV VARBINARY(256),  -- Consider security best practices for storage
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
 );
@@ -220,7 +248,8 @@ CREATE TABLE BillingAddress (
     State NVARCHAR(100) NOT NULL,
     PostalCode NVARCHAR(20) NOT NULL,
     Country NVARCHAR(100) NOT NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (CardId) REFERENCES CreditCardInfo(CardId)
 );
 
@@ -231,7 +260,8 @@ CREATE TABLE SpecialInstructions (
     PropertyId INT NULL,
     PaymentId INT NULL,
     InstructionText TEXT,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
     FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId)
@@ -247,7 +277,8 @@ CREATE TABLE Emails (
     SentDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     Status NVARCHAR(50) DEFAULT 'Pending',
     IsDelivered BOOLEAN DEFAULT FALSE,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (SenderId) REFERENCES Users(UserId)
 );
 
@@ -264,8 +295,8 @@ CREATE TABLE MaintenanceRequests (
     AssignedTo NVARCHAR(100) NULL,
     ResolutionNotes TEXT NULL,
     ResolvedDate DATETIME NULL,
-    LastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
 );
@@ -286,8 +317,8 @@ CREATE TABLE Vendors (
     PostalCode NVARCHAR(20),
     AccountNumber NVARCHAR(50) UNIQUE NOT NULL,
     Notes TEXT,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     IsActive BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (ServiceTypeId) REFERENCES lkupServiceTypes(ServiceTypeId)
 );
@@ -314,53 +345,93 @@ CREATE TABLE Leases (
     LeaseId INT PRIMARY KEY AUTO_INCREMENT,
     TenantId INT NOT NULL,
     PropertyId INT NOT NULL,
+    Discount INT NOT NULL,
     StartDate DATETIME NOT NULL,
     EndDate DATETIME NULL,
     MonthlyRent DECIMAL(10,2) NOT NULL,
     DepositPaid BOOLEAN DEFAULT FALSE,
     IsActive BOOLEAN DEFAULT TRUE,
     SignedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
 );
 
--- Invoices
 CREATE TABLE Invoices (
-    InvoiceId INT PRIMARY KEY AUTO_INCREMENT,
-    TenantId INT NOT NULL,
-    PropertyId INT NOT NULL,
-    AmountDue DECIMAL(10,2) NOT NULL,
-    DueDate DATE NOT NULL,
-    BillingPeriod NVARCHAR(20) DEFAULT 'Monthly',
-    BillingMonth NVARCHAR(10),  
-    LateFee DECIMAL(10,2) DEFAULT 0,
-    DiscountsApplied DECIMAL(10,2) DEFAULT 0,
+    invoicesId CHAR(36) PRIMARY KEY,
+    amount DECIMAL(18,2) NOT NULL,
+    duedate DATETIME NOT NULL,
+    propertyid CHAR(36) NOT NULL,
     IsPaid BOOLEAN DEFAULT FALSE,
-    PaymentDate DATETIME NULL,
-    PaymentMethod NVARCHAR(50) NULL,
-    PaymentReference NVARCHAR(100) NULL,
-    InvoiceStatus NVARCHAR(20) DEFAULT 'Pending',
-    InvoiceType NVARCHAR(50) DEFAULT 'Rent',
-    GeneratedBy NVARCHAR(50) DEFAULT 'Web',
-    Notes NVARCHAR(500) NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
-    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
+    status VARCHAR(50) DEFAULT 'Pending',
+    notes TEXT,
+    invoicetypeid int NOT NULL,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Notes
-CREATE TABLE Notes (
-    NoteId INT PRIMARY KEY AUTO_INCREMENT,
-    CreatedBy INT NOT NULL,
-    TenantId INT NULL,
-    PropertyId INT NULL,
-    NoteText TEXT NOT NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (CreatedBy) REFERENCES Users(UserId),
-    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+-- ==============================
+-- Subtype Tables
+-- ==============================
+
+CREATE TABLE RentInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    rentmonth INT,
+    rentyear INT,
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE UtilityInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    utility_type VARCHAR(50),
+    usage_amount DECIMAL(10,2),
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE SecurityDepositInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    is_refundable BOOLEAN,
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE CleaningFeeInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    cleaning_type VARCHAR(100),
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE LeaseTerminationInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    termination_reason TEXT,
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE ParkingFeeInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    spot_identifier VARCHAR(50),
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE PropertyTaxInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    tax_period_start DATE,
+    tax_period_end DATE,
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE InsuranceInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    policy_number VARCHAR(100),
+    coverage_period_start DATE,
+    coverage_period_end DATE,
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+);
+
+CREATE TABLE LegalFeeInvoices (
+    invoicesId CHAR(36) PRIMARY KEY,
+    case_reference VARCHAR(100),
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
 );
 
 -- Documents
@@ -368,28 +439,89 @@ CREATE TABLE Documents (
     DocumentId INT PRIMARY KEY AUTO_INCREMENT,
     PropertyId INT NULL,
     TenantId INT NULL,
-    FileName NVARCHAR(255),
-    FileUrl NVARCHAR(500),
-    Category NVARCHAR(100),
-    UploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FileName VARCHAR(255),
+    FileUrl VARCHAR(500),
+    Category VARCHAR(100),
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 
+CREATE TABLE DocumentStorage (
+    DocumentStorageId INT AUTO_INCREMENT PRIMARY KEY,
+    DocumentId INT NOT NULL,         -- Foreign key reference to Documents
+    invoicesId CHAR(36) NOT NULL,    -- Assuming UUID format to match Invoices table
+    FileName VARCHAR(255) NOT NULL,
+    FileType VARCHAR(50) NOT NULL,   -- PDF, DOCX, JPG, etc.
+    FileData LONGBLOB NOT NULL,      -- MySQL equivalent of VARBINARY(MAX)
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (DocumentId) REFERENCES Documents(DocumentId) ON DELETE CASCADE,
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId) ON DELETE CASCADE
+);
 -- Payment Reminders
 CREATE TABLE PaymentReminders (
     ReminderId INT PRIMARY KEY AUTO_INCREMENT,
     TenantId INT NOT NULL,
     PropertyId INT NOT NULL,
-    InvoiceId INT NOT NULL,
+    invoicesId CHAR(36) NOT NULL,
     ReminderDate DATETIME NOT NULL,
-    Status NVARCHAR(50) DEFAULT 'Pending',
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Status VARCHAR(50) DEFAULT 'Pending',
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
-    FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId)
+    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
 );
+
+-- Notes
+CREATE TABLE Notes (
+    NoteId INT PRIMARY KEY AUTO_INCREMENT,
+    TenantId INT NOT NULL,
+    PropertyId INT NOT NULL,
+    NoteText TEXT NOT NULL,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+);
+
+-- Flattened View
+CREATE OR REPLACE VIEW InvoiceDetailsView AS
+SELECT 
+    i.invoicesId,
+    i.amount,
+    i.duedate,
+    i.propertyid,
+    i.status,
+    i.notes,
+    i.invoicetypeid,
+    r.rentmonth,
+    r.rentyear,
+    u.utility_type,
+    u.usage_amount,
+    sd.is_refundable,
+    c.cleaning_type,
+    lt.termination_reason,
+    p.spot_identifier,
+    pt.tax_period_start,
+    pt.tax_period_end,
+    ins.policy_number,
+    ins.coverage_period_start,
+    ins.coverage_period_end,
+    l.case_reference
+
+FROM Invoices i
+LEFT JOIN RentInvoices r ON i.invoicesId = r.invoicesId
+LEFT JOIN UtilityInvoices u ON i.invoicesId = u.invoicesId
+LEFT JOIN SecurityDepositInvoices sd ON i.invoicesId = sd.invoicesId
+LEFT JOIN CleaningFeeInvoices c ON i.invoicesId = c.invoicesId
+LEFT JOIN LeaseTerminationInvoices lt ON i.invoicesId = lt.invoicesId
+LEFT JOIN ParkingFeeInvoices p ON i.invoicesId = p.invoicesId
+LEFT JOIN PropertyTaxInvoices pt ON i.invoicesId = pt.invoicesId
+LEFT JOIN InsuranceInvoices ins ON i.invoicesId = ins.invoicesId
+LEFT JOIN LegalFeeInvoices l ON i.invoicesId = l.invoicesId;
 
 -- Optimized Indexes
 CREATE INDEX IX_ResetToken ON Users (ResetToken);
@@ -400,3 +532,17 @@ CREATE INDEX IX_Property_IsAvailable ON Property(IsAvailable);
 CREATE INDEX IX_Owners_Email ON Owners(Email);
 CREATE INDEX IX_PropertyOwners_PropertyId ON PropertyOwners(PropertyId);
 CREATE INDEX IX_PropertyOwners_OwnerId ON PropertyOwners(OwnerId);
+-- Indexes on Invoices
+CREATE INDEX idx_invoices_due_date ON Invoices(duedate);
+CREATE INDEX idx_invoices_property_id ON Invoices(propertyid);
+CREATE INDEX idx_invoices_invoice_type ON Invoices(invoicetypeid);
+
+-- Subtype indexes
+CREATE INDEX idx_rent_period ON RentInvoices(rentyear, rentmonth);
+CREATE INDEX idx_utility_type ON UtilityInvoices(utility_type);
+CREATE INDEX idx_security_refundable ON SecurityDepositInvoices(is_refundable);
+CREATE INDEX idx_cleaning_type ON CleaningFeeInvoices(cleaning_type);
+CREATE INDEX idx_parking_spot ON ParkingFeeInvoices(spot_identifier);
+CREATE INDEX idx_property_tax_period ON PropertyTaxInvoices(tax_period_start, tax_period_end);
+CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policy_number);
+CREATE INDEX idx_legal_case ON LegalFeeInvoices(case_reference);

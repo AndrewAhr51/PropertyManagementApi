@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.Entities;
+//using PropertyManagementAPI.Domain.Entities.Invoices;
 using System.Data;
 using System.Security;
 
@@ -14,7 +15,8 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
-        public DbSet<Invoice> Invoices { get; set; }
+        //public DbSet<Invoice> Invoices { get; set; }
+        //public DbSet<InvoiceRental> RentInvoice { get; set; }
         public DbSet<Permissions> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Owner> Owners { get; set; }
@@ -31,5 +33,6 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<CreditCardInfo> CreditCardInfo { get; set; }
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<Note> Notes { get; set; }
+        public DbSet<LkupInvoiceType> LkupInvoiceType { get; set; }
     }
 }

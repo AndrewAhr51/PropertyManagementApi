@@ -11,6 +11,7 @@ using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.Entities;
+//
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories;
 using System.Security.Cryptography;
@@ -18,9 +19,9 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Configure SQL Server Database Context
-builder.Services.AddDbContext<SQLServerDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SQLServerConnection")));
+//// ✅ Configure SQL Server Database Context
+//builder.Services.AddDbContext<SQLServerDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("SQLServerConnection")));
 
 builder.Services.AddDbContext<MySqlDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"),
@@ -39,8 +40,8 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
 builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
-builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+//builder.Services.AddScoped(typeof(IInvoiceRepository<Invoice>), typeof(InvoiceRepository));
+//builder.Services.AddScoped(typeof(IInvoiceService<>), typeof(InvoiceService<>));
 builder.Services.AddScoped<ICreditCardInfoRepository, CreditCardInfoRepository>();
 builder.Services.AddScoped<ICreditCardInfoService, CreditCardInfoService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();

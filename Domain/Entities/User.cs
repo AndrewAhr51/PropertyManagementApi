@@ -20,8 +20,8 @@ namespace PropertyManagementAPI.Domain.Entities
         public string PasswordHash { get; set; }
 
         public int RoleId { get; set; } // Foreign key handled in SQL
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         // 🔹 Password Reset Handling
         [MaxLength(255)]
@@ -38,5 +38,6 @@ namespace PropertyManagementAPI.Domain.Entities
         public bool IsMfaEnabled { get; set; } = false; // ✅ Tracks MFA status
 
         public bool IsActive { get; set; } = true;
+
     }
 }

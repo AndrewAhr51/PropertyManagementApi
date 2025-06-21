@@ -6,9 +6,9 @@ namespace PropertyManagementAPI.Domain.DTOs
     {
         public int DocumentId { get; set; }
 
-        public int? PropertyId { get; set; }
+        public int PropertyId { get; set; }
 
-        public int? TenantId { get; set; }
+        public int TenantId { get; set; }
 
         public string FileName { get; set; }
 
@@ -16,8 +16,7 @@ namespace PropertyManagementAPI.Domain.DTOs
 
         public string Category { get; set; }
 
-        public DateTime UploadedAt { get; set; }
-
-        public DateTime CreatedAt { get; set; }
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }

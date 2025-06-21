@@ -7,6 +7,6 @@
         public int DocumentTypeId { get; set; } // Foreign key reference to lkupDocumentType
         public string FileName { get; set; }
         public byte[] FileData { get; set; } // Blob storage
-        public DateTime UploadedAt { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }

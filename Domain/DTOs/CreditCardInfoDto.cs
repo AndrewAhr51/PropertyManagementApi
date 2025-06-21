@@ -1,4 +1,6 @@
-﻿namespace PropertyManagementAPI.Domain.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PropertyManagementAPI.Domain.DTOs
 {
     public class CreditCardInfoDto
     {
@@ -10,6 +12,7 @@
         public string LastFourDigits { get; set; }
         public string ExpirationDate { get; set; }
         public string CVV { get; set; }  // Storing CVV as an integer
-        public DateTime CreatedAt { get; set; }
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }
