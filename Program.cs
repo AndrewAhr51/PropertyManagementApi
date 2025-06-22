@@ -9,11 +9,13 @@ using Microsoft.OpenApi.Models;
 using PropertyManagementAPI.API.Mapping;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.Entities;
 //
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories;
+using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -40,8 +42,8 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
 builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
-//builder.Services.AddScoped(typeof(IInvoiceRepository<Invoice>), typeof(InvoiceRepository));
-//builder.Services.AddScoped(typeof(IInvoiceService<>), typeof(InvoiceService<>));
+builder.Services.AddScoped<IInvoiceRentalRepository, InvoiceRentalRepository>();
+builder.Services.AddScoped<IInvoiceRentalService, InvoiceRentalService>();
 builder.Services.AddScoped<ICreditCardInfoRepository, CreditCardInfoRepository>();
 builder.Services.AddScoped<ICreditCardInfoService, CreditCardInfoService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
