@@ -34,7 +34,7 @@ namespace PropertyManagementAPI.API.Controllers.Invoices
         [HttpGet("{invoiceId:int}")]
         public async Task<IActionResult> GetById(int invoiceId)
         {
-            var invoice = await _utilityInvoiceService.GetByIdAsync(invoiceId);
+            var invoice = await _utilityInvoiceService.GetUtilitiesInvoiceByIdAsync(invoiceId);
             if (invoice == null)
                 return NotFound();
 
@@ -44,7 +44,7 @@ namespace PropertyManagementAPI.API.Controllers.Invoices
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var invoices = await _utilityInvoiceService.GetAllAsync();
+            var invoices = await _utilityInvoiceService.GetUtilitiesInvoiceAllAsync();
             return Ok(invoices);
         }
 
@@ -54,7 +54,7 @@ namespace PropertyManagementAPI.API.Controllers.Invoices
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var success = await _utilityInvoiceService.UpdateAsync(dto);
+            var success = await _utilityInvoiceService.UpdateUtilitiesInvoiceAsync(dto);
             if (!success)
                 return NotFound($"No utility invoice found with ID {dto.InvoiceId}.");
 
@@ -64,7 +64,7 @@ namespace PropertyManagementAPI.API.Controllers.Invoices
         [HttpDelete("{invoiceId:int}")]
         public async Task<IActionResult> Delete(int invoiceId)
         {
-            var success = await _utilityInvoiceService.DeleteAsync(invoiceId);
+            var success = await _utilityInvoiceService.DeleteUtilitiesInvoiceAsync(invoiceId);
             if (!success)
                 return NotFound($"No utility invoice found with ID {invoiceId}.");
 

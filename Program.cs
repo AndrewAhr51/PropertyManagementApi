@@ -70,6 +70,8 @@ builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IMaintenanceRequestRepository, MaintenanceRequestRepository>();
 builder.Services.AddScoped<IMaintenanceRequestService, MaintenanceRequestService>();
+builder.Services.AddScoped<ISecurityDepositInvoiceRepository, SecurityDepositInvoiceRepository>();
+builder.Services.AddScoped<ISecurityDepositInvoiceService, SecurityDepositInvoiceService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();

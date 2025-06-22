@@ -23,6 +23,8 @@ namespace PropertyManagementAPI.Domain.DTOs
         [Required]
         public decimal MonthlyRent { get; set; }
 
+        public decimal DepositAmount { get; set; }
+
         public bool DepositPaid { get; set; }
 
         public bool IsActive { get; set; }
