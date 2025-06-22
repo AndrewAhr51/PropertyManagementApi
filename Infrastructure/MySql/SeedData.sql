@@ -93,6 +93,12 @@ INSERT INTO lkupInvoiceType (InvoiceType, Description) VALUES
 ('LeaseTermination', 'Fees related to early lease termination'),
 ('LegalFees', 'Legal service charges for disputes or contracts');
 
+INSERT INTO lkupInvoiceStatus (Id, Name) VALUES
+    (1, 'Pending'),
+    (2, 'Paid'),
+    (3, 'Overdue'),
+    (4, 'Cancelled');
+
 -- ✅ Insert seed data into Roles table
 INSERT INTO Roles (Name, Description) VALUES
 ('Admin', 'Has full access to all system features'),
@@ -122,7 +128,7 @@ INSERT INTO RolePermissions (RoleId, PermissionId) VALUES
 (4, 1), (4, 2);
 
 -- ✅ Insert seed data into Users table
-INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedBy, IsMfaEnabled, IsActive) VALUES
+INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedDate, IsMfaEnabled, IsActive) VALUES
 ('admin_user', 'admin@example.com', 'hashed_password_1', 1, CURRENT_TIMESTAMP, TRUE, TRUE),
 ('manager_user', 'manager@example.com', 'hashed_password_2', 2, CURRENT_TIMESTAMP, TRUE, TRUE),
 ('john_doe', 'tenant@example.com', 'hashed_password_3', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
@@ -136,7 +142,7 @@ INSERT INTO Property (Name, Address, Address1, City, State, PostalCode, Country,
 ('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, TRUE, TRUE);
 
 -- ✅ Insert seed data into PropertyPhotos table
-INSERT INTO PropertyPhotos (PropertyId, PhotoUrl, Room, Caption, CreatedDate) VALUES
+INSERT INTO PropertyPhotos (PropertyId, PhotoUrl, Room, Caption, UploadedAt) VALUES
 (1, 'https://example.com/photos/sunset_villa.jpg', 'Front Room', 'Front view of Sunset Villa', CURRENT_TIMESTAMP),
 (2, 'https://example.com/photos/ocean_breeze.jpg', 'Balcony', 'Balcony view of Ocean Breeze Condo', CURRENT_TIMESTAMP),
 (3, 'https://example.com/photos/mountain_retreat.jpg', 'Scenic', 'Scenic view from Mountain Retreat', CURRENT_TIMESTAMP);

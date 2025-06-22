@@ -141,7 +141,7 @@ CREATE TABLE PropertyPhotos (
     PhotoUrl NVARCHAR(500) NOT NULL,
     Room NVARCHAR(500) NOT NULL,
     Caption NVARCHAR(255) NULL,
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
@@ -288,9 +288,9 @@ CREATE TABLE MaintenanceRequests (
     UserId INT NOT NULL,
     PropertyId INT NOT NULL,
     RequestDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    Category NVARCHAR(100),
+    Category NVARCHAR(100) NOT NULL,
     Description TEXT NOT NULL,
-    PriorityLevel NVARCHAR(50) DEFAULT 'Normal',
+    PriorityLevel NVARCHAR(50) DEFAULT 'Low',
     Status NVARCHAR(50) DEFAULT 'Open',
     AssignedTo NVARCHAR(100) NULL,
     ResolutionNotes TEXT NULL,
@@ -309,14 +309,14 @@ CREATE TABLE Vendors (
     ContactLastName NVARCHAR(255) NOT NULL,
     ServiceTypeId INT,
     ContactEmail NVARCHAR(255) UNIQUE NOT NULL,
-    PhoneNumber NVARCHAR(20),
-    Address NVARCHAR(255),
-    Address1 NVARCHAR(255),
-    City NVARCHAR(100),
-    State NVARCHAR(50),
-    PostalCode NVARCHAR(20),
+    PhoneNumber NVARCHAR(20) NOT NULL,
+    Address NVARCHAR(255) NOT NULL,
+    Address1 NVARCHAR(255) NULL,
+    City NVARCHAR(100) NOT NULL,
+    State NVARCHAR(50) NOT NULL,
+    PostalCode NVARCHAR(20) NOT NULL,
     AccountNumber NVARCHAR(50) UNIQUE NOT NULL,
-    Notes TEXT,
+    Notes TEXT NULL,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     IsActive BOOLEAN DEFAULT TRUE,
@@ -359,79 +359,77 @@ CREATE TABLE Leases (
 );
 
 CREATE TABLE Invoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY AUTO_INCREMENT,
     amount DECIMAL(18,2) NOT NULL,
     duedate DATETIME NOT NULL,
     propertyid CHAR(36) NOT NULL,
     IsPaid BOOLEAN DEFAULT FALSE,
     status VARCHAR(50) DEFAULT 'Pending',
     notes TEXT,
-    invoicetypeid int NOT NULL,
+    invoicetypeid INT NOT NULL,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- ==============================
--- Subtype Tables
--- ==============================
+-- Subtype Tables with ON DELETE CASCADE
 
 CREATE TABLE RentInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     rentmonth INT,
     rentyear INT,
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE UtilityInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     utility_type VARCHAR(50),
     usage_amount DECIMAL(10,2),
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE SecurityDepositInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     is_refundable BOOLEAN,
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE CleaningFeeInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     cleaning_type VARCHAR(100),
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE LeaseTerminationInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     termination_reason TEXT,
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE ParkingFeeInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     spot_identifier VARCHAR(50),
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE PropertyTaxInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     tax_period_start DATE,
     tax_period_end DATE,
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE InsuranceInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     policy_number VARCHAR(100),
     coverage_period_start DATE,
     coverage_period_end DATE,
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE LegalFeeInvoices (
-    invoicesId CHAR(36) PRIMARY KEY,
+    invoiceId INT PRIMARY KEY,
     case_reference VARCHAR(100),
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 -- Documents
@@ -451,7 +449,7 @@ CREATE TABLE Documents (
 CREATE TABLE DocumentStorage (
     DocumentStorageId INT AUTO_INCREMENT PRIMARY KEY,
     DocumentId INT NOT NULL,         -- Foreign key reference to Documents
-    invoicesId CHAR(36) NOT NULL,    -- Assuming UUID format to match Invoices table
+    invoiceId INT NOT NULL,    -- Assuming UUID format to match Invoices table
     FileName VARCHAR(255) NOT NULL,
     FileType VARCHAR(50) NOT NULL,   -- PDF, DOCX, JPG, etc.
     FileData LONGBLOB NOT NULL,      -- MySQL equivalent of VARBINARY(MAX)
@@ -459,21 +457,21 @@ CREATE TABLE DocumentStorage (
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (DocumentId) REFERENCES Documents(DocumentId) ON DELETE CASCADE,
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId) ON DELETE CASCADE
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 -- Payment Reminders
 CREATE TABLE PaymentReminders (
     ReminderId INT PRIMARY KEY AUTO_INCREMENT,
     TenantId INT NOT NULL,
     PropertyId INT NOT NULL,
-    invoicesId CHAR(36) NOT NULL,
+    invoiceId INT NOT NULL,
     ReminderDate DATETIME NOT NULL,
     Status VARCHAR(50) DEFAULT 'Pending',
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
-    FOREIGN KEY (invoicesId) REFERENCES Invoices(invoicesId)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId)
 );
 
 -- Notes
@@ -490,7 +488,7 @@ CREATE TABLE Notes (
 -- Flattened View
 CREATE OR REPLACE VIEW InvoiceDetailsView AS
 SELECT 
-    i.invoicesId,
+    i.invoiceId,
     i.amount,
     i.duedate,
     i.propertyid,
@@ -513,15 +511,15 @@ SELECT
     l.case_reference
 
 FROM Invoices i
-LEFT JOIN RentInvoices r ON i.invoicesId = r.invoicesId
-LEFT JOIN UtilityInvoices u ON i.invoicesId = u.invoicesId
-LEFT JOIN SecurityDepositInvoices sd ON i.invoicesId = sd.invoicesId
-LEFT JOIN CleaningFeeInvoices c ON i.invoicesId = c.invoicesId
-LEFT JOIN LeaseTerminationInvoices lt ON i.invoicesId = lt.invoicesId
-LEFT JOIN ParkingFeeInvoices p ON i.invoicesId = p.invoicesId
-LEFT JOIN PropertyTaxInvoices pt ON i.invoicesId = pt.invoicesId
-LEFT JOIN InsuranceInvoices ins ON i.invoicesId = ins.invoicesId
-LEFT JOIN LegalFeeInvoices l ON i.invoicesId = l.invoicesId;
+LEFT JOIN RentInvoices r ON i.invoiceId = r.invoiceId
+LEFT JOIN UtilityInvoices u ON i.invoiceId = u.invoiceId
+LEFT JOIN SecurityDepositInvoices sd ON i.invoiceId = sd.invoiceId
+LEFT JOIN CleaningFeeInvoices c ON i.invoiceId = c.invoiceId
+LEFT JOIN LeaseTerminationInvoices lt ON i.invoiceId = lt.invoiceId
+LEFT JOIN ParkingFeeInvoices p ON i.invoiceId = p.invoiceId
+LEFT JOIN PropertyTaxInvoices pt ON i.invoiceId = pt.invoiceId
+LEFT JOIN InsuranceInvoices ins ON i.invoiceId = ins.invoiceId
+LEFT JOIN LegalFeeInvoices l ON i.invoiceId = l.invoiceId;
 
 -- Optimized Indexes
 CREATE INDEX IX_ResetToken ON Users (ResetToken);

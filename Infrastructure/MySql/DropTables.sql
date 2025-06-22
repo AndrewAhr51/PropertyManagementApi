@@ -1,14 +1,27 @@
 USE PropertyManagement;
 
 -- ✅ Drop tables with foreign key dependencies first
-USE PropertyManagement;
-
--- ✅ Drop tables with foreign key dependencies first
 DROP TABLE IF EXISTS RolePermissions;
 DROP TABLE IF EXISTS PaymentReminders;
+DROP TABLE IF EXISTS DocumentStorage;
 DROP TABLE IF EXISTS Documents;
 DROP TABLE IF EXISTS Notes;
+
+-- ✅ Drop invoice subtype tables before Invoices
+DROP TABLE IF EXISTS LegalFeeInvoices;
+DROP TABLE IF EXISTS InsuranceInvoices;
+DROP TABLE IF EXISTS PropertyTaxInvoices;
+DROP TABLE IF EXISTS ParkingFeeInvoices;
+DROP TABLE IF EXISTS LeaseTerminationInvoices;
+DROP TABLE IF EXISTS CleaningFeeInvoices;
+DROP TABLE IF EXISTS SecurityDepositInvoices;
+DROP TABLE IF EXISTS UtilityInvoices;
+DROP TABLE IF EXISTS RentInvoices;
+
+-- ✅ Drop base invoice table
 DROP TABLE IF EXISTS Invoices;
+
+-- ✅ Continue with remaining dependent tables
 DROP TABLE IF EXISTS Leases;
 DROP TABLE IF EXISTS PropertyPhotos;
 DROP TABLE IF EXISTS AccessLogs;
@@ -24,7 +37,6 @@ DROP TABLE IF EXISTS PropertyOwners;
 DROP TABLE IF EXISTS Owners;
 DROP TABLE IF EXISTS Pricing;
 DROP TABLE IF EXISTS Tenants;
-DROP TABLE IF EXISTS PropertyPhotos;
 DROP TABLE IF EXISTS Property;
 DROP TABLE IF EXISTS Users;
 DROP TABLE IF EXISTS Permissions;
@@ -39,3 +51,4 @@ DROP TABLE IF EXISTS lkupMaintenanceRequestTypes;
 DROP TABLE IF EXISTS lkupPropertyRooms;
 DROP TABLE IF EXISTS lkupInvoiceType;
 DROP TABLE IF EXISTS lkupServiceTypes;
+DROP TABLE IF EXISTS lkupInvoiceStatus;
