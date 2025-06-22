@@ -78,6 +78,26 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                                 .FirstOrDefaultAsync();
                             break;
                         }
+                        case "SecurityDeposit":
+                        {
+                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("SecurityDeposit");
+
+                            var lease = await GetLeaseInformationAsync(invoice.PropertyId);
+                            if (lease == null)
+                            {
+                                _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
+                                return 0;
+                            }
+                            decimal depositAmount = lease.DepositAmount;
+                            previousInvoice = await _context.SecurityDepositInvoices
+                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
+                                            r.PropertyId == invoice.PropertyId &&
+                                            r.Status != "Paid" &&
+                                            r.DueDate.Month == previousMonth.Month &&
+                                            r.DueDate.Year == previousMonth.Year)
+                                .FirstOrDefaultAsync();
+                            break;
+                        }
 
                     default:
                         _logger.LogWarning("Invalid InvoiceType {InvoiceType}", invoice.InvoiceType);

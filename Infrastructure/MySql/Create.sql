@@ -358,6 +358,7 @@ CREATE TABLE Leases (
     StartDate DATETIME NOT NULL,
     EndDate DATETIME NULL,
     MonthlyRent DECIMAL(10,2) NOT NULL,
+    DepositAmount DECIMAL(10,2) NOT NULL,
     DepositPaid BOOLEAN DEFAULT FALSE,
     IsActive BOOLEAN DEFAULT TRUE,
     SignedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -398,46 +399,47 @@ CREATE TABLE UtilityInvoices (
 
 CREATE TABLE SecurityDepositInvoices (
     invoiceId INT PRIMARY KEY,
-    is_refundable BOOLEAN,
+    isrefundable BOOLEAN,
+	depositamount DECIMAL(18,2) NOT NULL,
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE CleaningFeeInvoices (
     invoiceId INT PRIMARY KEY,
-    cleaning_type VARCHAR(100),
+    cleaningtype VARCHAR(100),
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE LeaseTerminationInvoices (
     invoiceId INT PRIMARY KEY,
-    termination_reason TEXT,
+    terminationreason TEXT,
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE ParkingFeeInvoices (
     invoiceId INT PRIMARY KEY,
-    spot_identifier VARCHAR(50),
+    spotidentifier VARCHAR(50),
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE PropertyTaxInvoices (
     invoiceId INT PRIMARY KEY,
-    tax_period_start DATE,
-    tax_period_end DATE,
+    taxperiodstart DATE,
+    taxperiodend DATE,
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE InsuranceInvoices (
     invoiceId INT PRIMARY KEY,
-    policy_number VARCHAR(100),
-    coverage_period_start DATE,
-    coverage_period_end DATE,
+    policynumber VARCHAR(100),
+    coverageperiodstart DATE,
+    coverageperiodend DATE,
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
 CREATE TABLE LegalFeeInvoices (
     invoiceId INT PRIMARY KEY,
-    case_reference VARCHAR(100),
+    casereference VARCHAR(100),
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
@@ -506,18 +508,18 @@ SELECT
     i.invoicetypeid,
     r.rentmonth,
     r.rentyear,
-    u.utility_type,
-    u.usage_amount,
-    sd.is_refundable,
-    c.cleaning_type,
-    lt.termination_reason,
-    p.spot_identifier,
-    pt.tax_period_start,
-    pt.tax_period_end,
-    ins.policy_number,
-    ins.coverage_period_start,
-    ins.coverage_period_end,
-    l.case_reference
+    u.utilitytypeid,
+    u.usageamount,
+    sd.isrefundable,
+    c.cleaningtype,
+    lt.terminationreason,
+    p.spotidentifier,
+    pt.taxperiodstart,
+    pt.taxperiodend,
+    ins.policynumber,
+    ins.coverageperiodstart,
+    ins.coverageperiodend,
+    l.casereference
 
 FROM Invoices i
 LEFT JOIN RentInvoices r ON i.invoiceId = r.invoiceId
@@ -546,12 +548,12 @@ CREATE INDEX idx_invoices_invoice_type ON Invoices(invoicetypeid);
 
 -- Subtype indexes
 CREATE INDEX idx_rent_period ON RentInvoices(rentyear, rentmonth);
-CREATE INDEX idx_utility_type ON UtilityInvoices(utility_type);
-CREATE INDEX idx_security_refundable ON SecurityDepositInvoices(is_refundable);
-CREATE INDEX idx_cleaning_type ON CleaningFeeInvoices(cleaning_type);
-CREATE INDEX idx_parking_spot ON ParkingFeeInvoices(spot_identifier);
-CREATE INDEX idx_property_tax_period ON PropertyTaxInvoices(tax_period_start, tax_period_end);
-CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policy_number);
-CREATE INDEX idx_legal_case ON LegalFeeInvoices(case_reference);
+CREATE INDEX idx_utility_type ON UtilityInvoices(utilitytypeid);
+CREATE INDEX idx_security_refundable ON SecurityDepositInvoices(isrefundable);
+CREATE INDEX idx_cleaning_type ON CleaningFeeInvoices(cleaningtype);
+CREATE INDEX idx_parking_spot ON ParkingFeeInvoices(spotidentifier);
+CREATE INDEX idx_property_tax_period ON PropertyTaxInvoices(taxperiodstart, taxperiodend);
+CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policynumber);
+CREATE INDEX idx_legal_case ON LegalFeeInvoices(casereference);
 CREATE INDEX idx_utilityname ON LkupUtilities (UtilityName);
 CREATE UNIQUE INDEX idx_utilityname_unique ON LkupUtilities (UtilityName);

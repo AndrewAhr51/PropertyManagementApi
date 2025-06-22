@@ -36,6 +36,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Note> Notes { get; set; }
         public DbSet<LkupInvoiceType> LkupInvoiceType { get; set; }
         public DbSet<LkupUtilities> LkupUtilities { get; set; }
+        public DbSet<SecurityDepositInvoice> SecurityDepositInvoices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

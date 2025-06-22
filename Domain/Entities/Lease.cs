@@ -25,6 +25,9 @@ namespace PropertyManagementAPI.Domain.Entities
         [Column(TypeName = "decimal(10,2)")]
         public decimal MonthlyRent { get; set; }
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal DepositAmount { get; set; }
+
         public bool DepositPaid { get; set; } = false;
 
         public bool IsActive { get; set; } = true;

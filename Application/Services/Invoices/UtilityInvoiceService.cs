@@ -19,17 +19,17 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             return true;
         }
 
-        public Task<UtilityInvoice?> GetByIdAsync(int invoiceId)
+        public Task<UtilityInvoice?> GetUtilitiesInvoiceByIdAsync(int invoiceId)
         {
             return _repository.GetUtilitiesInvoiceByIdAsync(invoiceId);
         }
 
-        public Task<IEnumerable<UtilityInvoice>> GetAllAsync()
+        public Task<IEnumerable<UtilityInvoice>> GetUtilitiesInvoiceAllAsync()
         {
             return _repository.GetAllUtilitiesInvoiceAsync();
         }
 
-        public async Task<bool> UpdateAsync(UtilityInvoiceCreateDto dto)
+        public async Task<bool> UpdateUtilitiesInvoiceAsync(UtilityInvoiceCreateDto dto)
         {
             var existing = await _repository.GetUtilitiesInvoiceByIdAsync(dto.InvoiceId);
             if (existing == null) return false;
@@ -40,7 +40,7 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             return true;
         }
 
-        public Task<bool> DeleteAsync(int invoiceId)
+        public Task<bool> DeleteUtilitiesInvoiceAsync(int invoiceId)
         {
             return _repository.DeleteUtilitiesInvoiceAsync(invoiceId)
                 .ContinueWith(t => t.IsCompletedSuccessfully);

@@ -33,6 +33,7 @@ public class LeaseRepository : ILeaseRepository
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
             MonthlyRent = dto.MonthlyRent,
+            DepositAmount = dto.DepositAmount,
             DepositPaid = dto.DepositPaid,
             IsActive = true,
             SignedDate = dto.SignedDate == default ? DateTime.UtcNow : dto.SignedDate,
