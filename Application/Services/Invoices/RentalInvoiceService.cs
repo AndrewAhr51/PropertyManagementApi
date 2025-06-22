@@ -13,7 +13,7 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             _repository = repository;
         }
 
-        public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto, string invoiceType = "Rent")
+        public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto)
         {
             return await _repository.CreateInvoiceRentalAsync(dto);
         }

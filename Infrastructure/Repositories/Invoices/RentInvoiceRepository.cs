@@ -38,7 +38,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     throw new ArgumentException($"Invalid invoice type: {rentInvoiceCreate.InvoiceType}");
                 }
 
-                var amountDueTask = _invoiceRepository.GetAmountDueAsync(rentInvoiceCreate, invoiceTypeId);
+                var amountDueTask = _invoiceRepository.GetAmountDueAsync(rentInvoiceCreate, null);
                 decimal amountDue = await amountDueTask;
 
                 if (amountDue == 0)

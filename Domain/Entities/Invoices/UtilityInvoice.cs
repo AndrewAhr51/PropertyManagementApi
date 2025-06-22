@@ -2,7 +2,7 @@
 {
     public class UtilityInvoice : Invoice
     {
-        public string UtilityType { get; set; } = default!;
+        public int UtilityTypeId { get; set; }
         public decimal UsageAmount { get; set; }
     }
 
