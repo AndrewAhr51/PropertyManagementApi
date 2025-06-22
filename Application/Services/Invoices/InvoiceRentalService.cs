@@ -13,14 +13,14 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             _repository = repository;
         }
 
-        public async Task<bool> CreateInvoiceRentalAsync(InvoiceRentCreateDto dto, string invoiceType ="Rent")
+        public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto, string invoiceType ="Rent")
         {
             var invoiceTypeId = await _repository.InvoiceTypeExistsAsync(invoiceType);
             if (invoiceTypeId == null)
             {
                 throw new ArgumentException($"Invalid invoice type: {invoiceType}");
             }
-            var invoice = new InvoiceRental
+            var invoice = new RentInvoice
             {
                 InvoiceId = dto.InvoiceId,
                 Amount = dto.Amount,
@@ -36,16 +36,16 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             return await _repository.CreateInvoiceRentalAsync(invoice);
         }
 
-        public Task<InvoiceRental?> GetInvoiceRentalByIdAsync(int invoiceId) =>
+        public Task<RentInvoice?> GetInvoiceRentalByIdAsync(int invoiceId) =>
             _repository.GetInvoiceRentalByIdAsync(invoiceId);
 
-        public Task<IEnumerable<InvoiceRental>> GetAllInvoicesRentalsAsync() =>
+        public Task<IEnumerable<RentInvoice>> GetAllInvoicesRentalsAsync() =>
             _repository.GetAllInvoiceRentalsAsync();
 
-        public Task<IEnumerable<InvoiceRental>> GetInvoicesRentalsByMonthYearAsync(int month, int year) =>
+        public Task<IEnumerable<RentInvoice>> GetInvoicesRentalsByMonthYearAsync(int month, int year) =>
             _repository.GetInvoiceRentalByMonthYearAsync(month, year);
 
-        public async Task UpdateInvoiceRentalAsync(InvoiceRentCreateDto dto)
+        public async Task UpdateInvoiceRentalAsync(RentInvoiceCreateDto dto)
         {
             var existing = await _repository.GetInvoiceRentalByIdAsync(dto.InvoiceId);
             if (existing is null) return;

@@ -19,7 +19,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             _logger = logger;
         }
 
-        public async Task<bool> CreateInvoiceRentalAsync(InvoiceRental invoiceRent)
+        public async Task<bool> CreateInvoiceRentalAsync(RentInvoice invoiceRent)
         {
             decimal lateFee = 50;
             _logger.LogInformation("Creating invoice for TenantId {TenantId}", invoiceRent.PropertyId);
@@ -62,7 +62,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     amountDue += previousInvoice.Amount + lateFee;
                 }
 
-                var newInvoice = new InvoiceRental
+                var newInvoice = new RentInvoice
                 {
 
                     PropertyId = invoiceRent.PropertyId,
@@ -90,20 +90,20 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
 
         }
-        public async Task<InvoiceRental?> GetInvoiceRentalByIdAsync(int invoiceId) =>
+        public async Task<RentInvoice?> GetInvoiceRentalByIdAsync(int invoiceId) =>
             await _context.InvoiceRentals
                           .Include(r => r.PropertyId) // optional: eager load relationships
                           .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
 
-        public async Task<IEnumerable<InvoiceRental>> GetAllInvoiceRentalsAsync() =>
+        public async Task<IEnumerable<RentInvoice>> GetAllInvoiceRentalsAsync() =>
             await _context.InvoiceRentals.ToListAsync();
 
-        public async Task<IEnumerable<InvoiceRental>> GetInvoiceRentalByMonthYearAsync(int month, int year) =>
+        public async Task<IEnumerable<RentInvoice>> GetInvoiceRentalByMonthYearAsync(int month, int year) =>
             await _context.InvoiceRentals
                           .Where(i => i.RentMonth == month && i.RentYear == year)
                           .ToListAsync();
 
-        public async Task UpdateAsync(InvoiceRental invoice)
+        public async Task UpdateAsync(RentInvoice invoice)
         {
             _context.InvoiceRentals.Update(invoice);
             await _context.SaveChangesAsync();

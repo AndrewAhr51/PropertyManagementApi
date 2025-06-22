@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
-        public DbSet<InvoiceRental> InvoiceRentals { get; set; }
+        public DbSet<RentInvoice> InvoiceRentals { get; set; }
         public DbSet<Permissions> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Owner> Owners { get; set; }
@@ -41,7 +41,15 @@ namespace PropertyManagementAPI.Infrastructure.Data
 
             // Configure TPT inheritance
             modelBuilder.Entity<Invoice>().ToTable("Invoices");
-            modelBuilder.Entity<InvoiceRental>().ToTable("RentInvoices");
+            modelBuilder.Entity<RentInvoice>().ToTable("RentInvoices");
+            modelBuilder.Entity<UtilityInvoice>().ToTable("UtilityInvoices");
+            modelBuilder.Entity<SecurityDepositInvoice>().ToTable("SecurityDepositInvoices");
+            modelBuilder.Entity<CleaningFeeInvoice>().ToTable("CleaningFeeInvoices");
+            modelBuilder.Entity<LeaseTerminationInvoice>().ToTable("LeaseTerminationInvoices");
+            modelBuilder.Entity<ParkingFeeInvoice>().ToTable("ParkingFeeInvoices");
+            modelBuilder.Entity<PropertyTaxInvoice>().ToTable("PropertyTaxInvoices");
+            modelBuilder.Entity<InsuranceInvoice>().ToTable("InsuranceInvoices");
+            modelBuilder.Entity<LegalFeeInvoice>().ToTable("LegalFeeInvoices");
 
             // Optional: additional model configuration goes here
         }

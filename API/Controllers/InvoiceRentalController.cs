@@ -17,7 +17,7 @@ namespace PropertyManagementAPI.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] InvoiceRentCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] RentInvoiceCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -31,28 +31,28 @@ namespace PropertyManagementAPI.API.Controllers
         }
 
         [HttpGet("{invoiceId:int}")]
-        public async Task<ActionResult<InvoiceRental>> GetById(int invoiceId)
+        public async Task<ActionResult<RentInvoice>> GetById(int invoiceId)
         {
             var invoice = await _invoiceRentalService.GetInvoiceRentalByIdAsync(invoiceId);
             return invoice is not null ? Ok(invoice) : NotFound();
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InvoiceRental>>> GetAll()
+        public async Task<ActionResult<IEnumerable<RentInvoice>>> GetAll()
         {
             var invoices = await _invoiceRentalService.GetAllInvoicesRentalsAsync();
             return Ok(invoices);
         }
 
         [HttpGet("by-month-year")]
-        public async Task<ActionResult<IEnumerable<InvoiceRental>>> GetByMonthYear([FromQuery] int month, [FromQuery] int year)
+        public async Task<ActionResult<IEnumerable<RentInvoice>>> GetByMonthYear([FromQuery] int month, [FromQuery] int year)
         {
             var invoices = await _invoiceRentalService.GetInvoicesRentalsByMonthYearAsync(month, year);
             return Ok(invoices);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update([FromBody] InvoiceRentCreateDto dto)
+        public async Task<IActionResult> Update([FromBody] RentInvoiceCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
