@@ -9,9 +9,9 @@ namespace PropertyManagementAPI.API.Controllers
     [Route("api/[controller]")]
     public class InvoiceRentalController : ControllerBase
     {
-        private readonly IInvoiceRentalService _invoiceRentalService;
+        private readonly IRentalInvoiceService _invoiceRentalService;
 
-        public InvoiceRentalController(IInvoiceRentalService invoiceRentalService)
+        public InvoiceRentalController(IRentalInvoiceService invoiceRentalService)
         {
             _invoiceRentalService = invoiceRentalService;
         }

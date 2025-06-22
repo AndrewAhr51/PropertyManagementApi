@@ -3,7 +3,7 @@ using PropertyManagementAPI.Domain.Entities.Invoices;
 
 namespace PropertyManagementAPI.Application.Services.Invoices
 {
-    public interface IInvoiceRentalService
+    public interface IRentalInvoiceService
     {
         Task <bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto, string invoiceType = "Rent");
         Task<RentInvoice?> GetInvoiceRentalByIdAsync(int invoiceId);

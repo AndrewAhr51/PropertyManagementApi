@@ -18,7 +18,7 @@ namespace PropertyManagementAPI.Domain.DTOs.Invoice
         public int PropertyId { get; set; }
 
         [Required]
-        public int InvoiceTypeId { get; set; }
+        public string InvoiceType { get; set; }
 
         [Required]
         [Range(1, 12, ErrorMessage = "RentMonth must be between 1 and 12.")]

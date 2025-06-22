@@ -4,36 +4,18 @@ using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 
 namespace PropertyManagementAPI.Application.Services.Invoices
 {
-    public class InvoiceRentalService : IInvoiceRentalService
+    public class RentalInvoiceService : IRentalInvoiceService
     {
-        private readonly IInvoiceRentalRepository _repository;
+        private readonly IRentInvoiceRepository _repository;
 
-        public InvoiceRentalService(IInvoiceRentalRepository repository)
+        public RentalInvoiceService(IRentInvoiceRepository repository)
         {
             _repository = repository;
         }
 
-        public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto, string invoiceType ="Rent")
+        public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto, string invoiceType = "Rent")
         {
-            var invoiceTypeId = await _repository.InvoiceTypeExistsAsync(invoiceType);
-            if (invoiceTypeId == null)
-            {
-                throw new ArgumentException($"Invalid invoice type: {invoiceType}");
-            }
-            var invoice = new RentInvoice
-            {
-                InvoiceId = dto.InvoiceId,
-                Amount = dto.Amount,
-                DueDate = dto.DueDate,
-                PropertyId = dto.PropertyId,
-                InvoiceTypeId = invoiceTypeId,
-                RentMonth = dto.RentMonth,
-                RentYear = dto.RentYear,
-                Notes = dto.Notes,
-                CreatedDate = DateTime.UtcNow
-            };
-
-            return await _repository.CreateInvoiceRentalAsync(invoice);
+            return await _repository.CreateInvoiceRentalAsync(dto);
         }
 
         public Task<RentInvoice?> GetInvoiceRentalByIdAsync(int invoiceId) =>
