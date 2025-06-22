@@ -25,6 +25,7 @@ namespace PropertyManagementAPI.Domain.Entities
         public byte[] FileData { get; set; } // Blob storage
 
         [Required]
-        public DateTime UploadedAt { get; set; } = DateTime.Now;
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }

@@ -21,6 +21,6 @@ namespace PropertyManagementAPI.Domain.DTOs
         [MaxLength(255)]
         public string Caption { get; set; }
 
-        public DateTime? UploadedAt { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 }

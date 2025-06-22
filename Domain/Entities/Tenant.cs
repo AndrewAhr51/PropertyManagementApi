@@ -24,7 +24,8 @@ namespace PropertyManagementAPI.Domain.Entities
         public string PhoneNumber { get; set; }
 
         public DateTime? MoveInDate { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }

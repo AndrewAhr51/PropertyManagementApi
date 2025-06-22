@@ -22,14 +22,14 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
                 PhotoUrl = dto.PhotoUrl,
                 Room = dto.Room,
                 Caption = dto.Caption,
-                UploadedAt = dto.UploadedAt ?? DateTime.UtcNow
+                CreatedDate = dto.CreatedDate ?? DateTime.UtcNow
             };
 
             _context.PropertyPhotos.Add(entity);
             await _context.SaveChangesAsync();
 
             dto.PhotoId = entity.PhotoId;
-            dto.UploadedAt = entity.UploadedAt;
+            dto.CreatedDate = entity.CreatedDate;
             return dto;
         }
 
@@ -44,7 +44,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
                     PhotoUrl = p.PhotoUrl,
                     Room = p.Room,
                     Caption = p.Caption,
-                    UploadedAt = p.UploadedAt
+                    CreatedDate = p.CreatedDate
                 })
                 .ToListAsync();
         }

@@ -24,7 +24,7 @@ namespace PropertyManagementAPI.Domain.DTOs
         public string LeaseTerm { get; set; }
         
         public bool UtilitiesIncluded { get; set; } = false;
-
-        public DateTime CreatedAt { get; set; }
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }

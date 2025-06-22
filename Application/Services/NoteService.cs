@@ -44,11 +44,10 @@ namespace PropertyManagementAPI.Application.Services
             return new NoteDto
             {
                 NoteId = note.NoteId,
-                CreatedBy = note.CreatedBy,
                 TenantId = note.TenantId,
                 PropertyId = note.PropertyId,
                 NoteText = note.NoteText,
-                CreatedAt = note.CreatedAt,
+                CreatedBy = note.CreatedBy,
             };
         }
 
@@ -57,11 +56,10 @@ namespace PropertyManagementAPI.Application.Services
             return new Note
             {
                 NoteId = dto.NoteId,
-                CreatedBy = dto.CreatedBy,
                 TenantId = dto.TenantId,
                 PropertyId = dto.PropertyId,
                 NoteText = dto.NoteText,
-                CreatedAt = dto.CreatedAt,
+                CreatedBy = dto.CreatedBy,
             };
         }
     }

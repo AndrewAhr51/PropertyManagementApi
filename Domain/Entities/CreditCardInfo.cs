@@ -13,5 +13,7 @@ public class CreditCardInfo
     public string LastFourDigits { get; set; } // Extracted from CardNumber
     public string ExpirationDate { get; set; }
     public byte[] CVV { get; set; }  // Encrypted CVV
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 }

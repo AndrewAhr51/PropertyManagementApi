@@ -33,8 +33,6 @@ namespace PropertyManagementAPI.Application.Services
                 PostalCode = v.PostalCode,
                 AccountNumber = v.AccountNumber,
                 Notes = v.Notes,
-                CreatedAt = v.CreatedAt,
-                UpdatedAt = v.UpdatedAt
             }).ToList();
         }
 
@@ -59,8 +57,6 @@ namespace PropertyManagementAPI.Application.Services
                 PostalCode = vendor.PostalCode,
                 AccountNumber = vendor.AccountNumber,
                 Notes = vendor.Notes,
-                CreatedAt = vendor.CreatedAt,
-                UpdatedAt = vendor.UpdatedAt
             };
         }
 
@@ -82,7 +78,6 @@ namespace PropertyManagementAPI.Application.Services
                 AccountNumber = vendorDto.AccountNumber,
                 Notes = vendorDto.Notes,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
             };
 
             var createdVendor = await _vendorRepository.CreateAsync(vendor);
@@ -103,8 +98,6 @@ namespace PropertyManagementAPI.Application.Services
                 PostalCode = createdVendor.PostalCode,
                 AccountNumber = createdVendor.AccountNumber,
                 Notes = createdVendor.Notes,
-                CreatedAt = createdVendor.CreatedAt,
-                UpdatedAt = createdVendor.UpdatedAt
             };
         }
 
@@ -126,7 +119,6 @@ namespace PropertyManagementAPI.Application.Services
             vendor.PostalCode = vendorDto.PostalCode;
             vendor.AccountNumber = vendorDto.AccountNumber;
             vendor.Notes = vendorDto.Notes;
-            vendor.UpdatedAt = DateTime.UtcNow;
 
             return await _vendorRepository.UpdateAsync(vendor);
         }

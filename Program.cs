@@ -9,18 +9,21 @@ using Microsoft.OpenApi.Models;
 using PropertyManagementAPI.API.Mapping;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.Entities;
+//
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories;
+using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Configure SQL Server Database Context
-builder.Services.AddDbContext<SQLServerDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SQLServerConnection")));
+//// ✅ Configure SQL Server Database Context
+//builder.Services.AddDbContext<SQLServerDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("SQLServerConnection")));
 
 builder.Services.AddDbContext<MySqlDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"),
@@ -40,7 +43,8 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
 builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IRentInvoiceRepository, RentInvoiceRepository>();
+builder.Services.AddScoped<IRentalInvoiceService, RentalInvoiceService>();
 builder.Services.AddScoped<ICreditCardInfoRepository, CreditCardInfoRepository>();
 builder.Services.AddScoped<ICreditCardInfoService, CreditCardInfoService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();

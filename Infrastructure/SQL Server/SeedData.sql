@@ -42,7 +42,7 @@ INSERT INTO [dbo].[Property] ([Name], [Address], [Address1], [City], [State], [P
 GO
 
 -- ✅ Insert seed data into Users table
-INSERT INTO [dbo].[Users] ([UserName], [Email], [PasswordHash], [RoleId], [CreatedAt], [IsMfaEnabled], [IsActive]) VALUES
+INSERT INTO [dbo].[Users] ([UserName], [Email], [PasswordHash], [RoleId], [CreatedDate], [IsMfaEnabled], [IsActive]) VALUES
 ('admin_user', 'admin@example.com', 'hashed_password_1', 1, GETUTCDATE(), 1, 1),
 ('manager_user', 'manager@example.com', 'hashed_password_2', 2, GETUTCDATE(), 1, 1),
 ('john_doe', 'tenant@example.com', 'hashed_password_3', 3, GETUTCDATE(), 1, 1),
@@ -59,7 +59,9 @@ SELECT [UserId], 'Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '7
 UNION ALL
 SELECT [UserId], 'Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', 1 FROM [dbo].[Users] WHERE [Email] = 'bob.williams@example.com'
 UNION ALL
-SELECT [UserId], 'Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', 1 FROM [dbo].[Users] WHERE [Email] = 'charlie.brown@example.com';
+SELECT [UserId], 'Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', 1 FROM [dbo].[Users] WHERE [Email] = 'charlie.brown@example.com'
+UNION ALL
+SELECT [UserId], 'Jane', 'SMith', 'owner@example.com', '555-9999', '125 Bell Rd', NULL, 'The Villages', 'FL', '32162', 'USA', 1 FROM [dbo].[Users] WHERE [Email] = 'owner@example.com';
 GO
 
 -- ✅ Insert seed data into Tenants table (Using UserIds from Users table)
@@ -72,7 +74,7 @@ GO
 
 
 -- ✅ Insert seed data into PropertyPhotos table
-INSERT INTO [dbo].[PropertyPhotos] ([PropertyId], [PhotoUrl],[Room], [Caption], [UploadedAt]) VALUES
+INSERT INTO [dbo].[PropertyPhotos] ([PropertyId], [PhotoUrl],[Room], [Caption], [CreatedDate]) VALUES
 (1, 'https://example.com/photos/sunset_villa.jpg','Front Room', 'Front view of Sunset Villa', GETDATE()),
 (2, 'https://example.com/photos/ocean_breeze.jpg', 'Balcony', 'Balcony view of Ocean Breeze Condo', GETDATE()),
 (3, 'https://example.com/photos/mountain_retreat.jpg', 'Scenic', 'Scenic view from Mountain Retreat', GETDATE());
@@ -173,6 +175,9 @@ INSERT INTO [dbo].[lkupInvoiceType] ([InvoiceTypeName], [Description]) VALUES
 ('HOA Fees', 'Homeowners Association fees for shared property management'),
 ('Cleaning Fee', 'Charges for cleaning services'),
 ('Lease Termination', 'Fees for early lease termination'),
+('LegalFees', 'Legal service charges for disputes or contracts'),
+('PropertyTax', 'Annual or quarterly property tax assessments'),
+('Insurance', 'Insurance premium payments for the property'),
 ('Miscellaneous', 'Other property-related charges');
 
 GO
@@ -189,17 +194,14 @@ INSERT INTO [dbo].[lkupServiceTypes] ([TypeName]) VALUES
 ('Manufacturing'),
 ('Handy Man');
 GO
-INSERT INTO [dbo].[lkupInvoiceType] ([InvoiceTypeName], [Description])
-VALUES 
-    ('Rent', 'Monthly rent payment from tenants'),
-    ('Maintenance', 'Charges for maintenance and repairs'),
-    ('Utilities', 'Utility bills such as water, gas, or electricity'),
-    ('PropertyTax', 'Annual or quarterly property tax assessments'),
-    ('Insurance', 'Insurance premium payments for the property'),
-    ('HOAFees', 'Homeowners Association fees'),
-    ('SecurityDeposit', 'Initial security deposit from tenants'),
-    ('LateFees', 'Fees for overdue rent or payments'),
-    ('ParkingFees', 'Charges for tenant parking spaces'),
-    ('CleaningFees', 'Charges for professional cleaning services'),
-    ('LeaseTermination', 'Fees related to early lease termination'),
-    ('LegalFees', 'Legal service charges for disputes or contracts');
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

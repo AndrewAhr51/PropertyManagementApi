@@ -15,6 +15,9 @@ namespace PropertyManagementAPI.Domain.Entities
         public int PropertyId { get; set; }
 
         [Required]
+        public int Discount { get; set; }
+
+        [Required]
         public DateTime StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
@@ -28,6 +31,7 @@ namespace PropertyManagementAPI.Domain.Entities
 
         public DateTime SignedDate { get; set; } = DateTime.UtcNow;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }

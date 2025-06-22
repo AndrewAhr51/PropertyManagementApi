@@ -1,90 +1,27 @@
-﻿USE PropertyManagement;
+﻿USE [PropertyManagement];
 GO
 
--- ✅ Drop foreign key constraints first
-ALTER TABLE Payments DROP CONSTRAINT IF EXISTS FK_Payments_Tenants;
-GO
-ALTER TABLE Payments DROP CONSTRAINT IF EXISTS FK_Payments_PaymentMethods;
-GO
-ALTER TABLE Tenants DROP CONSTRAINT IF EXISTS FK_Tenants_Users;
-GO
-ALTER TABLE Tenants DROP CONSTRAINT IF EXISTS FK_Tenants_Property;
-GO
-ALTER TABLE PropertyOwners DROP CONSTRAINT IF EXISTS FK_PropertyOwners_Owners;
-GO
-ALTER TABLE PropertyOwners DROP CONSTRAINT IF EXISTS FK_PropertyOwners_Property;
-GO
-ALTER TABLE RolePermissions DROP CONSTRAINT IF EXISTS FK_RolePermissions_Roles;
-GO
-ALTER TABLE RolePermissions DROP CONSTRAINT IF EXISTS FK_RolePermissions_Permissions;
-GO
-ALTER TABLE Users DROP CONSTRAINT IF EXISTS FK_Users_Roles;
-GO
+-- Step 1: Drop all foreign key constraints
+DECLARE @fkSql NVARCHAR(MAX) = N'';
 
--- ✅ Drop tables with dependencies first
-DROP TABLE IF EXISTS Payments;
-GO
-DROP TABLE IF EXISTS lkupPaymentMethods;
-GO
-DROP TABLE IF EXISTS PropertyOwners;
-GO
-DROP TABLE IF EXISTS Owners;
-GO
-DROP TABLE IF EXISTS Pricing;
-GO
-DROP TABLE IF EXISTS Property;
-GO
-DROP TABLE IF EXISTS Tenants;
-GO
-DROP TABLE IF EXISTS Users;
-GO
-DROP TABLE IF EXISTS RolePermissions;
-GO
-DROP TABLE IF EXISTS Permissions;
-GO
-DROP TABLE IF EXISTS Roles;
-GO
+SELECT @fkSql += 
+    'ALTER TABLE [' + SCHEMA_NAME(t.schema_id) + '].[' + t.name + '] ' +
+    'DROP CONSTRAINT [' + fk.name + '];' + CHAR(13) + CHAR(10)
+FROM sys.foreign_keys fk
+JOIN sys.tables t ON fk.parent_object_id = t.object_id;
 
--- ✅ Drop remaining tables
-DROP TABLE IF EXISTS PaymentReminders;
-GO
-DROP TABLE IF EXISTS Documents;
-GO
-DROP TABLE IF EXISTS DocumentStorage;
-GO
-DROP TABLE IF EXISTS Notes;
-GO
-DROP TABLE IF EXISTS Invoices;
-GO
-DROP TABLE IF EXISTS Leases;
-GO
-DROP TABLE IF EXISTS PropertyPhotos;
-GO
-DROP TABLE IF EXISTS AccessLogs;
-GO
-DROP TABLE IF EXISTS MaintenanceRequests;
-GO
-DROP TABLE IF EXISTS Emails;
-GO
-DROP TABLE IF EXISTS SpecialInstructions;
-GO
-DROP TABLE IF EXISTS BillingAddress;
-GO
-DROP TABLE IF EXISTS CreditCardInfo;
-GO
-DROP TABLE IF EXISTS Vendors;
-GO
-DROP TABLE IF EXISTS lkupCreditCards;
-GO
-DROP TABLE IF EXISTS lkupMaintenanceRequestTypes;
-GO
-DROP TABLE IF EXISTS lkupPropertyRooms;
-GO
-DROP TABLE IF EXISTS lkupInvoiceType;
-GO
-DROP TABLE IF EXISTS lkupServiceTypes;
-GO
-DROP TABLE IF EXISTS lkupDocumentType;
-GO
-DROP TABLE IF EXISTS lkupCategory;
-GO
+PRINT '-- Dropping Foreign Keys --';
+PRINT @fkSql;
+EXEC sp_executesql @fkSql;
+
+-- Step 2: Drop all user-defined tables in dbo schema
+DECLARE @dropSql NVARCHAR(MAX) = N'';
+
+SELECT @dropSql += 
+    'DROP TABLE IF EXISTS [dbo].[' + t.name + '];' + CHAR(13) + CHAR(10)
+FROM sys.tables t
+WHERE SCHEMA_NAME(t.schema_id) = 'dbo';
+
+PRINT '-- Dropping Tables --';
+PRINT @dropSql;
+EXEC sp_executesql @dropSql;

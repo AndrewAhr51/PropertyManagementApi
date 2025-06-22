@@ -36,7 +36,7 @@ public class Vendor
     public string Address { get; set; }
 
     [MaxLength(255)]
-    public string Address1 { get; set; }
+    public string Address1 { get; set; } = string.Empty;
 
     [MaxLength(100)]
     public string City { get; set; }
@@ -51,14 +51,12 @@ public class Vendor
     [MaxLength(50)]
     public string AccountNumber { get; set; }
 
-    public string Notes { get; set; }
+    public string Notes { get; set; } = string.Empty;
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public DateTime UpdatedAt { get; set; }
-
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        
     public bool IsActive { get; set; } = true;
 
 

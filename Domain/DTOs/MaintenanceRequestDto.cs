@@ -16,21 +16,19 @@ namespace PropertyManagementAPI.Domain.DTOs
 
         public string Category { get; set; }
 
-        [Required]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
-        public string PriorityLevel { get; set; }
+        public string PriorityLevel { get; set; } = "Low";
 
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
 
-        public string AssignedTo { get; set; }
+        public string AssignedTo { get; set; } = string.Empty;
 
-        public string ResolutionNotes { get; set; }
+        public string ResolutionNotes { get; set; } = string.Empty;
 
-        public DateTime? ResolvedDate { get; set; }
+        public DateTime? ResolvedDate { get; set; } = null;
 
-        public DateTime LastUpdated { get; set; }
-
-        public DateTime CreatedAt { get; set; }
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }

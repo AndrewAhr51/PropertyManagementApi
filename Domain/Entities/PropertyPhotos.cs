@@ -23,7 +23,7 @@ namespace PropertyManagementAPI.Domain.Entities
         [MaxLength(255)]
         public string Caption { get; set; }
 
-        public DateTime? UploadedAt { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
         [ForeignKey(nameof(PropertyId))]
         public Property Property { get; set; }

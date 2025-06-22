@@ -2,33 +2,43 @@
 GO
 CREATE TABLE [dbo].[lkupCategory] (
     [CategoryId] INT PRIMARY KEY IDENTITY(1,1),
-    [CategoryName] NVARCHAR(100) NOT NULL UNIQUE
+    [CategoryName] NVARCHAR(100) NOT NULL UNIQUE,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 
 CREATE TABLE [dbo].[lkupCreditCards] (
     [CreditCardID] INT PRIMARY KEY IDENTITY(1,1),
-    [CreditCardName] VARCHAR(50) NOT NULL UNIQUE
+    [CreditCardName] VARCHAR(50) NOT NULL UNIQUE,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 
 CREATE TABLE [dbo].[lkupMaintenanceRequestTypes] (
     [RequestTypeID] INT PRIMARY KEY IDENTITY(1,1),
     [RequestTypeName] VARCHAR(100) NOT NULL UNIQUE,
-    [Description] VARCHAR(255) NULL
+    [Description] VARCHAR(255) NULL,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 
 CREATE TABLE [dbo].[lkupPropertyRooms] (
     [RoomID] INT PRIMARY KEY IDENTITY(1,1),
     [RoomName] VARCHAR(100) NOT NULL UNIQUE,
-    [Description] VARCHAR(255) NULL
+    [Description] VARCHAR(255) NULL,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 CREATE TABLE [dbo].[lkupInvoiceType](
     [InvoiceTypeId] [int] IDENTITY(1,1) NOT NULL,
     [InvoiceTypeName] [nvarchar](50) NOT NULL,
     [Description] [nvarchar](255) NULL,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 PRIMARY KEY CLUSTERED 
 (
     [InvoiceTypeId] ASC
@@ -39,7 +49,9 @@ GO
 -- Service Types table for normalization
 CREATE TABLE [dbo].[lkupServiceTypes] (
     [ServiceTypeId] INT PRIMARY KEY IDENTITY(1,1),
-    [TypeName] NVARCHAR(100) NOT NULL UNIQUE
+    [TypeName] NVARCHAR(100) NOT NULL UNIQUE,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 -- Roles and Permissions
@@ -47,43 +59,48 @@ CREATE TABLE [dbo].[Roles] (
     [RoleId] INT PRIMARY KEY IDENTITY(1,1),
     [Name] NVARCHAR(50) NOT NULL UNIQUE,
     [Description] NVARCHAR(255),
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 CREATE TABLE [dbo].[Permissions] (
     [PermissionId] INT PRIMARY KEY IDENTITY(1,1),
     [Name] NVARCHAR(100) NOT NULL UNIQUE,
     [Description] NVARCHAR(255),
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 CREATE TABLE RolePermissions (
     RoleId INT NOT NULL,
     PermissionId INT NOT NULL,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     PRIMARY KEY (RoleId, PermissionId), -- ✅ Composite Primary Key
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId),
     FOREIGN KEY (PermissionId) REFERENCES Permissions(PermissionId)
 );
 GO
 -- Users and Tenants
-CREATE TABLE Users (
-    UserId INT IDENTITY(1,1) PRIMARY KEY,
-    UserName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100) NOT NULL UNIQUE,
-    PasswordHash NVARCHAR(255) NOT NULL,
-    RoleId INT NOT NULL,
-    CreatedAt DATETIME DEFAULT GETUTCDATE(),
-    
+CREATE TABLE [dbo].[Users] (
+    [UserId] INT IDENTITY(1,1) PRIMARY KEY,
+    [UserName] NVARCHAR(50) NOT NULL,
+    [Email] NVARCHAR(100) NOT NULL UNIQUE,
+    [PasswordHash] NVARCHAR(255) NOT NULL,
+    [RoleId] INT NOT NULL,
+    [CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
+
     -- 🔹 Password Reset Fields
-    ResetToken NVARCHAR(255) NULL,
-    ResetTokenExpiration DATETIMEOFFSET NULL,
+    [ResetToken] NVARCHAR(255) NULL,
+    [ResetTokenExpiration] DATETIMEOFFSET NULL,
 
     -- 🔹 Multi-Factor Authentication (MFA)
-    MfaCode NVARCHAR(6) NULL,
-    MfaCodeExpiration DATETIMEOFFSET NULL,
-	
-	IsMfaEnabled BIT DEFAULT 1,
-    IsActive BIT DEFAULT 1,
+    [MfaCode] NVARCHAR(6) NULL,
+    [MfaCodeExpiration] DATETIMEOFFSET NULL,
+
+    [IsMfaEnabled] BIT DEFAULT 1,
+    [IsActive] BIT DEFAULT 1
 );
 
 -- ✅ Add Foreign Key for RoleId
@@ -107,7 +124,8 @@ CREATE TABLE [dbo].[Owners](
 	[PostalCode] [nvarchar](20) NOT NULL,
 	[Country] [nvarchar](100) NOT NULL,
 	[IsActive] [bit] NOT NULL,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 PRIMARY KEY CLUSTERED 
 (
 	[OwnerId] ASC
@@ -141,7 +159,8 @@ CREATE TABLE [dbo].[Property](
 	[SquareFeet] [int] NOT NULL,
 	[IsAvailable] [bit] NOT NULL,
 	[IsActive] [bit] NOT NULL,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 PRIMARY KEY CLUSTERED 
 (
 	[PropertyId] ASC
@@ -158,8 +177,9 @@ CREATE TABLE [dbo].[PropertyPhotos](
 	[PhotoUrl] [nvarchar](500) NOT NULL,
 	[Room]  [nvarchar](500) NOT NULL,
 	[Caption] [nvarchar](255) NULL,
-	[UploadedAt] [datetime] NULL,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreatedDate] [datetime] NULL,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 PRIMARY KEY CLUSTERED 
 (
 	[PhotoId] ASC
@@ -167,7 +187,7 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-ALTER TABLE [dbo].[PropertyPhotos] ADD  DEFAULT (getdate()) FOR [UploadedAt]
+ALTER TABLE [dbo].[PropertyPhotos] ADD  DEFAULT (getdate()) FOR [CreatedDate]
 GO
 
 ALTER TABLE [dbo].[PropertyPhotos]  WITH CHECK ADD FOREIGN KEY([PropertyId])
@@ -178,11 +198,12 @@ CREATE TABLE [dbo].[Tenants] (
     [TenantId] INT PRIMARY KEY IDENTITY(1,1),
 	[PropertyId] INT NOT NULL,
     [UserId] INT NOT NULL,
-    [FirstName] NVARCHAR(100),
-    [LastName] NVARCHAR(100),
-    [PhoneNumber] NVARCHAR(20),
-    [MoveInDate] DATE,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+    [FirstName] NVARCHAR(100)NOT NULL,
+    [LastName] NVARCHAR(100)NOT NULL,
+    [PhoneNumber] NVARCHAR(20)NOT NULL,
+    [MoveInDate] DATE NOT NULL,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId]),
 	FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
@@ -196,7 +217,8 @@ CREATE TABLE [dbo].[Pricing] (
     [DepositAmount] DECIMAL(10,2),
     [LeaseTerm] NVARCHAR(50),
     [UtilitiesIncluded] BIT DEFAULT 0,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 	
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
@@ -221,7 +243,8 @@ CREATE TABLE [dbo].[lkupPaymentMethods] (
     [MethodName] NVARCHAR(100) NOT NULL UNIQUE,
     [Description] NVARCHAR(255),
     [IsActive] BIT NOT NULL,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 CREATE TABLE [dbo].[Payments] (
@@ -232,7 +255,8 @@ CREATE TABLE [dbo].[Payments] (
     [PaymentMethodId] INT,
     [TransactionDate] DATETIME DEFAULT GETDATE(),
     [ReferenceNumber] NVARCHAR(100),
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([PaymentMethodId]) REFERENCES [dbo].[lkupPaymentMethods]([PaymentMethodId])
@@ -248,7 +272,8 @@ CREATE TABLE [dbo].[CreditCardInfo] (
 	[LastFourDigits] NVARCHAR(4),
     [ExpirationDate] NVARCHAR(7),
     [CVV] VARBINARY(256),
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
@@ -263,7 +288,8 @@ CREATE TABLE [dbo].[BillingAddress] (
     [State] NVARCHAR(100) NOT NULL,
     [PostalCode] NVARCHAR(20) NOT NULL,
     [Country] NVARCHAR(100) NOT NULL,
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([CardId]) REFERENCES [dbo].[CreditCardInfo]([CardId])
 );
 GO
@@ -274,7 +300,8 @@ CREATE TABLE [dbo].[SpecialInstructions] (
     [PropertyId] INT NULL,
     [PaymentId] INT NULL,
     [InstructionText] NVARCHAR(MAX),
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
     FOREIGN KEY ([PaymentId]) REFERENCES [dbo].[Payments]([PaymentId])
@@ -289,7 +316,8 @@ CREATE TABLE [dbo].[Emails] (
     [SentDate] DATETIME DEFAULT GETUTCDATE(),  -- ✅ Auto-populate timestamp
     [Status] NVARCHAR(50) DEFAULT 'Pending',  -- ✅ Tracks email status ('Pending', 'Sent', 'Failed')
     [IsDelivered] BIT DEFAULT 0,  -- ✅ Tracks delivery status
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 
     -- Foreign Keys
     FOREIGN KEY ([SenderId]) REFERENCES [dbo].[Users]([UserId]),
@@ -308,7 +336,8 @@ CREATE TABLE [dbo].[MaintenanceRequests] (
     [ResolutionNotes] NVARCHAR(MAX) NULL,  -- Technician feedback
     [ResolvedDate] DATETIME NULL,     -- When the issue was closed
     [LastUpdated] DATETIME DEFAULT GETDATE(),
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 
     -- Foreign Keys
     FOREIGN KEY (UserId) REFERENCES [dbo].Users(UserId),
@@ -330,9 +359,9 @@ CREATE TABLE [dbo].[Vendors] (
     [PostalCode] NVARCHAR(20),
     [AccountNumber] NVARCHAR(50) UNIQUE NOT NULL,
     [Notes] NVARCHAR(MAX),
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
-    [UpdatedAt] DATETIME DEFAULT GETDATE(),
 	[IsActive] [bit] DEFAULT 1,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([ServiceTypeId]) REFERENCES [dbo].[lkupServiceTypes]([ServiceTypeId])
 );
 
@@ -357,54 +386,118 @@ CREATE TABLE [dbo].[Leases] (
     [LeaseId] INT PRIMARY KEY IDENTITY(1,1),
     [TenantId] INT NOT NULL,
     [PropertyId] INT NOT NULL,
+	[Discount] INT NOT NULL,
     [StartDate] DATE NOT NULL,
     [EndDate] DATE NULL,
     [MonthlyRent] DECIMAL(10,2) NOT NULL,
     [DepositPaid] BIT DEFAULT 0,
     [IsActive] BIT DEFAULT 1,
     [SignedDate] DATE DEFAULT GETDATE(),
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
-CREATE TABLE [dbo].[Invoices](
-    [InvoiceId] [int] IDENTITY(1,1) NOT NULL,
-    [TenantId] [int] NOT NULL,
-    [PropertyId] [int] NOT NULL,
-    [AmountDue] [decimal](10, 2) NOT NULL,
-    [DueDate] [date] NOT NULL,
-    [BillingPeriod] [nvarchar](20) NOT NULL DEFAULT ('Monthly'), -- Monthly, Quarterly, Annual
-    [BillingMonth] [nvarchar](10) NOT NULL DEFAULT FORMAT(GETDATE(), 'MMMM'), -- Stores month name
-    [LateFee] [decimal](10, 2) NULL DEFAULT (0), -- Late payment penalty
-    [DiscountsApplied] [decimal](10, 2) NULL DEFAULT (0), -- Discounts or promotions
-    [IsPaid] [bit] NULL DEFAULT (0),
-    [PaymentDate] [datetime] NULL, -- Date when payment was made
-    [PaymentMethod] [nvarchar](50) NULL, -- Payment method (Credit Card, Bank Transfer, etc.)
-    [PaymentReference] [nvarchar](100) NULL, -- Transaction ID for reconciliation
-    [InvoiceStatus] [nvarchar](20) NOT NULL DEFAULT ('Pending'), -- Pending, Paid, Overdue
-    [InvoiceType] [nvarchar](50) NOT NULL DEFAULT ('Rent'), -- Rent, Maintenance, Utilities, etc.
-    [GeneratedBy] [nvarchar](50) NULL DEFAULT ('Web'),
-    [Notes] [nvarchar](500) NULL, -- Additional comments or metadata
-    [CreatedAt] [datetime] NULL DEFAULT (getdate()),
-    [UpdatedAt] [datetime] NULL DEFAULT (getdate()),
-PRIMARY KEY CLUSTERED 
-(
-    [InvoiceId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
-ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
+-- ==============================
+-- Base Table: [dbo].[Invoices]
+-- ==============================
+CREATE TABLE [dbo].[Invoices] (
+    [InvoicesId] UNIQUEIDENTIFIER PRIMARY KEY,
+    [Amount] DECIMAL(18, 2) NOT NULL,
+    [DueDate] DATE NOT NULL,
+    [PropertyId] UNIQUEIDENTIFIER NOT NULL,
+    [Status] VARCHAR(50),
+    [Notes] NVARCHAR(MAX),
+    [InvoiceType] VARCHAR(50) NOT NULL,
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
+);
 
--- Foreign Key Constraints
-ALTER TABLE [dbo].[Invoices]  WITH CHECK ADD FOREIGN KEY([PropertyId])
-REFERENCES [dbo].[Property] ([PropertyId])
-GO
+-- Indexes for base table
+CREATE NONCLUSTERED INDEX [IX_Invoices_DueDate] ON [dbo].[Invoices] ([DueDate]);
+CREATE NONCLUSTERED INDEX [IX_Invoices_PropertyId] ON [dbo].[Invoices] ([PropertyId]);
+CREATE NONCLUSTERED INDEX [IX_Invoices_InvoiceType] ON [dbo].[Invoices] ([InvoiceType]);
 
-ALTER TABLE [dbo].[Invoices]  WITH CHECK ADD FOREIGN KEY([TenantId])
-REFERENCES [dbo].[Tenants] ([TenantId])
-GO
+-- ==============================
+-- Subtype Tables + Indexes with ON DELETE CASCADE
+-- ==============================
 
+CREATE TABLE [dbo].[RentInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [RentMonth] INT,
+    [RentYear] INT,
+    CONSTRAINT [FK_RentInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_RentInvoices_RentPeriod] ON [dbo].[RentInvoices] ([RentYear], [RentMonth]);
+
+CREATE TABLE [dbo].[UtilityInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [UtilityType] VARCHAR(50),
+    [UsageAmount] DECIMAL(10, 2),
+    CONSTRAINT [FK_UtilityInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_UtilityInvoices_UtilityType] ON [dbo].[UtilityInvoices] ([UtilityType]);
+
+CREATE TABLE [dbo].[SecurityDepositInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [IsRefundable] BIT,
+    CONSTRAINT [FK_SecurityDepositInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_SecurityDepositInvoices_IsRefundable] ON [dbo].[SecurityDepositInvoices] ([IsRefundable]);
+
+CREATE TABLE [dbo].[CleaningFeeInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [CleaningType] VARCHAR(100),
+    CONSTRAINT [FK_CleaningFeeInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_CleaningFeeInvoices_CleaningType] ON [dbo].[CleaningFeeInvoices] ([CleaningType]);
+
+CREATE TABLE [dbo].[LeaseTerminationInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [TerminationReason] NVARCHAR(255),
+    CONSTRAINT [FK_LeaseTerminationInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+
+CREATE TABLE [dbo].[ParkingFeeInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [SpotIdentifier] VARCHAR(50),
+    CONSTRAINT [FK_ParkingFeeInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_ParkingFeeInvoices_SpotIdentifier] ON [dbo].[ParkingFeeInvoices] ([SpotIdentifier]);
+
+CREATE TABLE [dbo].[PropertyTaxInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [TaxPeriodStart] DATE,
+    [TaxPeriodEnd] DATE,
+    CONSTRAINT [FK_PropertyTaxInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_PropertyTaxInvoices_TaxPeriod] ON [dbo].[PropertyTaxInvoices] ([TaxPeriodStart], [TaxPeriodEnd]);
+
+CREATE TABLE [dbo].[InsuranceInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [PolicyNumber] VARCHAR(100),
+    [CoveragePeriodStart] DATE,
+    [CoveragePeriodEnd] DATE,
+    CONSTRAINT [FK_InsuranceInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_InsuranceInvoices_PolicyNumber] ON [dbo].[InsuranceInvoices] ([PolicyNumber]);
+
+CREATE TABLE [dbo].[LegalFeeInvoices] (
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    [CaseReference] VARCHAR(100),
+    CONSTRAINT [FK_LegalFeeInvoices_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
+CREATE NONCLUSTERED INDEX [IX_LegalFeeInvoices_CaseReference] ON [dbo].[LegalFeeInvoices] ([CaseReference]);
 GO
 CREATE TABLE [dbo].[Notes] (
     [NoteId] INT PRIMARY KEY IDENTITY(1,1),
@@ -412,47 +505,51 @@ CREATE TABLE [dbo].[Notes] (
     [TenantId] INT NULL,
     [PropertyId] INT NULL,
     [NoteText] NVARCHAR(MAX) NOT NULL,
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Users]([UserId]),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
     FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId])
 );
 GO
-CREATE TABLE [dbo].[Documents] (
-    [DocumentId] INT PRIMARY KEY IDENTITY(1,1),
-    [PropertyId] INT NULL,
-    [TenantId] INT NULL,
-    [FileName] NVARCHAR(255),
-    [FileUrl] NVARCHAR(500),
-    [Category] NVARCHAR(100), -- Lease, ID, Receipt, etc.
-    [UploadedAt] DATETIME DEFAULT GETDATE(),
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
-    FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId])
-);
-GO
+-- Example: PaymentReminders table referencing Invoices
 CREATE TABLE [dbo].[PaymentReminders] (
     [ReminderId] INT PRIMARY KEY IDENTITY(1,1),
     [TenantId] INT NOT NULL,
     [PropertyId] INT NOT NULL,
-    [InvoiceId] INT NOT NULL,
-    [ReminderDate] DATETIME NOT NULL,  -- When the reminder should be sent
-    [Status] NVARCHAR(50) DEFAULT 'Pending', -- Pending, Sent, Failed
-	[CreatedAt] DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY ([TenantId]) REFERENCES [dbo].[Tenants]([TenantId]),
-    FOREIGN KEY ([PropertyId]) REFERENCES [dbo].[Property]([PropertyId]),
-    FOREIGN KEY ([InvoiceId]) REFERENCES [dbo].[Invoices]([InvoiceId])
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL,
+    [ReminderDate] DATETIME NOT NULL,
+    [Status] NVARCHAR(50) DEFAULT 'Pending',
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
+    CONSTRAINT [FK_PaymentReminders_Tenants] FOREIGN KEY ([TenantId]) 
+        REFERENCES [dbo].[Tenants]([TenantId]),
+    CONSTRAINT [FK_PaymentReminders_Property] FOREIGN KEY ([PropertyId]) 
+        REFERENCES [dbo].[Property]([PropertyId]),
+    CONSTRAINT [FK_PaymentReminders_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
 );
 GO
+-- Example: Documents table referencing Invoices
+CREATE TABLE [dbo].[Documents] (
+    [DocumentId] INT PRIMARY KEY IDENTITY(1,1),
+    [InvoicesId] UNIQUEIDENTIFIER NOT NULL,
+    [DocumentType] VARCHAR(50),
+    [FilePath] NVARCHAR(255),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
+    CONSTRAINT [FK_Documents_Invoices] FOREIGN KEY ([InvoicesId]) 
+        REFERENCES [dbo].[Invoices]([InvoicesId]) ON DELETE CASCADE
+);
 
 CREATE TABLE [dbo].[DocumentStorage] (
     [DocumentStorageId] INT IDENTITY(1,1) PRIMARY KEY,
     [DocumentId] INT NOT NULL, -- Foreign key reference to Documents
-	[InvoiceId] INT NOT NULL, 
+	[InvoicesId] INT NOT NULL, 
     [FileName] NVARCHAR(255) NOT NULL,
     [FileType] NVARCHAR(50) NOT NULL, -- PDF, DOCX, JPG, etc.
     [FileData] VARBINARY(MAX) NOT NULL, -- Blob storage
-    [UploadedAt] DATETIME DEFAULT GETDATE(),
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
     CONSTRAINT FK_Document FOREIGN KEY ([DocumentId]) 
     REFERENCES [dbo].[Documents]([DocumentId]) ON DELETE CASCADE
 );
@@ -461,8 +558,8 @@ CREATE TABLE [dbo].[lkupDocumentType] (
     [DocumentTypeId] INT IDENTITY(1,1) PRIMARY KEY,
     [DocumentType] NVARCHAR(50) NOT NULL UNIQUE,
     [Description] NVARCHAR(255) NULL,
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
-    [UpdatedAt] DATETIME DEFAULT GETDATE()
+	[CreateBy] NVARCHAR(50) DEFAULT 'Web',
+	[CreatedDate] DATETIME DEFAULT GETUTCDATE(),
 );
 GO
 CREATE INDEX IX_ResetToken ON Users (ResetToken);

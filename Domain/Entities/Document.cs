@@ -7,9 +7,9 @@ namespace PropertyManagementAPI.Domain.Entities
         [Key]
         public int DocumentId { get; set; }
 
-        public int? PropertyId { get; set; }
+        public int PropertyId { get; set; }
 
-        public int? TenantId { get; set; }
+        public int TenantId { get; set; }
 
         [MaxLength(255)]
         public string FileName { get; set; }
@@ -20,8 +20,7 @@ namespace PropertyManagementAPI.Domain.Entities
         [MaxLength(100)]
         public string Category { get; set; }
 
-        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     }
 }

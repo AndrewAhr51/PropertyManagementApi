@@ -93,6 +93,12 @@ INSERT INTO lkupInvoiceType (InvoiceType, Description) VALUES
 ('LeaseTermination', 'Fees related to early lease termination'),
 ('LegalFees', 'Legal service charges for disputes or contracts');
 
+INSERT INTO lkupInvoiceStatus (Id, Name) VALUES
+    (1, 'Pending'),
+    (2, 'Paid'),
+    (3, 'Overdue'),
+    (4, 'Cancelled');
+
 -- ✅ Insert seed data into Roles table
 INSERT INTO Roles (Name, Description) VALUES
 ('Admin', 'Has full access to all system features'),
@@ -121,33 +127,13 @@ INSERT INTO RolePermissions (RoleId, PermissionId) VALUES
 -- Owner can view and edit their properties
 (4, 1), (4, 2);
 
--- ✅ Insert seed data into Users table (Admins, Managers, Tenants, and Owners)
-INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedAt, IsMfaEnabled, IsActive) VALUES
-('admin_user', 'admin@example.com', 'hashed_password_1', 1, NOW(), TRUE, TRUE),
-('manager_user', 'manager@example.com', 'hashed_password_2', 2, NOW(), TRUE, TRUE),
-('john_doe', 'tenant@example.com', 'hashed_password_3', 3, NOW(), TRUE, TRUE),
-('jane_smith', 'owner@example.com', 'hashed_password_4', 4, NOW(), TRUE, TRUE),
-('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, NOW(), TRUE, TRUE),
-('alice_johnson', 'alice.johnson@example.com', 'hashed_password_6', 4, NOW(), TRUE, TRUE),
-('bob_williams', 'bob.williams@example.com', 'hashed_password_7', 4, NOW(), TRUE, TRUE),
-('charlie_brown', 'charlie.brown@example.com', 'hashed_password_8', 4, NOW(), TRUE, TRUE);
-GO
-
--- ✅ Insert seed data into Owners table (Ensuring each Owner is also a User)
-INSERT INTO Owners (UserId, FirstName, LastName, Email, Phone, Address1, Address2, City, State, PostalCode, Country, IsActive)
-SELECT UserId, 'Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA', TRUE FROM Users WHERE Email = 'alice.johnson@example.com'
-UNION ALL
-SELECT UserId, 'Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', TRUE FROM Users WHERE Email = 'bob.williams@example.com'
-UNION ALL
-SELECT UserId, 'Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', TRUE FROM Users WHERE Email = 'charlie.brown@example.com';
-GO
-
--- ✅ Insert seed data into Tenants table (Ensuring each Tenant is also a User)
-INSERT INTO Tenants (UserId, PropertyId, FirstName, LastName, PhoneNumber, MoveInDate)
-SELECT UserId, 1, 'John', 'Doe', '555-1234', '2024-01-15' FROM Users WHERE Email = 'tenant@example.com'
-UNION ALL
-SELECT UserId, 2, 'Michael', 'Johnson', '555-9876', '2022-09-20' FROM Users WHERE Email = 'michael.johnson@example.com';
-GO
+-- ✅ Insert seed data into Users table
+INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedDate, IsMfaEnabled, IsActive) VALUES
+('admin_user', 'admin@example.com', 'hashed_password_1', 1, CURRENT_TIMESTAMP, TRUE, TRUE),
+('manager_user', 'manager@example.com', 'hashed_password_2', 2, CURRENT_TIMESTAMP, TRUE, TRUE),
+('john_doe', 'tenant@example.com', 'hashed_password_3', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
+('jane_smith', 'owner@example.com', 'hashed_password_4', 4, CURRENT_TIMESTAMP, TRUE, TRUE),
+('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, CURRENT_TIMESTAMP, TRUE, TRUE);
 
 -- ✅ Insert seed data into Property table
 INSERT INTO Property (Name, Address, Address1, City, State, PostalCode, Country, Bedrooms, Bathrooms, SquareFeet, IsAvailable, IsActive) VALUES
@@ -168,7 +154,10 @@ INSERT INTO Pricing (PropertyId, EffectiveDate, RentalAmount, DepositAmount, Lea
 (3, '2024-12-12', 3200.00, 6400.00, '24 Months', TRUE);
 
 -- ✅ Insert seed data into Owners table
-
+INSERT INTO Owners (FirstName, LastName, Email, Phone, Address1, Address2, City, State, PostalCode, Country, IsActive) VALUES
+('Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA', TRUE),
+('Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', TRUE),
+('Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', TRUE);
 
 -- ✅ Insert seed data into PropertyOwners table
 INSERT INTO PropertyOwners (PropertyId, OwnerId, OwnershipPercentage) VALUES
