@@ -9,15 +9,15 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
     public class InvoiceRepository : IInvoiceRepository
     {
         private readonly MySqlDbContext _context;
-        private readonly ILogger<RentInvoiceRepository> _logger;
+        private readonly ILogger<InvoiceDto> _logger;
 
-        public InvoiceRepository(MySqlDbContext context, ILogger<RentInvoiceRepository> logger)
+        public InvoiceRepository(MySqlDbContext context, ILogger<InvoiceDto> logger)
         {
             _context = context;
             _logger = logger;
         }
 
-        public async Task<decimal> GetAmountDueAsync(RentInvoiceCreateDto invoice, int invoiceTypeId)
+        public async Task<decimal> GetAmountDueAsync(InvoiceDto invoice, string? UtilityType)
         {
             try
             {
@@ -33,26 +33,56 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     return 0;
                 }
 
-                var lease = await GetLeaseInformationAsync(invoice.PropertyId);
-                if (lease == null)
-                {
-                    _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
-                    return 0;
-                }
-
-                decimal discountAmount = lease.MonthlyRent * (lease.Discount / 100m);
-                decimal amountDue = lease.MonthlyRent - discountAmount;
-
                 var previousMonth = new DateTime(invoice.DueDate.Year, invoice.DueDate.Month, 1).AddMonths(-1);
+                decimal amountDue = 0;
+                Invoice? previousInvoice = null;
 
-                var previousInvoice = await _context.RentInvoices
-                    .Where(r =>
-                        r.InvoiceTypeId == invoiceTypeId &&
-                        r.PropertyId == invoice.PropertyId &&
-                        r.Status != "Paid" &&
-                        r.RentMonth == previousMonth.Month &&
-                        r.RentYear == previousMonth.Year)
-                    .FirstOrDefaultAsync();
+                switch (invoice.InvoiceType)
+                {
+                    case "Rent":
+                        {
+                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("Rent");
+
+                            var lease = await GetLeaseInformationAsync(invoice.PropertyId);
+                            if (lease == null)
+                            {
+                                _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
+                                return 0;
+                            }
+
+                            decimal discount = lease.MonthlyRent * (lease.Discount / 100m);
+                            amountDue = lease.MonthlyRent - discount;
+
+                            previousInvoice = await _context.RentInvoices
+                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
+                                            r.PropertyId == invoice.PropertyId &&
+                                            r.Status != "Paid" &&
+                                            r.DueDate.Month == previousMonth.Month &&
+                                            r.DueDate.Year == previousMonth.Year)
+                                .FirstOrDefaultAsync();
+                            break;
+                        }
+
+                    case "Utilities":
+                        {
+                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("Utilities");
+                            int utilityTypeId = await GetUtilityTypeNameByIdAsync(UtilityType);
+
+                            previousInvoice = await _context.UtilityInvoices
+                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
+                                            r.UtilityTypeId == utilityTypeId &&
+                                            r.PropertyId == invoice.PropertyId &&
+                                            r.Status != "Paid" &&
+                                            r.DueDate.Month == previousMonth.Month &&
+                                            r.DueDate.Year == previousMonth.Year)
+                                .FirstOrDefaultAsync();
+                            break;
+                        }
+
+                    default:
+                        _logger.LogWarning("Invalid InvoiceType {InvoiceType}", invoice.InvoiceType);
+                        return 0;
+                }
 
                 if (previousInvoice != null)
                 {
@@ -63,7 +93,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating invoice for PropertyId {PropertyId}", invoice.PropertyId);
+                _logger.LogError(ex, "Error calculating amount due for PropertyId {PropertyId}", invoice?.PropertyId);
                 return 0;
             }
         }
@@ -101,7 +131,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return -1; // Fix for CS8603: Return a default value for non-nullable type.
             }
         }
-
         public async Task<int> InvoiceTypeExistsAsync(string invoiceType)
         {
             try
@@ -119,6 +148,23 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking if invoice type exists for ID {invoiceType}", invoiceType);
+                return -1; // Fix for CS8603: Return a default value for non-nullable type.
+            }
+        }
+
+        public async Task<int> GetUtilityTypeNameByIdAsync(string utilityType)
+        {
+            try
+            {
+                return await _context.LkupUtilities
+                    .AsNoTracking()
+                    .Where(t => t.UtilityName == utilityType)
+                    .Select(t => t.UtilityId)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve utilityType for {utilityType}", utilityType);
                 return -1; // Fix for CS8603: Return a default value for non-nullable type.
             }
         }

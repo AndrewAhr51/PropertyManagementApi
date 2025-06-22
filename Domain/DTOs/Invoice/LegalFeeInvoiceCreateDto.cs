@@ -1,8 +1,7 @@
 ﻿namespace PropertyManagementAPI.Domain.DTOs.Invoice
 {
-    public class LegalFeeInvoiceCreateDto
+    public class LegalFeeInvoiceCreateDto : InvoiceDto
     {
-        public int InvoiceId { get; set; }
         public string CaseReference { get; set; } = string.Empty;
     }
 

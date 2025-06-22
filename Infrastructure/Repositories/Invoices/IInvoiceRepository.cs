@@ -5,7 +5,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
     public interface IInvoiceRepository
     {
-        Task<decimal> GetAmountDueAsync(RentInvoiceCreateDto invoice, int invoiceTypeId);
+        Task<decimal> GetAmountDueAsync(InvoiceDto invoice, string? UtilityType);
 
         Task<int> InvoiceTypeExistsAsync(string invoiceType);
 

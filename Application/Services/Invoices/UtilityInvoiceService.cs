@@ -13,44 +13,36 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             _repository = repository;
         }
 
-        public async Task<bool> CreateAsync(UtilityInvoiceCreateDto dto, string invoiceType = "Utilities")
+        public async Task<bool> CreateUtilitiesInvoiceAsync(UtilityInvoiceCreateDto dto)
         {
-            var invoice = new UtilityInvoice
-            {
-                InvoiceId = dto.InvoiceId,
-                UtilityType = dto.UtilityType,
-                UsageAmount = dto.UsageAmount
-            };
-
-            await _repository.CreateAsync(invoice);
+            await _repository.CreateUtilitiesInvoiceAsync(dto);
             return true;
         }
 
         public Task<UtilityInvoice?> GetByIdAsync(int invoiceId)
         {
-            return _repository.GetByIdAsync(invoiceId);
+            return _repository.GetUtilitiesInvoiceByIdAsync(invoiceId);
         }
 
         public Task<IEnumerable<UtilityInvoice>> GetAllAsync()
         {
-            return _repository.GetAllAsync();
+            return _repository.GetAllUtilitiesInvoiceAsync();
         }
 
         public async Task<bool> UpdateAsync(UtilityInvoiceCreateDto dto)
         {
-            var existing = await _repository.GetByIdAsync(dto.InvoiceId);
+            var existing = await _repository.GetUtilitiesInvoiceByIdAsync(dto.InvoiceId);
             if (existing == null) return false;
 
-            existing.UtilityType = dto.UtilityType;
             existing.UsageAmount = dto.UsageAmount;
 
-            await _repository.UpdateAsync(existing);
+            await _repository.UpdateUtilitiesInvoiceAsync(existing);
             return true;
         }
 
         public Task<bool> DeleteAsync(int invoiceId)
         {
-            return _repository.DeleteAsync(invoiceId)
+            return _repository.DeleteUtilitiesInvoiceAsync(invoiceId)
                 .ContinueWith(t => t.IsCompletedSuccessfully);
         }
     }

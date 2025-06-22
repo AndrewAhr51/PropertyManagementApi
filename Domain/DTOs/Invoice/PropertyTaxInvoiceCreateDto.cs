@@ -1,8 +1,7 @@
 ﻿namespace PropertyManagementAPI.Domain.DTOs.Invoice
 {
-    public class PropertyTaxInvoiceCreateDto
+    public class PropertyTaxInvoiceCreateDto : InvoiceDto
     {
-        public int InvoiceId { get; set; }
         public DateTime TaxPeriodStart { get; set; }
         public DateTime TaxPeriodEnd { get; set; }
     }

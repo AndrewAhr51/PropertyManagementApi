@@ -174,3 +174,14 @@ INSERT INTO Tenants (UserId, PropertyId, FirstName, LastName, PhoneNumber, MoveI
 INSERT INTO Payments (TenantId, PropertyId, Amount, PaymentMethodId, TransactionDate, ReferenceNumber) VALUES
 (1, 1, 2500.00, 1, CURRENT_TIMESTAMP, 'REF123456'),
 (2, 3, 3200.00, 3, CURRENT_TIMESTAMP, 'REF345678');
+
+-- Seed data for common utility types
+INSERT INTO LkupUtilities (UtilityName, Description) VALUES
+('Electricity', 'Electric power usage and billing'),
+('Water', 'Water supply and consumption'),
+('Gas', 'Natural gas usage'),
+('Trash', 'Garbage collection services'),
+('Internet', 'Broadband or fiber internet service'),
+('Sewer', 'Sewage and wastewater services'),
+('Recycling', 'Recyclable waste collection'),
+('Cable TV', 'Television cable service');
