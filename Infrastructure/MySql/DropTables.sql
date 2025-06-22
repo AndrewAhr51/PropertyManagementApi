@@ -52,3 +52,4 @@ DROP TABLE IF EXISTS lkupPropertyRooms;
 DROP TABLE IF EXISTS lkupInvoiceType;
 DROP TABLE IF EXISTS lkupServiceTypes;
 DROP TABLE IF EXISTS lkupInvoiceStatus;
+DROP TABLE IF EXISTS LkupUtilities;

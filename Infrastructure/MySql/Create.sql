@@ -1,5 +1,14 @@
 USE propertymanagement;
 
+CREATE TABLE LkupUtilities (
+    UtilityId INT PRIMARY KEY AUTO_INCREMENT,
+    UtilityName VARCHAR(100) NOT NULL UNIQUE,
+    Description TEXT,
+	IsActive BOOLEAN DEFAULT TRUE,
+    CreatedBy Char(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE lkupPaymentMethods (
     PaymentMethodId INT PRIMARY KEY AUTO_INCREMENT,
     MethodName NVARCHAR(100) NOT NULL UNIQUE,
@@ -382,8 +391,8 @@ CREATE TABLE RentInvoices (
 
 CREATE TABLE UtilityInvoices (
     invoiceId INT PRIMARY KEY,
-    utility_type VARCHAR(50),
-    usage_amount DECIMAL(10,2),
+    utilitytypeid INT,
+    usageamount DECIMAL(10,2),
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
@@ -544,3 +553,5 @@ CREATE INDEX idx_parking_spot ON ParkingFeeInvoices(spot_identifier);
 CREATE INDEX idx_property_tax_period ON PropertyTaxInvoices(tax_period_start, tax_period_end);
 CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policy_number);
 CREATE INDEX idx_legal_case ON LegalFeeInvoices(case_reference);
+CREATE INDEX idx_utilityname ON LkupUtilities (UtilityName);
+CREATE UNIQUE INDEX idx_utilityname_unique ON LkupUtilities (UtilityName);
