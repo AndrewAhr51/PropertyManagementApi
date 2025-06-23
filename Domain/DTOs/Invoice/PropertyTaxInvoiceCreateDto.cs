@@ -4,8 +4,7 @@
     {
         public DateTime TaxPeriodStart { get; set; }
         public DateTime TaxPeriodEnd { get; set; }
-        public decimal Amount { get; set; }
-
+     
     }
 
 }

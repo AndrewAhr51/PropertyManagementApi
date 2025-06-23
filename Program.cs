@@ -81,7 +81,9 @@ builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<ICleaningFeeInvoiceService, CleaningFeeInvoiceService>(); 
-builder.Services.AddScoped<ICleaningFeeInvoiceRepository, CleaningFeeInvoiceRepository>(); 
+builder.Services.AddScoped<ICleaningFeeInvoiceRepository, CleaningFeeInvoiceRepository>();
+builder.Services.AddScoped<IPropertyTaxInvoiceService, PropertyTaxInvoiceService>();
+builder.Services.AddScoped<IPropertyTaxInvoiceRepository, PropertyTaxInvoiceRepository>();
 
 builder.Services.AddControllers();
 
