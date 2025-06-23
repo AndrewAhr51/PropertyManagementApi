@@ -41,9 +41,6 @@ namespace PropertyManagementAPI.Application.Services.Invoices
 
         public async Task<bool> DeleteSecurityDepositInvoiceAsync(int invoiceId)
         {
-            var existing = await _repository.GetSecurityDepositInvoiceByIdAsync(invoiceId);
-            if (existing == null) return false;
-
             await _repository.DeleteSecurityDepositInvoiceAsync(invoiceId);
             return true;
         }

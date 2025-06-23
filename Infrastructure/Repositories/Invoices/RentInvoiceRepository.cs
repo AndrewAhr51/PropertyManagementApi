@@ -86,19 +86,24 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                           .Where(i => i.RentMonth == month && i.RentYear == year)
                           .ToListAsync();
 
-        public async Task UpdateAsync(RentInvoice invoice)
+        public async Task UpdateInvoiceRentalAsync(RentInvoice invoice)
         {
             _context.RentInvoices.Update(invoice);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int invoiceId)
+        public async Task<bool> DeleteInvoiceRentalAsync(int invoiceId)
         {
-            var invoice = await _context.RentInvoices.FindAsync(invoiceId);
-            if (invoice != null)
+            try
             {
-                _context.RentInvoices.Remove(invoice);
-                await _context.SaveChangesAsync();
+                _context.Invoices.Remove(new Invoice { InvoiceId = invoiceId });
+                var save = await _context.SaveChangesAsync();
+                return save > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Lease Termination Invoice with InvoiceId {InvoiceId}", invoiceId);
+                return false;
             }
         }
 

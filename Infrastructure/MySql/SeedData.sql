@@ -185,3 +185,13 @@ INSERT INTO LkupUtilities (UtilityName, Description) VALUES
 ('Sewer', 'Sewage and wastewater services'),
 ('Recycling', 'Recyclable waste collection'),
 ('Cable TV', 'Television cable service');
+
+INSERT INTO LkupCleaningType (CleaningTypeName, Description) VALUES
+('Move-In Cleaning', 'Deep cleaning before a new tenant moves in'),
+('Move-Out Cleaning', 'Thorough cleaning after a tenant vacates'),
+('Routine Cleaning', 'Scheduled maintenance cleaning'),
+('Emergency Cleaning', 'Unplanned cleaning due to damage or incident'),
+('Post-Renovation Cleaning', 'Cleanup after construction or remodeling'),
+('Carpet Cleaning', 'Professional carpet shampooing or steaming'),
+('Window Cleaning', 'Interior and exterior window washing'),
+('Appliance Cleaning', 'Detailed cleaning of kitchen and laundry appliances');

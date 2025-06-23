@@ -88,14 +88,20 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteUtilitiesInvoiceAsync(int invoiceId)
+        public async Task<bool> DeleteUtilitiesInvoiceAsync(int invoiceId)
         {
-            var invoice = await _context.UtilityInvoices.FindAsync(invoiceId);
-            if (invoice != null)
+            try
             {
-                _context.UtilityInvoices.Remove(invoice);
-                await _context.SaveChangesAsync();
+                _context.Invoices.Remove(new Invoice { InvoiceId = invoiceId });
+                var save = await _context.SaveChangesAsync();
+                return save > 0;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Utilities Invoice invoice with InvoiceId {InvoiceId}", invoiceId);
+                return false;
+            }
+            
         }
 
         public async Task<int> UtilityTypeExistsAsync(string utilityType)

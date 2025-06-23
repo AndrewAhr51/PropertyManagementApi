@@ -38,10 +38,10 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             existing.RentYear = dto.RentYear;
             existing.Notes = dto.Notes;
 
-            await _repository.UpdateAsync(existing);
+            await _repository.UpdateInvoiceRentalAsync(existing);
         }
 
         public Task DeleteInvoiceRentalAsync(int invoiceId) =>
-            _repository.DeleteAsync(invoiceId);
+            _repository.DeleteInvoiceRentalAsync(invoiceId);
     }
 }

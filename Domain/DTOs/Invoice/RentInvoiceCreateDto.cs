@@ -9,9 +9,6 @@ namespace PropertyManagementAPI.Domain.DTOs.Invoice
         public decimal Amount { get; set; }
 
         [Required]
-        public DateTime DueDate { get; set; }
-
-        [Required]
         [Range(1, 12, ErrorMessage = "RentMonth must be between 1 and 12.")]
         public int RentMonth { get; set; }
 
