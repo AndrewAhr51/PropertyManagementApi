@@ -18,5 +18,7 @@ namespace PropertyManagementAPI.Domain.DTOs.Invoice
 
         [MaxLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters.")]
         public string? Notes { get; set; }
+
+        public decimal Amount { get; set; } = 0;
     }
 }

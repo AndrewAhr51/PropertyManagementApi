@@ -36,14 +36,22 @@ public class PropertyTaxInvoiceRepository : IPropertyTaxInvoiceRepository
 
             decimal propertyTaxAmount = await _invoiceRepository.GetAmountDueAsync(dto, null);
 
+            //override the Property Tax Amount if provided in the DTO
+            if (dto.Amount > 0)
+            {
+                propertyTaxAmount = dto.Amount;
+            }
+
             var newInvoice = new PropertyTaxInvoice
             {
                 PropertyId = dto.PropertyId,
                 InvoiceTypeId = invoiceTypeId,
                 InvoiceId = dto.InvoiceId,
-                Amount = dto.Amount,
+                Amount = propertyTaxAmount,
                 DueDate = dto.DueDate,
                 Notes = dto.Notes,
+                TaxPeriodStart = dto.TaxPeriodStart,
+                TaxPeriodEnd = dto.TaxPeriodEnd,
                 CreatedBy = "Web",
                 Status = "Pending"
             };
