@@ -41,11 +41,8 @@ namespace PropertyManagementAPI.Application.Services.Invoices
 
         public async Task<bool> DeleteLeaseTerminationInvoiceAsync(int invoiceId)
         {
-            var existing = await _repository.GetLeaseTerminationInvoiceByIdAsync(invoiceId);
-            if (existing == null) return false;
-
-            await _repository.DeleteLeaseTerminationInvoiceAsync(invoiceId);
-            return true;
+           var save = await _repository.DeleteLeaseTerminationInvoiceAsync(invoiceId);
+           return save;
         }
     }
 }

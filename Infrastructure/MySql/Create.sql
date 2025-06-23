@@ -145,6 +145,7 @@ CREATE TABLE Property (
     Bedrooms INT NOT NULL,
     Bathrooms INT NOT NULL,
     SquareFeet INT NOT NULL,
+    PropertyTaxes DECIMAL(10,2) default 0,
     IsAvailable BOOLEAN DEFAULT TRUE,
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedBy CHAR(50) DEFAULT 'Web',
@@ -414,9 +415,11 @@ CREATE TABLE SecurityDepositInvoices (
 
 CREATE TABLE CleaningFeeInvoices (
     invoiceId INT PRIMARY KEY,
-    cleaningtype VARCHAR(100),
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+    cleaningtypeid INT,
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE,
+    FOREIGN KEY (cleaningtypeid) REFERENCES LkupCleaningType(CleaningTypeId) ON DELETE SET NULL
 );
+
 
 CREATE TABLE LeaseTerminationInvoices (
     invoiceId INT PRIMARY KEY,
@@ -519,7 +522,7 @@ SELECT
     u.utilitytypeid,
     u.usageamount,
     sd.isrefundable,
-    c.cleaningtype,
+    c.cleaningtypeId,
     lt.terminationreason,
     p.spotidentifier,
     pt.taxperiodstart,
@@ -558,7 +561,7 @@ CREATE INDEX idx_invoices_invoice_type ON Invoices(invoicetypeid);
 CREATE INDEX idx_rent_period ON RentInvoices(rentyear, rentmonth);
 CREATE INDEX idx_utility_type ON UtilityInvoices(utilitytypeid);
 CREATE INDEX idx_security_refundable ON SecurityDepositInvoices(isrefundable);
-CREATE INDEX idx_cleaning_type ON CleaningFeeInvoices(cleaningtype);
+CREATE INDEX idx_cleaning_type ON CleaningFeeInvoices(cleaningtypeid);
 CREATE INDEX idx_parking_spot ON ParkingFeeInvoices(spotidentifier);
 CREATE INDEX idx_property_tax_period ON PropertyTaxInvoices(taxperiodstart, taxperiodend);
 CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policynumber);

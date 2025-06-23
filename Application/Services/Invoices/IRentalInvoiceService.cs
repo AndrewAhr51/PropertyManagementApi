@@ -10,6 +10,6 @@ namespace PropertyManagementAPI.Application.Services.Invoices
         Task<IEnumerable<RentInvoice>> GetAllInvoicesRentalsAsync();
         Task<IEnumerable<RentInvoice>> GetInvoicesRentalsByMonthYearAsync(int month, int year);
         Task UpdateInvoiceRentalAsync(RentInvoiceCreateDto dto);
-        Task DeleteInvoiceRentalAsync(int invoiceId);
+        Task <bool>DeleteInvoiceRentalAsync(int invoiceId);
     }
 }

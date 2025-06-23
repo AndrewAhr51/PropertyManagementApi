@@ -42,12 +42,15 @@ namespace PropertyManagementAPI.Domain.Entities
         public int Bathrooms { get; set; }
 
         [Required]
-        public int SquareFeet { get; set; }
+        public int SquareFeet { get; set; } // Fixed missing closing brace  
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal PropertyTaxes { get; set; } // No changes needed here  
 
         public bool IsAvailable { get; set; } = true;
         public bool IsActive { get; set; } = true;
 
-        // Navigation property (optional)
+        // Navigation property (optional)  
         public ICollection<PropertyOwner> PropertyOwners { get; set; }
     }
 }

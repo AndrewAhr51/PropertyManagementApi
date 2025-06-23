@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementAPI.Domain.DTOs
 {
@@ -42,6 +43,9 @@ namespace PropertyManagementAPI.Domain.DTOs
         [Range(0, int.MaxValue)]
         public int SquareFeet { get; set; }
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal PropertyTaxes { get; set; }
+        
         public bool IsAvailable { get; set; } = true;
         public bool IsActive { get; set; } = true;
 
