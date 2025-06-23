@@ -99,7 +99,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                                 .FirstOrDefaultAsync();
                             break;
                         }
-                         case "PropertyTax":
+                        case "PropertyTax":
                         {
                             int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("PropertyTax");
 
@@ -119,6 +119,28 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                                 .FirstOrDefaultAsync();
                             break;
                            
+                        }
+                    case "Insurance":
+                        {
+                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("Insurance");
+
+                            var property = await GetPropertyInformationAsync(invoice.PropertyId);
+                            
+                            if (property == null)
+                            {
+                                _logger.LogWarning("No property found for PropertyId {PropertyId}", invoice.PropertyId);
+                                return 0;
+                            }
+                            amountDue = property.Insurance;
+                            previousInvoice = await _context.PropertyTaxInvoices
+                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
+                                            r.PropertyId == invoice.PropertyId &&
+                                            r.Status != "Paid" &&
+                                            r.DueDate.Month == previousMonth.Month &&
+                                            r.DueDate.Year == previousMonth.Year)
+                                .FirstOrDefaultAsync();
+                            break;
+
                         }
                     default:
                         _logger.LogWarning("Invalid InvoiceType {InvoiceType}", invoice.InvoiceType);

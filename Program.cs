@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,8 +29,14 @@ var builder = WebApplication.CreateBuilder(args);
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("SQLServerConnection")));
 
 builder.Services.AddDbContext<MySqlDbContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"),
-    new MySqlServerVersion(new Version(8, 0, 32))));
+    options
+        .UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySQLConnection")))
+        .ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>()
+);
+
+//builder.Services.AddDbContext<MySqlDbContext>(options =>
+//    options.UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"),
+//    new MySqlServerVersion(new Version(8, 0, 32))));
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
@@ -84,6 +91,8 @@ builder.Services.AddScoped<ICleaningFeeInvoiceService, CleaningFeeInvoiceService
 builder.Services.AddScoped<ICleaningFeeInvoiceRepository, CleaningFeeInvoiceRepository>();
 builder.Services.AddScoped<IPropertyTaxInvoiceService, PropertyTaxInvoiceService>();
 builder.Services.AddScoped<IPropertyTaxInvoiceRepository, PropertyTaxInvoiceRepository>();
+builder.Services.AddScoped<ILegalFeeInvoiceRepository, LegalFeeInvoiceRepository>();
+builder.Services.AddScoped<ILegalFeeInvoiceService, LegalFeeInvoiceService>();
 
 builder.Services.AddControllers();
 
@@ -143,6 +152,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+
+
 var app = builder.Build();
 
 // ✅ Configure Middleware Pipeline
@@ -162,3 +174,9 @@ app.UseMiddleware<RoleMiddleware>();
 
 app.MapControllers();
 app.Run();
+
+public class DynamicModelCacheKeyFactory : IModelCacheKeyFactory
+{
+    public object Create(DbContext context, bool designTime) =>
+        new { Type = context.GetType(), designTime };
+}

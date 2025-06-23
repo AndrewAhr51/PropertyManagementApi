@@ -45,7 +45,10 @@ namespace PropertyManagementAPI.Domain.DTOs
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal PropertyTaxes { get; set; }
-        
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Insurance { get; set; }
+
         public bool IsAvailable { get; set; } = true;
         public bool IsActive { get; set; } = true;
 

@@ -7,6 +7,7 @@ namespace PropertyManagementAPI.Domain.DTOs.Invoice
         [Required]
         public string CaseReference { get; set; } = string.Empty;
 
+        [Required]
+        public string LawFirm { get; set; } = string.Empty;
     }
-
 }

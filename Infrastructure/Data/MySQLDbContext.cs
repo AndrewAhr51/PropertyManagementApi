@@ -22,7 +22,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Owner> Owners { get; set; }
         public DbSet<Property> Property { get; set; }
-        public DbSet<PropertyOwner> PropertyOwners{ get; set; }
+        public DbSet<PropertyOwner> PropertyOwners { get; set; }
         public DbSet<PropertyPhotos> PropertyPhotos { get; set; }
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
         public DbSet<Pricing> Pricing { get; set; }
@@ -42,7 +42,8 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<LeaseTerminationInvoice> LeaseTerminationInvoices { get; set; }
         public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; }
         public DbSet<PropertyTaxInvoice> PropertyTaxInvoices { get; set; }
-        
+        public DbSet<InsuranceInvoice> InsuranceInvoices { get; set; }
+        public DbSet<LegalFeeInvoice> LegalFeeInvoices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,6 +58,16 @@ namespace PropertyManagementAPI.Infrastructure.Data
                 }
             }
 
+            // ✅ Enforce consistent PK mapping
+            modelBuilder.Entity<Invoice>()
+                .HasKey(x => x.InvoiceId);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(x => x.InvoiceId)
+                .HasColumnType("int");
+
+            modelBuilder.Entity<LegalFeeInvoice>()
+                .HasBaseType<Invoice>(); // Reinforce inheritance
 
             // Configure TPT inheritance
             modelBuilder.Entity<Invoice>().ToTable("Invoices");

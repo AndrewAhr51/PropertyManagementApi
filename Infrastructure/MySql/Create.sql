@@ -146,6 +146,7 @@ CREATE TABLE Property (
     Bathrooms INT NOT NULL,
     SquareFeet INT NOT NULL,
     PropertyTaxes DECIMAL(10,2) default 0,
+    Insurance DECIMAL(10,2) default 0,
     IsAvailable BOOLEAN DEFAULT TRUE,
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedBy CHAR(50) DEFAULT 'Web',
@@ -381,7 +382,7 @@ CREATE TABLE Invoices (
     invoiceId INT PRIMARY KEY AUTO_INCREMENT,
     amount DECIMAL(18,2) NOT NULL,
     duedate DATETIME NOT NULL,
-    propertyid CHAR(36) NOT NULL,
+    propertyid int NOT NULL,
     IsPaid BOOLEAN DEFAULT FALSE,
     status VARCHAR(50) DEFAULT 'Pending',
     notes TEXT,
@@ -451,6 +452,7 @@ CREATE TABLE InsuranceInvoices (
 CREATE TABLE LegalFeeInvoices (
     invoiceId INT PRIMARY KEY,
     casereference VARCHAR(100),
+    LawFirm VARCHAR(100),
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 

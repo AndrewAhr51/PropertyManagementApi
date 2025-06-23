@@ -136,10 +136,10 @@ INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedDate, IsMfaEnab
 ('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, CURRENT_TIMESTAMP, TRUE, TRUE);
 
 -- ✅ Insert seed data into Property table
-INSERT INTO Property (Name, Address, Address1, City, State, PostalCode, Country, Bedrooms, Bathrooms, SquareFeet, PropertyTaxes, IsAvailable, IsActive) VALUES
-('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 2000, TRUE, TRUE),
-('Ocean Breeze Condo', '456 Beach Ave', 'Unit 5', 'Miami', 'FL', '33101', 'USA', 2, 2, 1200, 3000,TRUE, TRUE),
-('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, 4000, TRUE, TRUE);
+INSERT INTO Property (Name, Address, Address1, City, State, PostalCode, Country, Bedrooms, Bathrooms, SquareFeet, PropertyTaxes, Insurance, IsAvailable, IsActive) VALUES
+('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 2000, 1200,TRUE, TRUE),
+('Ocean Breeze Condo', '456 Beach Ave', 'Unit 5', 'Miami', 'FL', '33101', 'USA', 2, 2, 1200, 3000, 1300,TRUE, TRUE),
+('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, 4000, 2000,TRUE, TRUE);
 
 -- ✅ Insert seed data into PropertyPhotos table
 INSERT INTO PropertyPhotos (PropertyId, PhotoUrl, Room, Caption, UploadedAt) VALUES
