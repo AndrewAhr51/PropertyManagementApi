@@ -87,13 +87,18 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteSecurityDepositInvoiceAsync(int invoiceId)
+        public async Task<bool> DeleteSecurityDepositInvoiceAsync(int invoiceId)
         {
-            var invoice = await _context.SecurityDepositInvoices.FindAsync(invoiceId);
-            if (invoice != null)
+            try
             {
-                _context.SecurityDepositInvoices.Remove(invoice);
-                await _context.SaveChangesAsync();
+                _context.Invoices.Remove(new Invoice { InvoiceId = invoiceId });
+                var save = await _context.SaveChangesAsync();
+                return save > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting security deposit invoice with InvoiceId {InvoiceId}", invoiceId);
+                return false;
             }
         }
 

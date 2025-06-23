@@ -9,6 +9,14 @@ CREATE TABLE LkupUtilities (
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE LkupCleaningType (
+    CleaningTypeId INT PRIMARY KEY AUTO_INCREMENT,
+    CleaningTypeName VARCHAR(100) NOT NULL UNIQUE,
+    Description TEXT,
+	CreatedBy Char(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE lkupPaymentMethods (
     PaymentMethodId INT PRIMARY KEY AUTO_INCREMENT,
     MethodName NVARCHAR(100) NOT NULL UNIQUE,
@@ -557,3 +565,5 @@ CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policynumber);
 CREATE INDEX idx_legal_case ON LegalFeeInvoices(casereference);
 CREATE INDEX idx_utilityname ON LkupUtilities (UtilityName);
 CREATE UNIQUE INDEX idx_utilityname_unique ON LkupUtilities (UtilityName);
+CREATE INDEX idx_cleaning_type_name ON LkupCleaningType (CleaningTypeName);
+CREATE UNIQUE INDEX idx_cleaning_type_name_unique ON LkupCleaningType (CleaningTypeName);

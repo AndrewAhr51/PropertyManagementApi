@@ -36,11 +36,25 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Note> Notes { get; set; }
         public DbSet<LkupInvoiceType> LkupInvoiceType { get; set; }
         public DbSet<LkupUtilities> LkupUtilities { get; set; }
+        public DbSet<LkupCleaningType> LkupCleaningType { get; set; }
         public DbSet<SecurityDepositInvoice> SecurityDepositInvoices { get; set; }
+        public DbSet<CleaningFeeInvoice> CleaningFeeInvoices { get; set; }
+        public DbSet<LeaseTerminationInvoice> LeaseTerminationInvoices { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            {
+                Console.WriteLine($"Entity: {entity.Name}");
+                foreach (var prop in entity.GetProperties())
+                {
+                    Console.WriteLine($"  Property: {prop.Name}, Type: {prop.ClrType}");
+                }
+            }
+
 
             // Configure TPT inheritance
             modelBuilder.Entity<Invoice>().ToTable("Invoices");

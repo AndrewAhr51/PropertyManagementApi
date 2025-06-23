@@ -2,7 +2,7 @@
 {
     public class CleaningFeeInvoice : Invoice
     {
-        public string CleaningType { get; set; } = default!;
+        public int CleaningTypeId { get; set; } 
     }
 
 }

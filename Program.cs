@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -52,6 +53,8 @@ builder.Services.AddScoped<ICreditCardInfoRepository, CreditCardInfoRepository>(
 builder.Services.AddScoped<ICreditCardInfoService, CreditCardInfoService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
 builder.Services.AddScoped<ILeaseService, LeaseService>();
+builder.Services.AddScoped<ILeaseTerminationInvoiceRepository, LeaseTerminationInvoiceRepository>();
+builder.Services.AddScoped<ILeaseTerminationInvoiceService, LeaseTerminationInvoiceService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
@@ -76,6 +79,9 @@ builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<ICleaningFeeInvoiceService, CleaningFeeInvoiceService>(); 
+builder.Services.AddScoped<ICleaningFeeInvoiceRepository, CleaningFeeInvoiceRepository>(); 
 
 builder.Services.AddControllers();
 

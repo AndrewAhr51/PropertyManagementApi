@@ -148,7 +148,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to retrieve InvoiceTypeName for ID {InvoiceTypeId}", invoiceTypeName);
-                return -1; // Fix for CS8603: Return a default value for non-nullable type.
+                return -1; 
             }
         }
         public async Task<int> InvoiceTypeExistsAsync(string invoiceType)

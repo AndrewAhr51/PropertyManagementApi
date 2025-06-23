@@ -9,6 +9,6 @@ namespace PropertyManagementAPI.Application.Repositories.Invoices
         Task<UtilityInvoice?> GetUtilitiesInvoiceByIdAsync(int invoiceId);
         Task<IEnumerable<UtilityInvoice>> GetAllUtilitiesInvoiceAsync();
         Task UpdateUtilitiesInvoiceAsync(UtilityInvoice invoice);
-        Task DeleteUtilitiesInvoiceAsync(int invoiceId);
+        Task <bool>DeleteUtilitiesInvoiceAsync(int invoiceId);
     }
 }

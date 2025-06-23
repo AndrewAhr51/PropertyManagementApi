@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PropertyManagementAPI.Domain.Entities.Invoices
+namespace PropertyManagementAPI.Domain.Entities
 {
     public class LkupUtilities
     {
