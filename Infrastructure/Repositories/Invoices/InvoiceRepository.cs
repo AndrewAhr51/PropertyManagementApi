@@ -88,7 +88,8 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                                 _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
                                 return 0;
                             }
-                            decimal depositAmount = lease.DepositAmount;
+                            amountDue = lease.DepositAmount;
+
                             previousInvoice = await _context.SecurityDepositInvoices
                                 .Where(r => r.InvoiceTypeId == invoiceTypeId &&
                                             r.PropertyId == invoice.PropertyId &&
@@ -98,7 +99,27 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                                 .FirstOrDefaultAsync();
                             break;
                         }
+                         case "PropertyTax":
+                        {
+                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("PropertyTax");
 
+                            var property = await GetPropertyInformationAsync(invoice.PropertyId);
+                            if (property == null)
+                            {
+                                _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
+                                return 0;
+                            }
+                            amountDue = property.PropertyTaxes;
+                            previousInvoice = await _context.PropertyTaxInvoices
+                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
+                                            r.PropertyId == invoice.PropertyId &&
+                                            r.Status != "Paid" &&
+                                            r.DueDate.Month == previousMonth.Month &&
+                                            r.DueDate.Year == previousMonth.Year)
+                                .FirstOrDefaultAsync();
+                            break;
+                           
+                        }
                     default:
                         _logger.LogWarning("Invalid InvoiceType {InvoiceType}", invoice.InvoiceType);
                         return 0;
@@ -117,7 +138,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return 0;
             }
         }
-
         public async Task<Lease?> GetLeaseInformationAsync(int propertyId)
         {
             try
@@ -131,6 +151,21 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving lease for propertyId {propertyId}", propertyId);
+                return null; // Fix for CS8603: Return null explicitly for nullable type.
+            }
+        }
+        public async Task<Property?> GetPropertyInformationAsync(int propertyId)
+        {
+            try
+            {
+                return await _context.Property
+                    .AsNoTracking()
+                    .Where(p => p.PropertyId == propertyId)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ptoperty information for propertyId {propertyId}", propertyId);
                 return null; // Fix for CS8603: Return null explicitly for nullable type.
             }
         }
@@ -151,6 +186,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return -1; 
             }
         }
+
         public async Task<int> InvoiceTypeExistsAsync(string invoiceType)
         {
             try

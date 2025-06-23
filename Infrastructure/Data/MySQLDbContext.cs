@@ -40,7 +40,9 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<SecurityDepositInvoice> SecurityDepositInvoices { get; set; }
         public DbSet<CleaningFeeInvoice> CleaningFeeInvoices { get; set; }
         public DbSet<LeaseTerminationInvoice> LeaseTerminationInvoices { get; set; }
-
+        public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; }
+        public DbSet<PropertyTaxInvoice> PropertyTaxInvoices { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

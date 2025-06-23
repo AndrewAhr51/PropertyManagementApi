@@ -40,10 +40,10 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             return true;
         }
 
-        public Task<bool> DeleteUtilitiesInvoiceAsync(int invoiceId)
+        public async Task<bool> DeleteUtilitiesInvoiceAsync(int invoiceId)
         {
-            return _repository.DeleteUtilitiesInvoiceAsync(invoiceId)
-                .ContinueWith(t => t.IsCompletedSuccessfully);
+            var save = await _repository.DeleteUtilitiesInvoiceAsync(invoiceId);
+            return save;            
         }
     }
 }

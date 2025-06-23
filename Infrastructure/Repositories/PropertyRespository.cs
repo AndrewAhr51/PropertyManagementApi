@@ -28,6 +28,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
                 Bedrooms = dto.Bedrooms,
                 Bathrooms = dto.Bathrooms,
                 SquareFeet = dto.SquareFeet,
+                PropertyTaxes = dto.PropertyTaxes,
                 IsAvailable = dto.IsAvailable,
                 IsActive = dto.IsActive
             };
@@ -65,6 +66,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
                     Bedrooms = p.Bedrooms,
                     Bathrooms = p.Bathrooms,
                     SquareFeet = p.SquareFeet,
+                    PropertyTaxes = p.PropertyTaxes,
                     IsAvailable = p.IsAvailable,
                     IsActive = p.IsActive
                 })
@@ -87,6 +89,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
                 Bedrooms = p.Bedrooms,
                 Bathrooms = p.Bathrooms,
                 SquareFeet = p.SquareFeet,
+                PropertyTaxes = p.PropertyTaxes,
                 IsAvailable = p.IsAvailable,
                 IsActive = p.IsActive
             };
@@ -110,6 +113,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
                     Bedrooms = po.Property.Bedrooms,
                     Bathrooms = po.Property.Bathrooms,
                     SquareFeet = po.Property.SquareFeet,
+                    PropertyTaxes = po.Property.PropertyTaxes,
                     IsAvailable = po.Property.IsAvailable,
                     IsActive = po.Property.IsActive,
                     OwnerId = po.OwnerId,
@@ -133,6 +137,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             property.Bedrooms = dto.Bedrooms;
             property.Bathrooms = dto.Bathrooms;
             property.SquareFeet = dto.SquareFeet;
+            property.PropertyTaxes = dto.PropertyTaxes;
             property.IsAvailable = dto.IsAvailable;
             property.IsActive = dto.IsActive;
 
