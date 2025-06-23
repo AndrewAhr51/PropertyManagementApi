@@ -44,9 +44,15 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 var amountDueTask = _invoiceRepository.GetAmountDueAsync(dto, dto.UtilityType);
                 decimal amountDue = await amountDueTask;
 
+                
                 if (amountDue > 0)
                 {
                     amountDue += 50; // Adding late fee if applicable
+                }
+
+                if (dto.Amount > 0)
+                {
+                    amountDue += dto.Amount; // Adding any additional amount specified in the DTO
                 }
 
                 var newinvoice = new UtilityInvoice
@@ -56,7 +62,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     InvoiceId = dto.InvoiceId,
                     UtilityTypeId = utilityTypeId,
                     DueDate = dto.DueDate,
-                    UsageAmount = dto.UsageAmount + amountDue,
+                    Amount = dto.UsageAmount + amountDue,
                     Notes = dto.Notes,
                 };
 

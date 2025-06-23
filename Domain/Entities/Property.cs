@@ -47,6 +47,9 @@ namespace PropertyManagementAPI.Domain.Entities
         [Column(TypeName = "decimal(10,2)")]
         public decimal PropertyTaxes { get; set; } // No changes needed here  
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Insurance { get; set; } // No changes needed here  
+
         public bool IsAvailable { get; set; } = true;
         public bool IsActive { get; set; } = true;
 
