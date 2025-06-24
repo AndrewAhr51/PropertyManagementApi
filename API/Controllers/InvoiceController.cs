@@ -111,5 +111,25 @@ namespace PropertyManagementAPI.API.Controllers
             var excelBytes = await _exportService.ExportToExcelAsync(dto);
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"invoices_{propertyId}.xlsx");
         }
+
+        [HttpGet("property/{propertyId:int}/export/quickbooks")]
+        public async Task<IActionResult> ExportQuickBooksCsv(int propertyId)
+        {
+            var invoices = await _repository.GetAllInvoicesForPropertyAsync(propertyId);
+            var dto = invoices.Select(i => new CumulativeInvoiceDto
+            {
+                InvoiceId = i.InvoiceId,
+                PropertyId = i.PropertyId,
+                CustomerName = i.CustomerName,
+                Amount = i.Amount,
+                CreatedDate = i.CreatedDate,
+                Notes = i.Notes,
+                InvoiceType = i.GetType().Name
+            });
+
+            var csvBytes = await _exportService.ExportToCsvAsync(dto); // Call the correct method
+            return File(csvBytes, "text/csv", $"quickbooks_invoices_{propertyId}.csv");
+        }
+
     }
 }

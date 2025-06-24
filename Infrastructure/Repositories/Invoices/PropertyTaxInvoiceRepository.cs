@@ -42,9 +42,16 @@ public class PropertyTaxInvoiceRepository : IPropertyTaxInvoiceRepository
                 propertyTaxAmount = dto.Amount;
             }
 
+            var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
+            if (string.IsNullOrEmpty(CustomerName))
+            {
+                _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+            }
+
             var newInvoice = new PropertyTaxInvoice
             {
                 PropertyId = dto.PropertyId,
+                CustomerName = CustomerName ?? "Unknown",
                 InvoiceTypeId = invoiceTypeId,
                 InvoiceId = dto.InvoiceId,
                 Amount = propertyTaxAmount,

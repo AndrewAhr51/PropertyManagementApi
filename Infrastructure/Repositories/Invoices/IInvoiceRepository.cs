@@ -25,5 +25,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
         Task<decimal> GetBalanceForwardAsync(int propertyId, DateTime asOfDate);
 
+        Task<string> GetPropertyOwnerNameAsync(int propertyId);
+
     }
 }

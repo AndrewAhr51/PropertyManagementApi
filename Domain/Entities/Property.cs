@@ -14,6 +14,10 @@ namespace PropertyManagementAPI.Domain.Entities
 
         [Required]
         [MaxLength(255)]
+        public string CustomerName { get; set; }
+
+        [Required]
+        [MaxLength(255)]
         public string Address { get; set; }
 
         [MaxLength(255)]

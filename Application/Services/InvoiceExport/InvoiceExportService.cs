@@ -1,7 +1,10 @@
 ﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Mvc;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
+using PropertyManagementAPI.Domain.Entities.Invoices;
+using System.Text;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -57,6 +60,21 @@ namespace PropertyManagementAPI.Application.Services.InvoiceExport
             workbook.SaveAs(stream);
             return stream.ToArray();
         }
+
+        public async Task<byte[]> ExportToCsvAsync(IEnumerable<CumulativeInvoiceDto> invoices)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Invoice Number,Customer Name,Invoice Date,Due Date,Item Name,Item Amount");
+
+            foreach (var invoice in invoices)
+            {
+                sb.AppendLine($"{invoice.InvoiceId},{invoice.CustomerName},{invoice.CreatedDate:yyyy-MM-dd},{invoice.DueDate:yyyy-MM-dd},{invoice.InvoiceType},{invoice.Amount}");
+            }
+
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
     }
-           
 }
+           
+

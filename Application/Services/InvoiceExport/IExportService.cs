@@ -4,6 +4,7 @@
     {
         Task<byte[]> ExportToPdfAsync(IEnumerable<TDto> items);
         Task<byte[]> ExportToExcelAsync(IEnumerable<TDto> items);
+        Task<byte[]> ExportToCsvAsync(IEnumerable<TDto> items);
     }
 
 }
