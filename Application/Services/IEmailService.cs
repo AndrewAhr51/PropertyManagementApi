@@ -10,5 +10,6 @@ namespace PropertyManagementAPI.Application.Services
         Task<EmailDto?> GetEmailByIdAsync(int emailId); // ✅ Retrieves an email by ID
         Task<IEnumerable<EmailDto>> GetAllEmailsAsync(); // ✅ Retrieves all emails
         Task<bool> UpdateEmailStatusAsync(int emailId, bool isDelivered); // ✅ Updates email delivery status
+        Task SendInvoiceEmailAsync(string recipientEmail, string pdfPath);
     }
 }

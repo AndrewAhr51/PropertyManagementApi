@@ -2,6 +2,7 @@
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
+using PropertyManagementAPI.Application.Services;
 
 namespace PropertyManagementAPI.API.Controllers
 {
@@ -11,11 +12,14 @@ namespace PropertyManagementAPI.API.Controllers
     {
         private readonly IInvoiceRepository _repository;
         private readonly IExportService<CumulativeInvoiceDto> _exportService;
+        private readonly IEmailService _emailService; // Add an instance of IEmailService
 
-        public InvoiceController(IInvoiceRepository repository, IExportService<CumulativeInvoiceDto> exportService)
+        public InvoiceController(IInvoiceRepository repository, IExportService<CumulativeInvoiceDto> exportService, IEmailService emailService)
         {
             _repository = repository;
             _exportService = exportService;
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+
         }
 
         [HttpGet("property/{propertyId:int}")]
@@ -131,5 +135,36 @@ namespace PropertyManagementAPI.API.Controllers
             return File(csvBytes, "text/csv", $"quickbooks_invoices_{propertyId}.csv");
         }
 
+        [HttpPost("send-invoice/{invoiceId:int}")]
+        public async Task<IActionResult> SendInvoice(int invoiceId, [FromQuery] string recipientEmail)
+        {
+            var invoice = await _repository.GetInvoiceByIdAsync(invoiceId);
+            if (invoice == null) return NotFound("Invoice not found.");
+
+            var invoiceType = await _repository.GetInvoiceTypeNameByIdAsync(invoice.InvoiceTypeId);
+            if (invoice == null) return NotFound("Invoice not found.");
+
+            // Map Invoice to CumulativeInvoiceDto
+            var cumulativeInvoiceDto = new CumulativeInvoiceDto
+            {
+                InvoiceId = invoice.InvoiceId,
+                PropertyId = invoice.PropertyId,
+                CustomerName = invoice.CustomerName,
+                Amount = invoice.Amount,
+                CreatedDate = invoice.CreatedDate,
+                DueDate = invoice.DueDate,
+                Notes = invoice.Notes,
+                Status = invoice.Status,
+                InvoiceType = invoiceType
+            };
+
+            var pdfBytes = await _exportService.ExportToPdfAsync(new List<CumulativeInvoiceDto> { cumulativeInvoiceDto });
+            var pdfPath = Path.Combine(Path.GetTempPath(), $"invoice_{invoiceId}.pdf");
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes); // Use System.IO.File explicitly to avoid ambiguity
+
+            await _emailService.SendInvoiceEmailAsync(recipientEmail, pdfPath); // Use the instance of IEmailService
+
+            return Ok("Invoice email sent successfully.");
+        }
     }
 }
