@@ -12,7 +12,7 @@ namespace PropertyManagementAPI.Domain.Entities
         [Column(TypeName = "decimal(5,2)")]
         public decimal OwnershipPercentage { get; set; } = 100;
 
-        public Property Property { get; set; }
+        public Properties Property { get; set; }
         public Owner Owner { get; set; }
     }
 }

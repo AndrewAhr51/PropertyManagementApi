@@ -237,8 +237,7 @@ CREATE TABLE Payments (
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
-    FOREIGN KEY (PaymentMethodId) REFERENCES lkupPaymentMethods(PaymentMethodId)
+    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)    
 );
 
 -- Credit Card Information
@@ -380,6 +379,7 @@ CREATE TABLE Leases (
 
 CREATE TABLE Invoices (
     invoiceId INT PRIMARY KEY AUTO_INCREMENT,
+    CustomerName VARCHAR(100) DEFAULT 'unknown',
     amount DECIMAL(18,2) NOT NULL,
     duedate DATETIME NOT NULL,
     propertyid int NOT NULL,
@@ -417,10 +417,8 @@ CREATE TABLE SecurityDepositInvoices (
 CREATE TABLE CleaningFeeInvoices (
     invoiceId INT PRIMARY KEY,
     cleaningtypeid INT,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE,
-    FOREIGN KEY (cleaningtypeid) REFERENCES LkupCleaningType(CleaningTypeId) ON DELETE SET NULL
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
-
 
 CREATE TABLE LeaseTerminationInvoices (
     invoiceId INT PRIMARY KEY,
@@ -519,8 +517,7 @@ CREATE TABLE CleaningInvoiceCleaningTypes (
     invoiceId INT NOT NULL,
     cleaningTypeId INT NOT NULL,
     PRIMARY KEY (invoiceId, cleaningTypeId),
-    FOREIGN KEY (invoiceId) REFERENCES CleaningInvoices(invoiceId) ON DELETE CASCADE,
-    FOREIGN KEY (cleaningTypeId) REFERENCES LkupCleaningType(cleaningTypeId) ON DELETE CASCADE
+    FOREIGN KEY (invoiceId) REFERENCES CleaningInvoices(invoiceId) ON DELETE CASCADE
 );
 
 -- Flattened View

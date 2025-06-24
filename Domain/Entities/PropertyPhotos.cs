@@ -26,7 +26,7 @@ namespace PropertyManagementAPI.Domain.Entities
         public DateTime? CreatedDate { get; set; }
 
         [ForeignKey(nameof(PropertyId))]
-        public Property Property { get; set; }
+        public Properties Property { get; set; }
     }
 }
 

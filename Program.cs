@@ -49,6 +49,7 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
 builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IRentInvoiceRepository, RentInvoiceRepository>();
 builder.Services.AddScoped<IRentalInvoiceService, RentalInvoiceService>();
 builder.Services.AddScoped<IUtilityInvoiceRepository, UtilityInvoiceRepository>();
@@ -92,6 +93,8 @@ builder.Services.AddScoped<ILegalFeeInvoiceRepository, LegalFeeInvoiceRepository
 builder.Services.AddScoped<ILegalFeeInvoiceService, LegalFeeInvoiceService>();
 builder.Services.AddScoped<IInvoiceExportService, InvoiceExportService>();
 builder.Services.AddScoped<IExportService<CumulativeInvoiceDto>, InvoiceExportService>();
+builder.Services.AddScoped<ICumulativeInvoicesRepository, CumulativeInvoicesRepository>();
+builder.Services.AddScoped<ICummulativeInvoicesService, CummulativeInvoicesService>();
 
 builder.Services.AddControllers();
 

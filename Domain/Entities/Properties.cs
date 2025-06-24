@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementAPI.Domain.Entities
 {
-    public class Property
+    public class Properties
     {
         [Key]
         public int PropertyId { get; set; }

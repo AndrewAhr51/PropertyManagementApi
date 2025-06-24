@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
 
         public async Task<PropertyDto> AddPropertyAsync(PropertyDto dto)
         {
-            var property = new Property
+            var property = new Properties
             {
                 Name = dto.Name,
                 Address = dto.Address,

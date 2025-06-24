@@ -1,4 +1,5 @@
-﻿using PropertyManagementAPI.Domain.DTOs.Invoice;
+﻿using Microsoft.AspNetCore.Mvc;
+using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
@@ -10,8 +11,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         Task<int> InvoiceTypeExistsAsync(string invoiceType);
 
         Task<IEnumerable<Invoice>> GetAllInvoicesForPropertyAsync(int propertyId);
-
-        Task<IEnumerable<Invoice>> GetAllInvoicesForPropertyAsync(int propertyId, string? status = null);
 
         Task<Invoice?> GetInvoiceByIdAsync(int invoiceId);
 
@@ -30,6 +29,19 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         Task<int> GetInvoiceTypeIdByNameAsync(string invoiceTypeName);
 
         Task<string> GetInvoiceTypeNameByIdAsync(int invoiceTypeid);
+
+        Task<List<CumulativeInvoiceDto>> ExportInvoicesByPropertyIdAsync(int propertyId);
+
+        Task<List<CumulativeInvoiceDto>> ExportInvoicesByInvoiceIdAsync(int invoiceId);
+
+        Task<SummaryDto> GetSummaryAsync(int propertyId);
+
+        Task<List<CumulativeInvoiceDto>> GetByPropertyAsync(int propertyId, string type, string? status = null, DateTime? dueBefore = null);
+
+        Task<List<CumulativeInvoiceDto>> SendCumulativeInvoiceAsync(int propertyId, string recipientEmail);
+
+        Task<List<CumulativeInvoiceDto>> SendInvoiceAsync(int propertyId, string recipientEmail);
+
 
     }
 }
