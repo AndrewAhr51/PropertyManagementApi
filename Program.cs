@@ -12,8 +12,10 @@ using PropertyManagementAPI.API.Mapping;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Repositories.Invoices;
 using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Common.Utilities;
+using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities;
 //
 using PropertyManagementAPI.Infrastructure.Data;
@@ -93,6 +95,8 @@ builder.Services.AddScoped<IPropertyTaxInvoiceService, PropertyTaxInvoiceService
 builder.Services.AddScoped<IPropertyTaxInvoiceRepository, PropertyTaxInvoiceRepository>();
 builder.Services.AddScoped<ILegalFeeInvoiceRepository, LegalFeeInvoiceRepository>();
 builder.Services.AddScoped<ILegalFeeInvoiceService, LegalFeeInvoiceService>();
+builder.Services.AddScoped<IInvoiceExportService, InvoiceExportService>();
+builder.Services.AddScoped<IExportService<CumulativeInvoiceDto>, InvoiceExportService>();
 
 builder.Services.AddControllers();
 
