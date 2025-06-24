@@ -191,6 +191,18 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return null; // Fix for CS8603: Return null explicitly for nullable type.
             }
         }
+        public async Task<string> GetPropertyOwnerNameAsync(int propertyId)
+        {
+            var owner = await _context.PropertyOwners
+                .Where(po => po.PropertyId == propertyId)
+                .Join(_context.Owners,
+                      po => po.OwnerId,
+                      o => o.OwnerId,
+                      (po, o) => new { o.FirstName, o.LastName })
+                .FirstOrDefaultAsync();
+
+            return owner != null ? $"{owner.FirstName} {owner.LastName}" : "Unknown Owner";
+        }
 
         public async Task<int> GetInvoiceTypeNameByIdAsync(string invoiceTypeName)
         {

@@ -509,6 +509,20 @@ CREATE TABLE Notes (
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
 );
 
+CREATE TABLE CleaningInvoices (
+    invoiceId INT PRIMARY KEY,
+    -- any specific cleaning invoice fields (e.g., scheduledDate, vendorId, etc.)
+    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+);
+
+CREATE TABLE CleaningInvoiceCleaningTypes (
+    invoiceId INT NOT NULL,
+    cleaningTypeId INT NOT NULL,
+    PRIMARY KEY (invoiceId, cleaningTypeId),
+    FOREIGN KEY (invoiceId) REFERENCES CleaningInvoices(invoiceId) ON DELETE CASCADE,
+    FOREIGN KEY (cleaningTypeId) REFERENCES LkupCleaningType(cleaningTypeId) ON DELETE CASCADE
+);
+
 -- Flattened View
 CREATE OR REPLACE VIEW InvoiceDetailsView AS
 SELECT 

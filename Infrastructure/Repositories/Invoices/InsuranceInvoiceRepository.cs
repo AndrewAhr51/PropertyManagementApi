@@ -43,9 +43,16 @@ public class InsuranceInvoiceRepository : IInsuranceInvoiceRepository
                 throw new ArgumentException($"Error retrieving the Amount due information from the insurance for Property: {dto.PropertyId}");
             }
 
+            var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
+            if (string.IsNullOrEmpty(CustomerName))
+            {
+                _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+            }
+
             var newInvoice = new InsuranceInvoice
             {
                 PropertyId = dto.PropertyId,
+                CustomerName = CustomerName ?? "Unknown",
                 InvoiceTypeId = invoiceTypeId,
                 InvoiceId = dto.InvoiceId,
                 CoveragePeriodEnd = dto.CoveragePeriodEnd,

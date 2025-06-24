@@ -3,6 +3,7 @@
     public class Invoice
     {
         public int InvoiceId { get; set; }
+        public string CustomerName { get; set; } = "Default Customer";
         public decimal Amount { get; set; }
         public DateTime DueDate { get; set; }
         public int PropertyId { get; set; }

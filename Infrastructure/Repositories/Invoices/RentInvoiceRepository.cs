@@ -20,42 +20,55 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             _invoiceRepository = invoiceRepository;
         }
 
-        public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto rentInvoiceCreate)
+        public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto)
         {
             decimal lateFee = 50;
-            _logger.LogInformation("Creating invoice for TenantId {TenantId}", rentInvoiceCreate.PropertyId);
+            _logger.LogInformation("Creating invoice for TenantId {TenantId}", dto.PropertyId);
             try
             {
-                if (rentInvoiceCreate == null)
+                if (dto == null)
                 {
                     _logger.LogWarning("InvoiceRent is null");
                     return false;
                 }
 
-                var invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(rentInvoiceCreate.InvoiceType);
+                var invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(dto.InvoiceType);
                 if (invoiceTypeId == null)
                 {
-                    throw new ArgumentException($"Invalid invoice type: {rentInvoiceCreate.InvoiceType}");
+                    throw new ArgumentException($"Invalid invoice type: {dto.InvoiceType}");
                 }
 
-                var amountDueTask = _invoiceRepository.GetAmountDueAsync(rentInvoiceCreate, null);
+                var amountDueTask = _invoiceRepository.GetAmountDueAsync(dto, null);
                 decimal amountDue = await amountDueTask;
 
                 if (amountDue == 0)
                 {
-                    throw new ArgumentException($"Error retrieving the Amount due information from the lease Property: {rentInvoiceCreate.PropertyId}");
+                    throw new ArgumentException($"Error retrieving the Amount due information from the lease Property: {dto.PropertyId}");
+                }
+
+                var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
+                if (string.IsNullOrEmpty(CustomerName))
+                {
+                    _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+                }
+
+                //Override the amount due with late fee if applicable
+                if (dto.Amount > 0)
+                {
+                    amountDue = dto.Amount;
                 }
 
                 var newInvoice = new RentInvoice
                 {
-                    InvoiceId = rentInvoiceCreate.InvoiceId,
-                    Amount = rentInvoiceCreate.Amount,
-                    DueDate = rentInvoiceCreate.DueDate,
-                    PropertyId = rentInvoiceCreate.PropertyId,
+                    InvoiceId = dto.InvoiceId,
+                    CustomerName = CustomerName ?? "Unknown",
+                    Amount = amountDue,
+                    DueDate = dto.DueDate,
+                    PropertyId = dto.PropertyId,
                     InvoiceTypeId = invoiceTypeId,
-                    RentMonth = rentInvoiceCreate.RentMonth,
-                    RentYear = rentInvoiceCreate.RentYear,
-                    Notes = rentInvoiceCreate.Notes,
+                    RentMonth = dto.RentMonth,
+                    RentYear = dto.RentYear,
+                    Notes = dto.Notes,
                     CreatedDate = DateTime.UtcNow
                 };
                                
@@ -63,13 +76,13 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 var saved = await _context.SaveChangesAsync() > 0;
 
                 _logger.LogInformation("Invoice created for TenantId {TenantId} with TotalAmountDue {Amount}",
-                    rentInvoiceCreate.PropertyId, newInvoice.Amount);
+                    dto.PropertyId, newInvoice.Amount);
 
                 return saved;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating invoice for TenantId {TenantId}", rentInvoiceCreate.PropertyId);
+                _logger.LogError(ex, "Error creating invoice for TenantId {TenantId}", dto.PropertyId);
                 return false;
             }
         }

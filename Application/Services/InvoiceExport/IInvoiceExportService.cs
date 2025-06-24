@@ -7,5 +7,6 @@ namespace PropertyManagementAPI.Application.Services.InvoiceExport
     {
        public Task<byte[]> ExportToPdfAsync(IEnumerable<CumulativeInvoiceDto> invoices);
        public Task<byte[]> ExportToExcelAsync(IEnumerable<CumulativeInvoiceDto> invoices);
+       public Task<byte[]> ExportToCsvAsync(IEnumerable<CumulativeInvoiceDto> invoices);
     }
 }

@@ -35,9 +35,15 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     return false;
                 }
 
+                var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
+                if (string.IsNullOrEmpty(CustomerName))
+                {
+                    _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+                }
                 var newInvoice = new LegalFeeInvoice
                 {
                     PropertyId = dto.PropertyId,
+                    CustomerName = CustomerName ?? "Unknown",
                     InvoiceTypeId = invoiceTypeId,
                     InvoiceId = dto.InvoiceId,
                     CaseReference = dto.CaseReference,

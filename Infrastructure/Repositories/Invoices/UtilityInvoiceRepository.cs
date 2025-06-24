@@ -55,9 +55,16 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     amountDue += dto.Amount; // Adding any additional amount specified in the DTO
                 }
 
+                var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
+                if (string.IsNullOrEmpty(CustomerName))
+                {
+                    _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+                }
+
                 var newinvoice = new UtilityInvoice
                 {
                     PropertyId = dto.PropertyId,
+                    CustomerName = CustomerName ?? "Unknown",
                     InvoiceTypeId = invoiceTypeId,
                     InvoiceId = dto.InvoiceId,
                     UtilityTypeId = utilityTypeId,

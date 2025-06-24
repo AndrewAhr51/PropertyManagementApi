@@ -46,6 +46,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             _context.PropertyOwners.Add(propertyOwner);
             await _context.SaveChangesAsync();
 
+            _context.PropertyOwners.Add(propertyOwner);
+            await _context.SaveChangesAsync();
+
             dto.PropertyId = property.PropertyId;
             return dto;
         }
