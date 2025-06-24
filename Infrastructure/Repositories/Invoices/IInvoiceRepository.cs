@@ -9,5 +9,21 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
         Task<int> InvoiceTypeExistsAsync(string invoiceType);
 
+        Task<IEnumerable<Invoice>> GetAllInvoicesForPropertyAsync(int propertyId);
+
+        Task<IEnumerable<Invoice>> GetAllInvoicesForPropertyAsync(int propertyId, string? status = null);
+
+        Task<Invoice?> GetInvoiceByIdAsync(int invoiceId);
+
+        Task<decimal> GetTotalAmountByPropertyAsync(int propertyId, string? status = null);
+
+        Task<Dictionary<string, decimal>> GetAmountByTypeAsync(int propertyId);
+
+        Task<Dictionary<string, decimal>> GetMonthlyTotalsAsync(int propertyId, int year);
+
+        Task<IEnumerable<Invoice>> GetFilteredAsync(int propertyId, string? type = null, string? status = null, DateTime? dueBefore = null);
+
+        Task<decimal> GetBalanceForwardAsync(int propertyId, DateTime asOfDate);
+
     }
 }
