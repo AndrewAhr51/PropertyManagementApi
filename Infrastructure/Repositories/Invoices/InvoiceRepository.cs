@@ -41,7 +41,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 {
                     case "Rent":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("Rent");
+                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Rent");
 
                             var lease = await GetLeaseInformationAsync(invoice.PropertyId);
                             if (lease == null)
@@ -65,7 +65,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
                     case "Utilities":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("Utilities");
+                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Utilities");
                             int utilityTypeId = await GetUtilityTypeNameByIdAsync(UtilityType);
 
                             previousInvoice = await _context.UtilityInvoices
@@ -80,7 +80,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                         }
                         case "SecurityDeposit":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("SecurityDeposit");
+                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("SecurityDeposit");
 
                             var lease = await GetLeaseInformationAsync(invoice.PropertyId);
                             if (lease == null)
@@ -101,7 +101,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                         }
                         case "PropertyTax":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("PropertyTax");
+                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("PropertyTax");
 
                             var property = await GetPropertyInformationAsync(invoice.PropertyId);
                             if (property == null)
@@ -122,7 +122,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                         }
                     case "Insurance":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeNameByIdAsync("Insurance");
+                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Insurance");
 
                             var property = await GetPropertyInformationAsync(invoice.PropertyId);
                             
@@ -204,7 +204,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             return owner != null ? $"{owner.FirstName} {owner.LastName}" : "Unknown Owner";
         }
 
-        public async Task<int> GetInvoiceTypeNameByIdAsync(string invoiceTypeName)
+        public async Task<int> GetInvoiceTypeIdByNameAsync(string invoiceTypeName)
         {
             try
             {
@@ -221,6 +221,25 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             }
         }
 
+        public async Task<string> GetInvoiceTypeNameByIdAsync(int invoiceTypeid)
+        {
+            try
+            {
+               var invoiceTypeName = await _context.LkupInvoiceType
+                    .AsNoTracking()
+                    .Where(t => t.InvoiceTypeId == invoiceTypeid)
+                    .Select(t => t.InvoiceType)
+                    .FirstOrDefaultAsync();
+
+                return invoiceTypeName ?? "unknown";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve InvoiceTypeName for ID {InvoiceTypeId}", invoiceTypeid);
+                return "unknown";
+            }
+        }
+
         public async Task<int> InvoiceTypeExistsAsync(string invoiceType)
         {
             try
@@ -233,7 +252,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     return -1; // Fix for CS8603: Return a default value for non-nullable type.
                 }
 
-                return await GetInvoiceTypeNameByIdAsync(invoiceType);
+                return await GetInvoiceTypeIdByNameAsync(invoiceType);
             }
             catch (Exception ex)
             {

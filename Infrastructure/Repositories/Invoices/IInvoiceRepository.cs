@@ -27,5 +27,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
         Task<string> GetPropertyOwnerNameAsync(int propertyId);
 
+        Task<int> GetInvoiceTypeIdByNameAsync(string invoiceTypeName);
+
+        Task<string> GetInvoiceTypeNameByIdAsync(int invoiceTypeid);
+
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PdfSharp.Fonts;
 using PropertyManagementAPI.API.Mapping;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Repositories.Invoices;
@@ -26,19 +27,13 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//// ✅ Configure SQL Server Database Context
-//builder.Services.AddDbContext<SQLServerDbContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("SQLServerConnection")));
+GlobalFontSettings.FontResolver = CustomFontResolver.Instance;
 
 builder.Services.AddDbContext<MySqlDbContext>(options =>
     options
         .UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySQLConnection")))
         .ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>()
 );
-
-//builder.Services.AddDbContext<MySqlDbContext>(options =>
-//    options.UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"),
-//    new MySqlServerVersion(new Version(8, 0, 32))));
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
