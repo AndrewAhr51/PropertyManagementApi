@@ -42,6 +42,29 @@ namespace PropertyManagementAPI.Application.Services
             await smtpClient.SendMailAsync(mailMessage);
         }
 
+        public async Task SendInvoiceEmailAsync(string recipientEmail, string subject, string body, string pdfPath)
+        {
+            var smtpClient = new SmtpClient(_config["SmtpSettings:Host"])
+            {
+                Port = int.Parse(_config["SmtpSettings:Port"]),
+                Credentials = new NetworkCredential(_config["SmtpSettings:Username"], _config["SmtpSettings:Password"]),
+                EnableSsl = bool.Parse(_config["SmtpSettings:EnableSsl"])
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress("invoices@example.com"),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(recipientEmail);
+            mailMessage.Attachments.Add(new Attachment(pdfPath));
+
+            await smtpClient.SendMailAsync(mailMessage);
+        }
+
         Task<IEnumerable<EmailDto>> IEmailService.GetAllEmailsAsync()
         {
             throw new NotImplementedException();

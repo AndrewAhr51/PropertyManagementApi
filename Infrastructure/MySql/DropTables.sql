@@ -1,5 +1,4 @@
 USE PropertyManagement;
-
 -- ✅ Drop tables with foreign key dependencies first
 DROP TABLE IF EXISTS RolePermissions;
 DROP TABLE IF EXISTS PaymentReminders;
