@@ -222,18 +222,16 @@ CREATE TABLE PropertyOwners (
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
 );
-
-
-
 -- Payments Table
 CREATE TABLE Payments (
     PaymentId INT PRIMARY KEY AUTO_INCREMENT,
-    TenantId INT,
-    PropertyId INT,
-    Amount DECIMAL(10,2),
-    PaymentMethodId INT,
-    TransactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ReferenceNumber NVARCHAR(100),
+    InvoiceId INT NOT NULL, 
+    TenantId INT NOT NULL,
+    PropertyId INT NOT NULL,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaymentMethodId INT NOT NULL,
+    TransactionDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ReferenceNumber NVARCHAR(100) NOT NULL,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
@@ -505,19 +503,6 @@ CREATE TABLE Notes (
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
-);
-
-CREATE TABLE CleaningInvoices (
-    invoiceId INT PRIMARY KEY,
-    -- any specific cleaning invoice fields (e.g., scheduledDate, vendorId, etc.)
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
-);
-
-CREATE TABLE CleaningInvoiceCleaningTypes (
-    invoiceId INT NOT NULL,
-    cleaningTypeId INT NOT NULL,
-    PRIMARY KEY (invoiceId, cleaningTypeId),
-    FOREIGN KEY (invoiceId) REFERENCES CleaningInvoices(invoiceId) ON DELETE CASCADE
 );
 
 -- Flattened View

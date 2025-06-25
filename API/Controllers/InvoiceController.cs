@@ -92,18 +92,6 @@ namespace PropertyManagementAPI.API.Controllers
         public async Task<IActionResult> SendInvoice(int invoiceId, [FromQuery] string recipientEmail)
         {
             var invoices = await _invoiceService.SendInvoiceAsync(invoiceId, recipientEmail);
-            //var dto = await _invoiceService.ExportInvoicesByInvoiceIdAsync(invoiceId);
-            //if (dto == null || !dto.Any())
-            //{
-            //    return NotFound("No invoices found for the specified property.");
-            //}
-
-            //var pdfBytes = await _exportService.ExportToPdfAsync( dto );
-            //var pdfPath = Path.Combine(Path.GetTempPath(), $"invoice_{invoiceId}.pdf");
-            //await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes); // Use System.IO.File explicitly to avoid ambiguity
-
-            //await _emailService.SendInvoiceEmailAsync(recipientEmail, "Cumulative Invoice", "Please find attached your cumulative invoice.", pdfPath);
-
             return Ok("Invoice email sent successfully.");
         }
 
@@ -111,15 +99,6 @@ namespace PropertyManagementAPI.API.Controllers
         public async Task<IActionResult> SendCummulativeInvoice(int propertyId, [FromQuery] string recipientEmail)
         {
             var invoices = await _invoiceService.SendCumulativeInvoiceAsync(propertyId, recipientEmail);
-
-            //List<CumulativeInvoiceDto> invoice = await _invoiceService.ExportInvoicesByPropertyIdAsync(propertyId);
-            //if (invoice == null) return NotFound("Invoice not found.");
-
-            //var pdfBytes = await _exportService.ExportToPdfAsync( invoice);
-            //var pdfPath = Path.Combine(Path.GetTempPath(), $"property_{propertyId}.pdf");
-            //await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes); // Use System.IO.File explicitly to avoid ambiguity
-
-            //await _emailService.SendInvoiceEmailAsync(recipientEmail, "Cumulative Invoice", "Please find attached your cumulative invoice.", pdfPath);
 
             return Ok("Invoice email sent successfully.");
         }
