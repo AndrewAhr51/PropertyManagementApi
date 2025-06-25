@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Infrastructure.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,12 +16,24 @@ namespace PropertyManagementAPI.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<bool> LogSentEmailAsync(Emails emailLog)
+        public async Task<bool> LogSentEmailAsync(EmailDto emailLog)
         {
-            await _context.Emails.AddAsync(emailLog);
+            var emailEntity = new Emails
+            {
+                Sender = emailLog.Sender,
+                Recipient = emailLog.EmailAddress,
+                Subject = emailLog.Subject,
+                Body = emailLog.Body,
+                AttachmentBlob = emailLog.AttachmentBlob,
+                SentDate = DateTime.UtcNow,
+                Status = emailLog.Status ?? "Sent",
+                IsDelivered = emailLog.IsDelivered,
+            };
+
+            await _context.Emails.AddAsync(emailEntity);
             return await _context.SaveChangesAsync() > 0;
         }
-
+        
         public async Task<Emails?> GetEmailByIdAsync(int emailId)
         {
             return await _context.Emails

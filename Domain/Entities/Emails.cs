@@ -13,7 +13,7 @@ namespace PropertyManagementAPI.Domain.Entities
 
         [Required]
         [ForeignKey("Sender")]
-        public int SenderId { get; set; }  // ✅ FK to Users
+        public string Sender { get; set; }  // ✅ FK to Users
 
         [Required]
         [MaxLength(255)]
@@ -26,6 +26,9 @@ namespace PropertyManagementAPI.Domain.Entities
         [Required]
         public string Body { get; set; }  // ✅ Email Content
 
+        [Column(TypeName = "LONGBLOB")]
+        public byte[] AttachmentBlob { get; set; }  // ✅ Stores email attachments as binary data
+
         [Column(TypeName = "datetime")]
         public DateTime SentDate { get; set; } = DateTime.UtcNow;  // ✅ Auto-populate timestamp
 
@@ -35,13 +38,5 @@ namespace PropertyManagementAPI.Domain.Entities
         [MaxLength(50)]
         public string Status { get; set; } = "Pending";  // ✅ Tracks email status ('Pending', 'Sent', 'Failed')
 
-        // Optional: Link to related tenant or property
-        public int? TenantId { get; set; }
-        public int? PropertyId { get; set; }
-
-        // Navigation properties
-        public User Sender { get; set; }
-
-     
     }
 }
