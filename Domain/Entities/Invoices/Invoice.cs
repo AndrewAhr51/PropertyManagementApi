@@ -1,4 +1,6 @@
-﻿namespace PropertyManagementAPI.Domain.Entities.Invoices
+﻿using PropertyManagementAPI.Common.Helpers;
+
+namespace PropertyManagementAPI.Domain.Entities.Invoices
 {
     public class Invoice
     {
@@ -7,6 +9,7 @@
         public decimal Amount { get; set; }
         public DateTime DueDate { get; set; }
         public int PropertyId { get; set; }
+        public string ReferenceNumber { get; set; } 
         public bool IsPaid { get; set; } = false;
         public string Status { get; set; } = "Pending";
         public string? Notes { get; set; }

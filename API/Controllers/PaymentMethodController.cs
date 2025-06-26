@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Domain.DTOs;
 
 namespace PropertyManagementAPI.API.Controllers

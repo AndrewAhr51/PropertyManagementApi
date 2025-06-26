@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Domain.Entities.Invoices;
+using PropertyManagementAPI.Domain.Entities.Payments;
 using System.Data;
 using System.Security;
 
@@ -13,7 +14,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
 
         // Custom entities
         public DbSet<User> Users { get; set; }
-        public DbSet<Roles> Roles { get; set; }
+        public DbSet<Role> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<RentInvoice> RentInvoices { get; set; }
@@ -21,7 +22,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Permissions> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Owner> Owners { get; set; }
-        public DbSet<Properties> Property { get; set; }
+        public DbSet<Properties> Properties { get; set; }
         public DbSet<PropertyOwner> PropertyOwners { get; set; }
         public DbSet<PropertyPhotos> PropertyPhotos { get; set; }
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
@@ -44,6 +45,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<PropertyTaxInvoice> PropertyTaxInvoices { get; set; }
         public DbSet<InsuranceInvoice> InsuranceInvoices { get; set; }
         public DbSet<LegalFeeInvoice> LegalFeeInvoices { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

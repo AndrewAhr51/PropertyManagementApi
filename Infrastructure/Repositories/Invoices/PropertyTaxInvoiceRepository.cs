@@ -2,6 +2,7 @@
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 
 public class PropertyTaxInvoiceRepository : IPropertyTaxInvoiceRepository
@@ -51,9 +52,9 @@ public class PropertyTaxInvoiceRepository : IPropertyTaxInvoiceRepository
             var newInvoice = new PropertyTaxInvoice
             {
                 PropertyId = dto.PropertyId,
+                ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
                 CustomerName = CustomerName ?? "Unknown",
                 InvoiceTypeId = invoiceTypeId,
-                InvoiceId = dto.InvoiceId,
                 Amount = propertyTaxAmount,
                 DueDate = dto.DueDate,
                 Notes = dto.Notes,

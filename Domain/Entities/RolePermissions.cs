@@ -15,7 +15,7 @@ namespace PropertyManagementAPI.Domain.Entities
 
         // ✅ Corrected Navigation Properties
         [ForeignKey(nameof(RolePermissionId))]
-        public virtual Roles Role { get; set; }
+        public virtual Role Role { get; set; }
 
         [ForeignKey(nameof(PermissionId))]
         public virtual Permissions Permission { get; set; }

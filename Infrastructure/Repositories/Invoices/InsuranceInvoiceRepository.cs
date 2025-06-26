@@ -2,6 +2,7 @@
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 
 public class InsuranceInvoiceRepository : IInsuranceInvoiceRepository
@@ -52,9 +53,9 @@ public class InsuranceInvoiceRepository : IInsuranceInvoiceRepository
             var newInvoice = new InsuranceInvoice
             {
                 PropertyId = dto.PropertyId,
+                ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
                 CustomerName = CustomerName ?? "Unknown",
                 InvoiceTypeId = invoiceTypeId,
-                InvoiceId = dto.InvoiceId,
                 CoveragePeriodEnd = dto.CoveragePeriodEnd,
                 CoveragePeriodStart = dto.CoveragePeriodStart,
                 PolicyNumber = dto.PolicyNumber,

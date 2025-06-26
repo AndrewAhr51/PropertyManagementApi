@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PropertyManagementAPI.Application.Services.Email;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;

@@ -1,7 +1,7 @@
 ﻿using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 
-namespace PropertyManagementAPI.Application.Repositories.Invoices
+namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
     public interface IUtilityInvoiceRepository
     {

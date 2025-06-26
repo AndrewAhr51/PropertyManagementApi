@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Domain.DTOs;
 
 [ApiController]

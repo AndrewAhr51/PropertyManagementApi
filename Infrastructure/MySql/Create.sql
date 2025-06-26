@@ -286,16 +286,16 @@ CREATE TABLE SpecialInstructions (
 -- Emails
 CREATE TABLE Emails (
     EmailId INT PRIMARY KEY AUTO_INCREMENT,
-    SenderId INT NOT NULL,
-    Recipient NVARCHAR(255) NOT NULL,
-    Subject NVARCHAR(255) NOT NULL,
+    Sender VARCHAR(255) NOT NULL,
+    Recipient VARCHAR(255) NOT NULL, -- Use VARCHAR instead of NVARCHAR in MySQL
+    Subject VARCHAR(255) NOT NULL,
     Body TEXT NOT NULL,
+    AttachmentBlob LONGBLOB, -- Store the PDF as a blob
     SentDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    Status NVARCHAR(50) DEFAULT 'Pending',
+    Status VARCHAR(50) DEFAULT 'Pending',
     IsDelivered BOOLEAN DEFAULT FALSE,
     CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (SenderId) REFERENCES Users(UserId)
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Maintenance Requests
