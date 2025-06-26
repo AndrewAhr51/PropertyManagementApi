@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Application.Repositories.Invoices;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Common.Helpers;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
@@ -64,9 +64,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 var newinvoice = new UtilityInvoice
                 {
                     PropertyId = dto.PropertyId,
+                    ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
                     CustomerName = CustomerName ?? "Unknown",
                     InvoiceTypeId = invoiceTypeId,
-                    InvoiceId = dto.InvoiceId,
                     UtilityTypeId = utilityTypeId,
                     DueDate = dto.DueDate,
                     Amount = dto.UsageAmount + amountDue,

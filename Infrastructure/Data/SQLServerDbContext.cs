@@ -12,7 +12,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
 
         // Custom entities
         public DbSet<User> Users { get; set; }
-        public DbSet<Roles> Roles { get; set; }
+        public DbSet<Role> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
         //public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Permissions> Permissions { get; set; }

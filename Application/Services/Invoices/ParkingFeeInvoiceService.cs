@@ -1,6 +1,6 @@
-﻿using PropertyManagementAPI.Application.Repositories.Invoices;
-using PropertyManagementAPI.Domain.DTOs.Invoice;
+﻿using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
+using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 
 namespace PropertyManagementAPI.Application.Services.Invoices
 {

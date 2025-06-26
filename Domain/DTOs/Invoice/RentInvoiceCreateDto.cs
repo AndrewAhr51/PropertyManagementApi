@@ -2,7 +2,7 @@
 
 namespace PropertyManagementAPI.Domain.DTOs.Invoice
 {
-    public class RentInvoiceCreateDto: InvoiceDto
+    public class RentInvoiceCreateDto: InvoiceCreateDto
     {  
 
         [Required]

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Application.Services.CreditCards;
 using PropertyManagementAPI.Domain.DTOs;
 
 [ApiController]

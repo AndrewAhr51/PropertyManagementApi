@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using PropertyManagementAPI.Application.Services;
+using PropertyManagementAPI.Application.Services.Email;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities;
@@ -28,7 +28,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             _emailService = emailService;
         }
 
-        public async Task<decimal> GetAmountDueAsync(InvoiceDto invoice, string? UtilityType)
+        public async Task<decimal> GetAmountDueAsync(InvoiceCreateDto invoice, string? UtilityType)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     return 0;
                 }
 
-                if (!await _context.Property.AnyAsync(t => t.PropertyId == invoice.PropertyId))
+                if (!await _context.Properties.AnyAsync(t => t.PropertyId == invoice.PropertyId))
                 {
                     _logger.LogWarning("PropertyId {PropertyId} not found", invoice.PropertyId);
                     return 0;
@@ -191,7 +191,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         {
             try
             {
-                return await _context.Property
+                return await _context.Properties
                     .AsNoTracking()
                     .Where(p => p.PropertyId == propertyId)
                     .FirstOrDefaultAsync();
@@ -473,7 +473,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
 
             // ✅ Send email with the generated PDF attachment
-            await _emailService.SendInvoiceEmailAsync(recipientEmail,  pdfPath);
+            await _emailService.SendInvoiceEmailAsync(recipientEmail, pdfPath);
 
             return dto; // ✅ Return the properly converted list
         }
@@ -540,40 +540,51 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         }
         public async Task<SummaryDto> GetSummaryAsync(int propertyId)
         {
-            var invoice = await _context.Invoices
-                .Where(i => i.PropertyId == propertyId) // ✅ Filter by PropertyId
+            var invoices = await _context.Invoices
+                .Where(i => i.PropertyId == propertyId)
                 .Join(_context.LkupInvoiceType,
-                        i => i.InvoiceTypeId,
-                        l => l.InvoiceTypeId,
-                        (i, l) => new InvoiceDto
-                        {
-                            InvoiceId = i.InvoiceId,
-                            PropertyId = i.PropertyId,
-                            Amount = i.Amount,
-                            CreatedDate = i.CreatedDate,
-                            DueDate = i.DueDate,
-                            Status = i.Status,
-                            Notes = i.Notes,
-                            InvoiceType = l.InvoiceType
-                        })
-                .OrderBy(i => i.CreatedDate) // ✅ Sort by CreatedDate
+                    i => i.InvoiceTypeId,
+                    t => t.InvoiceTypeId,
+                    (i, t) => new { Invoice = i, InvoiceType = t })
+                .Join(_context.Properties,
+                    x => x.Invoice.PropertyId,
+                    p => p.PropertyId,
+                    (x, p) => new InvoiceDto
+                    {
+                        InvoiceId = x.Invoice.InvoiceId,
+                        CustomerName = x.Invoice.CustomerName,
+                        ReferenceNumber = x.Invoice.ReferenceNumber,
+                        PropertyId = x.Invoice.PropertyId,
+                        PropertyName = p.Name, // 🔧 FIXED: was p.Name
+                        Amount = x.Invoice.Amount,
+                        DueDate = x.Invoice.DueDate,
+                        CreatedDate = x.Invoice.CreatedDate,
+                        IsPaid = x.Invoice.IsPaid,
+                        Status = x.Invoice.Status,
+                        Notes = x.Invoice.Notes,
+                        InvoiceTypeId = x.InvoiceType.InvoiceTypeId,
+                        InvoiceTypeName = x.InvoiceType.InvoiceType, // 🔧 FIXED: was InvoiceType
+                        CreatedBy = x.Invoice.CreatedBy
+                    })
+                .OrderBy(dto => dto.CreatedDate)
                 .ToListAsync();
 
+            // 🔧 FIXED: Grouping by InvoiceTypeName instead of nonexistent InvoiceType
+            var grouped = invoices
+                .GroupBy(d => d.InvoiceTypeName)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
-            var grouped = invoice.GroupBy(d => d.InvoiceType)
-                             .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-
-            var monthly = invoice.GroupBy(d => d.CreatedDate.ToString("yyyy-MM"))
-                             .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+            var monthly = invoices
+                .GroupBy(d => d.CreatedDate.ToString("yyyy-MM"))
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
             return new SummaryDto
             {
-                TotalAmount = invoice.Sum(x => x.Amount), // ✅ Use invoices instead of dto
-                Count = invoice.Count, // ✅ Use invoices instead of dto
+                TotalAmount = invoices.Sum(x => x.Amount),
+                Count = invoices.Count,
                 BreakdownByType = grouped,
                 MonthlyTotals = monthly
             };
-
         }
     }
 }

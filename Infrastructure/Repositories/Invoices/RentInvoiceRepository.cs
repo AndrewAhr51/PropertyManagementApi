@@ -4,6 +4,7 @@ using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Common.Helpers;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
@@ -60,8 +61,8 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
                 var newInvoice = new RentInvoice
                 {
-                    InvoiceId = dto.InvoiceId,
                     CustomerName = CustomerName ?? "Unknown",
+                    ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
                     Amount = amountDue,
                     DueDate = dto.DueDate,
                     PropertyId = dto.PropertyId,

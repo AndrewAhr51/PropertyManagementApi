@@ -2,6 +2,7 @@
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Common.Helpers;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
@@ -43,9 +44,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 var newInvoice = new LegalFeeInvoice
                 {
                     PropertyId = dto.PropertyId,
+                    ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
                     CustomerName = CustomerName ?? "Unknown",
                     InvoiceTypeId = invoiceTypeId,
-                    InvoiceId = dto.InvoiceId,
                     CaseReference = dto.CaseReference,
                     LawFirm = dto.LawFirm,
                     Amount = dto.Amount,

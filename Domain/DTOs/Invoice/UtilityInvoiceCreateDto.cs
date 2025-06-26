@@ -2,7 +2,7 @@
 
 namespace PropertyManagementAPI.Domain.DTOs.Invoice
 {
-    public class UtilityInvoiceCreateDto : InvoiceDto
+    public class UtilityInvoiceCreateDto : InvoiceCreateDto
     {
         [Required]
         public string UtilityType { get; set; } = string.Empty;

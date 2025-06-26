@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using PropertyManagementAPI.Application.Services;
 using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Application.Services.Auth;
 
 namespace PropertyManagementAPI.Controllers
 {
