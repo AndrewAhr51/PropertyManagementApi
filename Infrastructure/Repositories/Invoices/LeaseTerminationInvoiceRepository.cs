@@ -47,12 +47,13 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
                 if (amountDue == 0)
                 {
-                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
+                    _logger.LogWarning("No Lease Termination amount information found for PropertyId {PropertyId}", dto.PropertyId);
                     return false;
                 }
                 else
                 {
-                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
+                    dto.Amount += amountDue;
+                    _logger.LogInformation("Lease Termination amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
                 }
 
                 //Override the amount due with late fee if applicable
@@ -69,7 +70,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     TenantId = customerInvoiceInfo.TenantId,
                     Email = customerInvoiceInfo.Email,
                     ReferenceNumber = referenceNumber,
-                    Amount = amountDue,
+                    Amount = dto.Amount,
                     DueDate = dto.DueDate,
                     PropertyId = dto.PropertyId,
                     InvoiceTypeId = invoiceTypeId,

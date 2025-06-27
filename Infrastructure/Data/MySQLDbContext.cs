@@ -5,7 +5,7 @@ using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Maintenance;
 using PropertyManagementAPI.Domain.Entities.Notes;
 using PropertyManagementAPI.Domain.Entities.Payments;
-using PropertyManagementAPI.Domain.Entities.Property;
+using PropertyManagementAPI.Domain.Entities.Properties;
 using PropertyManagementAPI.Domain.Entities.Roles;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Domain.Entities.Vendors;
@@ -29,7 +29,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Permissions> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Owner> Owners { get; set; }
-        public DbSet<Properties> Properties { get; set; }
+        public DbSet<Propertys> Properties { get; set; }
         public DbSet<PropertyOwner> PropertyOwners { get; set; }
         public DbSet<PropertyTenant> PropertyTenants { get; set; }
         public DbSet<PropertyPhotos> PropertyPhotos { get; set; }

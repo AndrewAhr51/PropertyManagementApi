@@ -69,7 +69,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpPut("{propertyId}")]
         public async Task<IActionResult> UpdateProperty(int propertyId, [FromBody] PropertyDto propertyDto)
         {
-            var updated = await _propertyService.UpdatePropertyAsync(propertyId, propertyDto);
+            var updated = await _propertyService.UpdatePropertyAsync(propertyDto);
             if (updated == null)
             {
                 _logger.LogWarning($"Property with ID {propertyId} not found for update.");

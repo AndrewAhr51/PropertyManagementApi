@@ -27,18 +27,10 @@ namespace PropertyManagementAPI.Application.Services.Invoices
         public Task<IEnumerable<RentInvoice>> GetInvoicesRentalsByMonthYearAsync(int month, int year) =>
             _repository.GetInvoiceRentalByMonthYearAsync(month, year);
 
-        public async Task UpdateInvoiceRentalAsync(RentInvoiceCreateDto dto)
+        public async Task<bool> UpdateInvoiceRentalAsync(RentInvoiceCreateDto dto)
         {
-            var existing = await _repository.GetInvoiceRentalByIdAsync(dto.InvoiceId);
-            if (existing is null) return;
-
-            existing.Amount = dto.Amount;
-            existing.DueDate = dto.DueDate;
-            existing.RentMonth = dto.RentMonth;
-            existing.RentYear = dto.RentYear;
-            existing.Notes = dto.Notes;
-
-            await _repository.UpdateInvoiceRentalAsync(existing);
+            var save = await _repository.UpdateInvoiceRentalAsync(dto);
+            return save;
         }
 
         public async Task<bool> DeleteInvoiceRentalAsync(int invoiceId)

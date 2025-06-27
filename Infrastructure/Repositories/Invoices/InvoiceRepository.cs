@@ -10,7 +10,7 @@ using PropertyManagementAPI.Domain.DTOs.Property;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
 using System.Linq;
-using PropertyManagementAPI.Domain.Entities.Property;
+using PropertyManagementAPI.Domain.Entities.Properties;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
@@ -110,7 +110,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return null; // Fix for CS8603: Return null explicitly for nullable type.
             }
         }
-        public async Task<Properties?> GetPropertyInformationAsync(int propertyId)
+        public async Task<Propertys?> GetPropertyInformationAsync(int propertyId)
         {
             try
             {
@@ -625,6 +625,11 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 .Where(r => r.InvoiceTypeId == invoiceTypeId && r.PropertyId == propertyId && r.Status != "Paid" &&
                             r.DueDate.Month == previousMonth.Month && r.DueDate.Year == previousMonth.Year)
                 .FirstOrDefaultAsync();
+
+            if (previous != null)
+            {
+                previous.Amount = previous.Amount +50; // Example of adding a fixed late fee
+            }
 
             return baseRent + (previous?.Amount ?? 0);
         }

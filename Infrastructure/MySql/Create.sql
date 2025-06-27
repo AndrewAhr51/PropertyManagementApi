@@ -518,6 +518,20 @@ CREATE TABLE Notes (
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
+CREATE TABLE InvoiceAuditLog (
+    AuditId INT AUTO_INCREMENT PRIMARY KEY,
+    InvoiceId INT NOT NULL,
+    ActionType ENUM('Created', 'Updated', 'Deleted') NOT NULL,
+    ChangedBy INT NOT NULL, -- Reference to Users table
+    ChangeTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    OldValues JSON NULL,
+    NewValues JSON NULL,
+    ChangeReason VARCHAR(255) NULL,
+
+    FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId),
+    FOREIGN KEY (ChangedBy) REFERENCES Users(UserId)
+);
+
 -- Flattened View
 CREATE OR REPLACE VIEW InvoiceDetailsView AS
 SELECT 

@@ -23,7 +23,7 @@ public class PricingController : ControllerBase
             return BadRequest("Invalid pricing data.");
         }
 
-        var created = await _service.CreateAsync(dto);
+        var created = await _service.CreatePricingAsync(dto);
         _logger.LogInformation("Create: Pricing created with ID {Id}.", created.PriceId);
         return CreatedAtAction(nameof(GetById), new { id = created.PriceId }, created);
     }
@@ -39,7 +39,7 @@ public class PricingController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var item = await _service.GetByIdAsync(id);
+        var item = await _service.GetPricingByIdAsync(id);
         if (item == null)
         {
             _logger.LogWarning("GetById: Pricing ID {Id} not found.", id);
@@ -72,7 +72,7 @@ public class PricingController : ControllerBase
             return BadRequest("Invalid pricing data.");
         }
 
-        var updated = await _service.UpdateAsync(id, dto);
+        var updated = await _service.UpdatePricingAsync(dto);
         if (!updated)
         {
             _logger.LogWarning("Update: Pricing ID {Id} not found.", id);

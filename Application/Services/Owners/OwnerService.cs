@@ -36,10 +36,10 @@ namespace PropertyManagementAPI.Application.Services.Owners
             return owner == null ? null : MapToOwnerDto(owner);
         }
 
-        public async Task<OwnerDto?> UpdateOwnerAsync(int ownerId, OwnerDto ownerDto)
+        public async Task<bool> UpdateOwnerAsync( OwnerDto ownerDto)
         {
-            var updatedOwner = await _ownerRepository.UpdateOwnerAsync(ownerId, ownerDto);
-            return updatedOwner == null ? null : MapToOwnerDto(updatedOwner);
+            var save = await _ownerRepository.UpdateOwnerAsync(ownerDto);
+            return save;
         }
 
         public async Task<bool> DeleteOwnerAsync(int ownerId)

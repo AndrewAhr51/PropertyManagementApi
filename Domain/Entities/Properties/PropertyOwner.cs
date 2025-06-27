@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.Entities.User;
 
-namespace PropertyManagementAPI.Domain.Entities.Property
+namespace PropertyManagementAPI.Domain.Entities.Properties
 {
     [PrimaryKey(nameof(PropertyId), nameof(OwnerId))]
     public class PropertyOwner
@@ -13,7 +13,7 @@ namespace PropertyManagementAPI.Domain.Entities.Property
         [Column(TypeName = "decimal(5,2)")]
         public decimal OwnershipPercentage { get; set; } = 100;
 
-        public Properties Property { get; set; }
+        public Propertys Property { get; set; }
         public Owner Owner { get; set; }
     }
 }

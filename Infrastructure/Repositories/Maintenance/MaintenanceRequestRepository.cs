@@ -13,7 +13,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
         _context = context;
     }
 
-    public async Task<MaintenanceRequestDto> AddAsync(MaintenanceRequestDto maintenanceRequestDto)
+    public async Task<MaintenanceRequestDto> AddMaintenanceRequestAsync(MaintenanceRequestDto maintenanceRequestDto)
     {
         var userExists = await _context.Users.AnyAsync(u => u.UserId == maintenanceRequestDto.UserId);
         if (!userExists)
@@ -45,7 +45,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
         return maintenanceRequestDto;
     }
 
-    public async Task<IEnumerable<MaintenanceRequestDto>> GetAllAsync()
+    public async Task<IEnumerable<MaintenanceRequestDto>> GetAllMaintenanceRequestAsync()
     {
         return await _context.MaintenanceRequests
             .Select(r => new MaintenanceRequestDto
@@ -66,7 +66,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
             .ToListAsync();
     }
 
-    public async Task<MaintenanceRequestDto?> GetByIdAsync(int requestId)
+    public async Task<MaintenanceRequestDto?> GetMaintenanceRequestByIdAsync(int requestId)
     {
         var r = await _context.MaintenanceRequests.FindAsync(requestId);
         return r == null ? null : new MaintenanceRequestDto
@@ -86,7 +86,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
         };
     }
 
-    public async Task<bool> UpdateAsync(int requestId, MaintenanceRequestDto dto)
+    public async Task<bool> UpdateMaintenanceRequestAsync(int requestId, MaintenanceRequestDto dto)
     {
         var entity = await _context.MaintenanceRequests.FindAsync(requestId);
         if (entity == null) return false;
@@ -103,7 +103,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int requestId)
+    public async Task<bool> DeleteMaintenanceRequestAsync(int requestId)
     {
         var entity = await _context.MaintenanceRequests.FindAsync(requestId);
         if (entity == null) return false;
@@ -112,7 +112,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
         await _context.SaveChangesAsync();
         return true;
     }
-    public async Task<IEnumerable<MaintenanceRequestDto>> GetByUserIdAsync(int userId)
+    public async Task<IEnumerable<MaintenanceRequestDto>> GetMaintenanceRequestByUserIdAsync(int userId)
     {
         var userExists = await _context.Users.AnyAsync(u => u.UserId == userId);
         if (!userExists)
@@ -138,7 +138,7 @@ public class MaintenanceRequestRepository : IMaintenanceRequestRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<MaintenanceRequestDto>> GetByPropertyIdAsync(int propertyId)
+    public async Task<IEnumerable<MaintenanceRequestDto>> GetMaintenanceRequestByPropertyIdAsync(int propertyId)
     {
         var propertyExists = await _context.Properties.AnyAsync(p => p.PropertyId == propertyId);
         if (!propertyExists)

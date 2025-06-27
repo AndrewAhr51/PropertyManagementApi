@@ -27,7 +27,7 @@ namespace PropertyManagementAPI.API.Controllers
                 return BadRequest("Invalid maintenance request data.");
             }
 
-            var created = await _service.CreateAsync(dto);
+            var created = await _service.CreateMaintenanceRequestAsync(dto);
             _logger.LogInformation("Create: Maintenance request created with ID {Id}.", created.RequestId);
             return CreatedAtAction(nameof(GetById), new { requestId = created.RequestId }, created);
         }
@@ -35,7 +35,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var requests = await _service.GetAllAsync();
+            var requests = await _service.GetAllMaintenanceRequestAsync();
             _logger.LogInformation("GetAll: Retrieved {Count} maintenance requests.", requests.Count());
             return Ok(requests);
         }
@@ -43,7 +43,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpGet("{requestId}")]
         public async Task<IActionResult> GetById(int requestId)
         {
-            var request = await _service.GetByIdAsync(requestId);
+            var request = await _service.GetMaintenanceRequestByIdAsync(requestId);
             if (request == null)
             {
                 _logger.LogWarning("GetById: Maintenance request ID {Id} not found.", requestId);
@@ -62,7 +62,7 @@ namespace PropertyManagementAPI.API.Controllers
                 return BadRequest("Invalid maintenance request data.");
             }
 
-            var updated = await _service.UpdateAsync(requestId, dto);
+            var updated = await _service.UpdateMaintenanceRequestAsync(requestId, dto);
             if (!updated)
             {
                 _logger.LogWarning("Update: Maintenance request ID {Id} not found.", requestId);
@@ -76,7 +76,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpDelete("{requestId}")]
         public async Task<IActionResult> Delete(int requestId)
         {
-            var deleted = await _service.DeleteAsync(requestId);
+            var deleted = await _service.DeleteMaintenanceRequestAsync(requestId);
             if (!deleted)
             {
                 _logger.LogWarning("Delete: Maintenance request ID {Id} not found.", requestId);
@@ -89,7 +89,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetByUserId(int userId)
         {
-            var requests = await _service.GetByUserIdAsync(userId);
+            var requests = await _service.GetMaintenanceRequestByUserIdAsync(userId);
             if (!requests.Any())
             {
                 _logger.LogWarning("GetByUserId: No requests found for user ID {UserId}.", userId);
@@ -102,7 +102,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpGet("property/{propertyId}")]
         public async Task<IActionResult> GetByPropertyId(int propertyId)
         {
-            var requests = await _service.GetByPropertyIdAsync(propertyId);
+            var requests = await _service.GetMaintenanceRequestByPropertyIdAsync(propertyId);
             if (!requests.Any())
             {
                 _logger.LogWarning("GetByPropertyId: No requests found for property ID {PropertyId}.", propertyId);

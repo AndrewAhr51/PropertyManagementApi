@@ -2,10 +2,10 @@
 
 public interface IPricingService
 {
-    Task<PricingDto> CreateAsync(PricingDto dto);
+    Task<PricingDto> CreatePricingAsync(PricingDto dto);
     Task<IEnumerable<PricingDto>> GetAllAsync();
-    Task<PricingDto> GetByIdAsync(int id);
-    Task<bool> UpdateAsync(int id, PricingDto dto);
+    Task<PricingDto> GetPricingByIdAsync(int id);
+    Task<bool> UpdatePricingAsync(PricingDto dto);
     Task<PricingDto> GetLatestForPropertyAsync(int propertyId);
 
 }

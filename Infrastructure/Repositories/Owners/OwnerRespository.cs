@@ -84,23 +84,20 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Owner?> UpdateOwnerAsync(int ownerId, OwnerDto ownerDto)
+        public async Task<bool> UpdateOwnerAsync(OwnerDto ownerDto)
         {
             if (ownerDto == null)
                 throw new ArgumentException("Owner data cannot be null.");
 
-            if (ownerId <= 0)
-                throw new ArgumentException("Invalid owner ID.");
-
             // ✅ Fetch the owner from the database
-            var owner = await _context.Owners.FindAsync(ownerId);
+            var owner = await _context.Owners.FindAsync(ownerDto.OwnerId);
             if (owner == null)
-                throw new KeyNotFoundException($"Owner with ID {ownerId} not found.");
+                throw new KeyNotFoundException($"Owner with ID {ownerDto.OwnerId} not found.");
 
             // ✅ Validate that the email is unique (if changed)
             if (owner.Email != ownerDto.Email)
             {
-                var emailExists = await _context.Owners.AnyAsync(o => o.Email == ownerDto.Email && o.OwnerId != ownerId);
+                var emailExists = await _context.Owners.AnyAsync(o => o.Email == ownerDto.Email && o.OwnerId != ownerDto.OwnerId);
                 if (emailExists)
                     throw new InvalidOperationException($"Email '{ownerDto.Email}' is already in use by another owner.");
             }
@@ -116,17 +113,12 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
             owner.State = ownerDto.State;
             owner.PostalCode = ownerDto.PostalCode;
             owner.Country = ownerDto.Country;
+            owner.IsActive = ownerDto.IsActive;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                throw new Exception("An error occurred while updating the owner.", ex);
-            }
-
-            return owner;
+           
+            var save = await _context.SaveChangesAsync();
+           
+            return save > 0;
         }
 
         public async Task<bool> DeleteOwnerAsync(int ownerId)

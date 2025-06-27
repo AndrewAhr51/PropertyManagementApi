@@ -27,6 +27,12 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Notes
 
         public async Task<bool> UpdateNoteAsync(Note note)
         {
+            var existingNote = await GetNoteByIdAsync(note.NoteId);
+            if (existingNote == null) return false;
+
+            // Update properties as needed
+            existingNote.NoteText = note.NoteText;
+
             _context.Notes.Update(note);
             return await _context.SaveChangesAsync() > 0;
         }
