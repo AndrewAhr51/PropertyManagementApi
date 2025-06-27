@@ -5,10 +5,12 @@ using PropertyManagementAPI.Application.Services.Email;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Domain.DTOs.Property;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
 using System.Linq;
+using PropertyManagementAPI.Domain.Entities.Property;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {

@@ -1,5 +1,5 @@
-﻿     using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using PropertyManagementAPI.Domain.DTOs.Property;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Infrastructure.Data;
 

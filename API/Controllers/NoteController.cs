@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementAPI.Application.Services.Notes;
-using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Domain.DTOs.Notes;
 
 namespace PropertyManagementAPI.API.Controllers
 {

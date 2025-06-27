@@ -1,5 +1,5 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.DTOs.Notes;
+using PropertyManagementAPI.Domain.Entities.Notes;
 using PropertyManagementAPI.Infrastructure.Repositories.Notes;
 
 namespace PropertyManagementAPI.Application.Services.Notes

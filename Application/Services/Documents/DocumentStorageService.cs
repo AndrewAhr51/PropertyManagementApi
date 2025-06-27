@@ -1,5 +1,5 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.DTOs.Documents;
+using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Infrastructure.Repositories.Documents;
 
 namespace PropertyManagementAPI.Application.Services.Documents

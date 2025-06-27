@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.Entities.Vendors;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Vendors
 {

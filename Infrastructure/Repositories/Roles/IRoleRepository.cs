@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.Entities.Roles;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Roles
 {

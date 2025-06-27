@@ -1,5 +1,5 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Repositories;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -21,7 +21,7 @@ namespace PropertyManagementAPI.Application.Services.Users
             var hashedPassword = HashPassword(userDto.Password);
             var roleId = await GetRoleId(userDto.Role);
 
-            var newUser = new User
+            var newUser = new Domain.Entities.User.Users
             {
                 UserName = userDto.Username,
                 Email = userDto.Email,

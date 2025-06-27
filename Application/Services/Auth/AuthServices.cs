@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using BCrypt.Net;
-using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Application.Services.Email;
+using PropertyManagementAPI.Domain.DTOs.Users;
 
 namespace PropertyManagementAPI.Application.Services.Auth
 {
@@ -35,7 +34,7 @@ namespace PropertyManagementAPI.Application.Services.Auth
             return GenerateJwtToken(user);
         }
 
-        private string GenerateJwtToken(User user)
+        private string GenerateJwtToken(Domain.Entities.User.Users user)
         {
             var secretKey = _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("SecretKey is not configured.");
             var issuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("Issuer is not configured.");

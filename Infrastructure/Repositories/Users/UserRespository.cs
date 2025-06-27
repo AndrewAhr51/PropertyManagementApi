@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Infrastructure.Data;
-using PropertyManagementAPI.Domain.Entities;
 using System;
 using System.Threading.Tasks;
 using BCrypt.Net;
@@ -19,7 +18,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
 
 
         // ✅ Create a new user
-        public async Task<User> AddAsync(User user)
+        public async Task<Domain.Entities.User.Users> AddAsync(Domain.Entities.User.Users user)
         {
             try
             {
@@ -34,7 +33,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
             }
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
+        public async Task<List<Domain.Entities.User.Users>> GetAllUsersAsync()
         {
             try
             {
@@ -48,7 +47,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
         }
 
         // ✅ Retrieve a user by ID
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<Domain.Entities.User.Users?> GetByIdAsync(int id)
         {
             try
             {
@@ -62,7 +61,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
         }
 
         // ✅ Retrieve a user by username
-        public async Task<User?> GetByUsernameAsync(string username)
+        public async Task<Domain.Entities.User.Users?> GetByUsernameAsync(string username)
         {
             try
             {
@@ -85,7 +84,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
         }
 
         // ✅ Retrieve a user by email
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<Domain.Entities.User.Users?> GetByEmailAsync(string email)
         {
             try
             {
@@ -108,7 +107,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
         }
 
         // ✅ Update user details
-        public async Task<bool> UpdateAsync(User user)
+        public async Task<bool> UpdateAsync(Domain.Entities.User.Users user)
         {
             try
             {

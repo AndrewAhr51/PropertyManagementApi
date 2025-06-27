@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
+﻿using PropertyManagementAPI.Domain.DTOs.Roles;
 
 namespace PropertyManagementAPI.Application.Services.Roles
 {

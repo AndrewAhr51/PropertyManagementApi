@@ -1,7 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.Entities.CreditCard;
+using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Domain.Entities.Invoices;
+using PropertyManagementAPI.Domain.Entities.Maintenance;
+using PropertyManagementAPI.Domain.Entities.Notes;
 using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Domain.Entities.Property;
+using PropertyManagementAPI.Domain.Entities.Roles;
+using PropertyManagementAPI.Domain.Entities.User;
+using PropertyManagementAPI.Domain.Entities.Vendors;
 using System.Data;
 using System.Security;
 
@@ -13,7 +20,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public MySqlDbContext(DbContextOptions<MySqlDbContext> options) : base(options) { }
 
         // Custom entities
-        public DbSet<User> Users { get; set; }
+        public DbSet<Users> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
         public DbSet<Invoice> Invoices { get; set; }

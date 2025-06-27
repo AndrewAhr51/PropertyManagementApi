@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Domain.DTOs.Users;
 
 namespace PropertyManagementAPI.Application.Services.Email
 {

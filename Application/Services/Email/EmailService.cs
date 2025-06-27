@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Domain.DTOs.Users;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Infrastructure.Repositories.Email;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;

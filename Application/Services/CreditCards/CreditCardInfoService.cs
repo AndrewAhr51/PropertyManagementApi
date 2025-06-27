@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
+﻿using PropertyManagementAPI.Domain.DTOs.CreditCard;
 using PropertyManagementAPI.Domain.Entities;
 using System.Text;
 
