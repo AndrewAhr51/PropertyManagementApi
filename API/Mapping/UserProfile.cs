@@ -1,7 +1,7 @@
 ﻿
 using AutoMapper;
-using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Domain.Entities.User;
 
 namespace PropertyManagementAPI.API.Mapping
 {
@@ -9,8 +9,8 @@ namespace PropertyManagementAPI.API.Mapping
     {
         public UserProfile()
         {
-            CreateMap<CreateUserDto, User>(); // ✅ Maps DTO to Entity
-            CreateMap<User, CreateUserDto>(); // ✅ Reverse Mapping
+            CreateMap<CreateUserDto, Users>(); // ✅ Maps DTO to Entity
+            CreateMap<Users, CreateUserDto>(); // ✅ Reverse Mapping
         }
     }
 }

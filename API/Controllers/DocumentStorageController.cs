@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementAPI.Application.Services.Documents;
-using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Domain.DTOs.Documents;
 
 [ApiController]
 [Route("api/[controller]")]

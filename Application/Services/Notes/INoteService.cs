@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
+﻿using PropertyManagementAPI.Domain.DTOs.Notes;
 
 namespace PropertyManagementAPI.Application.Services.Notes
 {

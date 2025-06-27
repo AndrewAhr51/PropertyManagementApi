@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.Entities.Roles;
 using PropertyManagementAPI.Infrastructure.Data;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Roles
@@ -13,7 +13,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Roles
         }
 
         // ✅ Create a new role
-        public async Task<Role> AddAsync(Role role)
+        public async Task<Domain.Entities.Roles.Role> AddAsync(Domain.Entities.Roles.Role role)
         {
             await _context.Roles.AddAsync(role);
             await _context.SaveChangesAsync();
@@ -21,13 +21,13 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Roles
         }
 
         // ✅ Get a role by ID
-        public async Task<Role> GetByIdAsync(int id)
+        public async Task<Domain.Entities.Roles.Role> GetByIdAsync(int id)
         {
             return await _context.Roles.FindAsync(id);
         }
 
         // ✅ Update role details
-        public async Task<bool> UpdateAsync(Role role)
+        public async Task<bool> UpdateAsync(Domain.Entities.Roles.Role role)
         {
             _context.Roles.Update(role);
             return await _context.SaveChangesAsync() > 0;

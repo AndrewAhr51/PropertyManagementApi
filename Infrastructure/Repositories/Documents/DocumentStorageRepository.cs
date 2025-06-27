@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Infrastructure.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;

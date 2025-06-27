@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementAPI.Application.Services.Property;
-using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Domain.DTOs.Property;
 
 [ApiController]
 [Route("api/properties/{propertyId}/photos")]

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
+using PropertyManagementAPI.Domain.DTOs.Users;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices

@@ -1,5 +1,5 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.DTOs.Vendors;
+using PropertyManagementAPI.Domain.Entities.Vendors;
 using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
 using System.Numerics;
 

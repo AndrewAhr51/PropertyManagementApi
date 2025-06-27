@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;

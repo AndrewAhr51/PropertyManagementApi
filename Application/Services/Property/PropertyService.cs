@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
+﻿using PropertyManagementAPI.Domain.DTOs.Property;
 using PropertyManagementAPI.Infrastructure.Repositories.Owners;
 using PropertyManagementAPI.Infrastructure.Repositories.Property;
 

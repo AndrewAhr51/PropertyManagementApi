@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.Entities.Vendors;
 using PropertyManagementAPI.Infrastructure.Data;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Vendors

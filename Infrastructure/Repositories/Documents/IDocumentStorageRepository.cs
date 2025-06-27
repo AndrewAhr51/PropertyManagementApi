@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.Entities.Documents;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
 {

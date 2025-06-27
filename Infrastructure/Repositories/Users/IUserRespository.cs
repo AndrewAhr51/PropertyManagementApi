@@ -1,13 +1,13 @@
-﻿using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.Entities.User;
 
 public interface IUserRepository
 {
-    Task<User> AddAsync(User user);  // ✅ Create a new user
-    Task<List<User>> GetAllUsersAsync();  // ✅ Retrieve all users
-    Task<User?> GetByIdAsync(int id);  // ✅ Retrieve a user by ID
-    Task<User?> GetByUsernameAsync(string username);  // ✅ Retrieve a user by username
-    Task<User?> GetByEmailAsync(string email);  // ✅ Retrieve a user by email
-    Task<bool> UpdateAsync(User user);  // ✅ Update user details
+    Task<Users> AddAsync(Users user);  // ✅ Create a new user
+    Task<List<Users>> GetAllUsersAsync();  // ✅ Retrieve all users
+    Task<Users?> GetByIdAsync(int id);  // ✅ Retrieve a user by ID
+    Task<Users?> GetByUsernameAsync(string username);  // ✅ Retrieve a user by username
+    Task<Users?> GetByEmailAsync(string email);  // ✅ Retrieve a user by email
+    Task<bool> UpdateAsync(Users user);  // ✅ Update user details
     Task<bool> DeleteAsync(int id);  // ✅ Remove a user by ID
     Task<bool> DeleteByEmailAsync(string email);
     Task<bool> DeleteUserByUsernameAsync(string username);

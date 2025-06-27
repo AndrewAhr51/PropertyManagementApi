@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Domain.DTOs.Users;
 using PropertyManagementAPI.Domain.Entities;
 
 namespace PropertyManagementAPI.Application.Services.Auth

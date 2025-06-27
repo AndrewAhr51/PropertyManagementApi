@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementAPI.Application.Services.Users;
-using PropertyManagementAPI.Domain.DTOs;
+using PropertyManagementAPI.Domain.DTOs.Users;
 
 [ApiController]
 [Route("api/users")]

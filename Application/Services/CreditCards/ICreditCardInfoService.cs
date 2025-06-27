@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
+﻿using PropertyManagementAPI.Domain.DTOs.CreditCard;
 
 namespace PropertyManagementAPI.Application.Services.CreditCards
 {

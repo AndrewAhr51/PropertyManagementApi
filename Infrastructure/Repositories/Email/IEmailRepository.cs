@@ -1,5 +1,5 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
-using PropertyManagementAPI.Domain.Entities;
+﻿using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Domain.Entities.User;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

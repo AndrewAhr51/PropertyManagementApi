@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs;
+﻿using PropertyManagementAPI.Domain.DTOs.Payments;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 
 namespace PropertyManagementAPI.Application.Services.Payments

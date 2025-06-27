@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Domain.DTOs;
 using Microsoft.Extensions.Logging;
 using PropertyManagementAPI.Application.Services.Property;
+using PropertyManagementAPI.Domain.DTOs.Property;
 
 namespace PropertyManagementAPI.API.Controllers
 {
