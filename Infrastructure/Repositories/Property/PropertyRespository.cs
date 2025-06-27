@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities.Property;
+﻿using PropertyManagementAPI.Domain.Entities.Properties;
 using PropertyManagementAPI.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Property;
@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
 
         public async Task<PropertyDto> AddPropertyAsync(PropertyDto dto)
         {
-            var property = new Properties
+            var property = new Propertys
             {
                 PropertyName = dto.PropertyName,
                 Address = dto.Address,
@@ -125,9 +125,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
                 .ToListAsync();
         }
 
-        public async Task<PropertyDto?> UpdatePropertyAsync(int propertyId, PropertyDto dto)
+        public async Task<PropertyDto?> UpdatePropertyAsync(PropertyDto dto)
         {
-            var property = await _context.Properties.FindAsync(propertyId);
+            var property = await _context.Properties.FindAsync(dto.PropertyId);
             if (property == null) return null;
 
             property.PropertyName = dto.PropertyName;

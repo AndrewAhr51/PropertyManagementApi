@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Property;
-using PropertyManagementAPI.Domain.Entities.Property;
+using PropertyManagementAPI.Domain.Entities.Properties;
 using PropertyManagementAPI.Infrastructure.Data;
 
 public class PricingRepository : IPricingRepository
@@ -12,7 +12,7 @@ public class PricingRepository : IPricingRepository
         _context = context;
     }
 
-    public async Task<PricingDto> AddAsync(PricingDto dto)
+    public async Task<PricingDto> AddPricingAsync(PricingDto dto)
     {
         var propertyExists = await _context.Properties.AnyAsync(p => p.PropertyId == dto.PropertyId);
         if (!propertyExists)
@@ -36,7 +36,7 @@ public class PricingRepository : IPricingRepository
         return dto;
     }
 
-    public async Task<IEnumerable<PricingDto>> GetAllAsync()
+    public async Task<IEnumerable<PricingDto>> GetPricingAllPricingAsync()
     {
         return await _context.Pricing
             .Select(p => new PricingDto
@@ -53,7 +53,7 @@ public class PricingRepository : IPricingRepository
             .ToListAsync();
     }
 
-    public async Task<PricingDto> GetByIdAsync(int id)
+    public async Task<PricingDto> GetPricingByIdAsync(int id)
     {
         var p = await _context.Pricing
             .FirstOrDefaultAsync(x => x.PriceId == id);
@@ -74,9 +74,9 @@ public class PricingRepository : IPricingRepository
         };
     }
 
-    public async Task<bool> UpdateAsync(int id, PricingDto dto)
+    public async Task<bool> UpdatePricingAsync(PricingDto dto)
     {
-        var entity = await _context.Pricing.FindAsync(id);
+        var entity = await _context.Pricing.FindAsync(dto.PriceId);
         if (entity == null) return false;
 
         var propertyExists = await _context.Properties.AnyAsync(p => p.PropertyId == dto.PropertyId);

@@ -9,37 +9,37 @@ public class MaintenanceRequestService : IMaintenanceRequestService
         _repository = repository;
     }
 
-    public async Task<MaintenanceRequestDto> CreateAsync(MaintenanceRequestDto dto)
+    public async Task<MaintenanceRequestDto> CreateMaintenanceRequestAsync(MaintenanceRequestDto dto)
     {
-        return await _repository.AddAsync(dto);
+        return await _repository.AddMaintenanceRequestAsync(dto);
     }
 
-    public async Task<IEnumerable<MaintenanceRequestDto>> GetAllAsync()
+    public async Task<IEnumerable<MaintenanceRequestDto>> GetAllMaintenanceRequestAsync()
     {
-        return await _repository.GetAllAsync();
+        return await _repository.GetAllMaintenanceRequestAsync();
     }
 
-    public async Task<MaintenanceRequestDto?> GetByIdAsync(int requestId)
+    public async Task<MaintenanceRequestDto?> GetMaintenanceRequestByIdAsync(int requestId)
     {
-        return await _repository.GetByIdAsync(requestId);
+        return await _repository.GetMaintenanceRequestByIdAsync(requestId);
     }
 
-    public async Task<bool> UpdateAsync(int requestId, MaintenanceRequestDto dto)
+    public async Task<bool> UpdateMaintenanceRequestAsync(int requestId, MaintenanceRequestDto dto)
     {
-        return await _repository.UpdateAsync(requestId, dto);
+        return await _repository.UpdateMaintenanceRequestAsync(requestId, dto);
     }
 
-    public async Task<bool> DeleteAsync(int requestId)
+    public async Task<bool> DeleteMaintenanceRequestAsync(int requestId)
     {
-        return await _repository.DeleteAsync(requestId);
+        return await _repository.DeleteMaintenanceRequestAsync(requestId);
     }
-    public async Task<IEnumerable<MaintenanceRequestDto>> GetByUserIdAsync(int userId)
+    public async Task<IEnumerable<MaintenanceRequestDto>> GetMaintenanceRequestByUserIdAsync(int userId)
     {
-        return await _repository.GetByUserIdAsync(userId);
+        return await _repository.GetMaintenanceRequestByUserIdAsync(userId);
     }
 
-    public async Task<IEnumerable<MaintenanceRequestDto>> GetByPropertyIdAsync(int propertyId)
+    public async Task<IEnumerable<MaintenanceRequestDto>> GetMaintenanceRequestByPropertyIdAsync(int propertyId)
     {
-        return await _repository.GetByPropertyIdAsync(propertyId);
+        return await _repository.GetMaintenanceRequestByPropertyIdAsync(propertyId);
     }
 }

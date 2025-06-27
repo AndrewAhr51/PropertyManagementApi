@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementAPI.Domain.Entities.Property
+namespace PropertyManagementAPI.Domain.Entities.Properties
 {
     public class Pricing
     {
@@ -28,6 +28,6 @@ namespace PropertyManagementAPI.Domain.Entities.Property
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         [ForeignKey(nameof(PropertyId))]
-        public Properties Property { get; set; }
+        public Propertys Property { get; set; }
     }
 }

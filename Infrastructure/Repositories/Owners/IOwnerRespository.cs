@@ -9,7 +9,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
         Task<IEnumerable<Owner>> GetAllOwnersAsync();
         Task<Owner?> GetOwnerByIdAsync(int ownerId);
         Task<Owner?> GetOwnerByUserNameAsync(string username);
-        Task<Owner?> UpdateOwnerAsync(int ownerId, OwnerDto ownerDto);
+        Task<bool> UpdateOwnerAsync( OwnerDto ownerDto);
         Task<bool> DeleteOwnerAsync(int ownerId);
         Task<bool> SetActivateOwnerAsync(int ownerId); // ✅ New method
 

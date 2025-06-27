@@ -2,11 +2,11 @@
 
 public interface IMaintenanceRequestRepository
 {
-    Task<MaintenanceRequestDto> AddAsync(MaintenanceRequestDto dto);
-    Task<IEnumerable<MaintenanceRequestDto>> GetAllAsync();
-    Task<MaintenanceRequestDto?> GetByIdAsync(int requestId);
-    Task<bool> UpdateAsync(int requestId, MaintenanceRequestDto dto);
-    Task<bool> DeleteAsync(int requestId);
-    Task<IEnumerable<MaintenanceRequestDto>> GetByUserIdAsync(int userId);
-    Task<IEnumerable<MaintenanceRequestDto>> GetByPropertyIdAsync(int propertyId);
+    Task<MaintenanceRequestDto> AddMaintenanceRequestAsync(MaintenanceRequestDto dto);
+    Task<IEnumerable<MaintenanceRequestDto>> GetAllMaintenanceRequestAsync();
+    Task<MaintenanceRequestDto?> GetMaintenanceRequestByIdAsync(int requestId);
+    Task<bool> UpdateMaintenanceRequestAsync(int requestId, MaintenanceRequestDto dto);
+    Task<bool> DeleteMaintenanceRequestAsync(int requestId);
+    Task<IEnumerable<MaintenanceRequestDto>> GetMaintenanceRequestByUserIdAsync(int userId);
+    Task<IEnumerable<MaintenanceRequestDto>> GetMaintenanceRequestByPropertyIdAsync(int propertyId);
 }

@@ -53,12 +53,12 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
                 if (amountDue == 0)
                 {
-                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
-                    return false;
+                    _logger.LogWarning("No Cleaning fee amount information found for PropertyId {PropertyId}", dto.PropertyId);
                 }
                 else
                 {
-                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
+                    dto.Amount += amountDue;
+                    _logger.LogInformation("Cleaning fee amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
                 }
 
                 //Override the amount due with late fee if applicable
@@ -75,7 +75,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     TenantId = customerInvoiceInfo.TenantId,
                     Email = customerInvoiceInfo.Email,
                     ReferenceNumber = referenceNumber,
-                    Amount = amountDue,
+                    Amount = dto.Amount,
                     DueDate = dto.DueDate,
                     PropertyId = dto.PropertyId,
                     InvoiceTypeId = invoiceTypeId,

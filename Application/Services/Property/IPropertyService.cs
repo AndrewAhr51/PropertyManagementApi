@@ -27,7 +27,7 @@ namespace PropertyManagementAPI.Application.Services.Property
         /// <summary>
         /// Updates an existing property.
         /// </summary>
-        Task<PropertyDto?> UpdatePropertyAsync(int propertyId, PropertyDto propertyDto);
+        Task<PropertyDto?> UpdatePropertyAsync(PropertyDto propertyDto);
 
         /// <summary>
         /// Soft-deletes or deactivates a property.

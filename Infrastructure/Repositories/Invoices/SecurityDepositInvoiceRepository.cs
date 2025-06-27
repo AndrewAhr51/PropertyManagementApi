@@ -47,12 +47,12 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
                 if (amountDue == 0)
                 {
-                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
+                    _logger.LogWarning("No Security Deposit information found for PropertyId {PropertyId}", dto.PropertyId);
                     return false;
                 }
                 else
                 {
-                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
+                    _logger.LogInformation("Security Deposit amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
                 }
 
                 //Override the amount due with late fee if applicable
@@ -60,7 +60,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 {
                     amountDue = dto.Amount;
                 }
-
 
                 var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
 

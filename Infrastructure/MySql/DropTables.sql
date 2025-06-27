@@ -42,6 +42,7 @@ DROP TABLE IF EXISTS Users;
 DROP TABLE IF EXISTS Permissions;
 DROP TABLE IF EXISTS Roles;
 DROP TABLE IF EXISTS Vendors;
+DROP TABLE IF EXISTS InvoiceAuditLog;
 
 -- ✅ Drop lookup tables last
 DROP TABLE IF EXISTS lkupCategory;

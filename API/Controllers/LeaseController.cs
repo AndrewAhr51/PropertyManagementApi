@@ -27,7 +27,7 @@ namespace PropertyManagementAPI.API.Controllers
                 return BadRequest("Invalid lease data.");
             }
 
-            var created = await _service.CreateAsync(dto);
+            var created = await _service.CreateLeaseAsync(dto);
             _logger.LogInformation("Create: Lease created with ID {Id}.", created.LeaseId);
             return CreatedAtAction(nameof(GetById), new { leaseId = created.LeaseId }, created);
         }
@@ -35,7 +35,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var leases = await _service.GetAllAsync();
+            var leases = await _service.GetAllLeaseAsync();
             _logger.LogInformation("GetAll: Retrieved {Count} leases.", leases.Count());
             return Ok(leases);
         }
@@ -43,7 +43,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpGet("{leaseId}")]
         public async Task<IActionResult> GetById(int leaseId)
         {
-            var lease = await _service.GetByIdAsync(leaseId);
+            var lease = await _service.GetLeaseByIdAsync(leaseId);
             if (lease == null)
             {
                 _logger.LogWarning("GetById: Lease ID {Id} not found.", leaseId);
@@ -62,7 +62,7 @@ namespace PropertyManagementAPI.API.Controllers
                 return BadRequest("Invalid lease data.");
             }
 
-            var updated = await _service.UpdateAsync(leaseId, dto);
+            var updated = await _service.UpdateLeaseAsync(leaseId, dto);
             if (!updated)
             {
                 _logger.LogWarning("Update: Lease ID {Id} not found or inactive.", leaseId);
@@ -76,7 +76,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpDelete("{leaseId}")]
         public async Task<IActionResult> Delete(int leaseId)
         {
-            var deleted = await _service.DeleteAsync(leaseId);
+            var deleted = await _service.DeleteLeaseAsync(leaseId);
             if (!deleted)
             {
                 _logger.LogWarning("Delete: Lease ID {Id} not found or already inactive.", leaseId);

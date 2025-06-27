@@ -42,16 +42,16 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     return false;
                 }
 
-                var amountDueTask = _invoiceRepository.GetAmountDueAsync(dto, dto.UtilityType);
-                decimal amountDue = await amountDueTask;
+                var prevAmountDueTask = _invoiceRepository.GetAmountDueAsync(dto, dto.UtilityType);
+                decimal prevAmountDue = await prevAmountDueTask;
 
-                if (amountDue == 0)
+                if (prevAmountDue > 0)
                 {
-                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
-                    return false;
+                    dto.Amount += prevAmountDue ;
+                    _logger.LogWarning("No The utilities were not paid the previous month for PropertyId {PropertyId}", dto.PropertyId);
                 }
                 else {
-                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
+                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, dto.Amount);
                 }
                 var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
 
@@ -62,7 +62,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     TenantId = customerInvoiceInfo.TenantId,
                     CustomerName = customerInvoiceInfo.CustomerName,
                     Email = customerInvoiceInfo.Email,
-                    Amount = amountDue,
+                    Amount = dto.Amount,
                     DueDate = dto.DueDate,
                     InvoiceTypeId = invoiceTypeId,
                     Notes = dto.Notes,

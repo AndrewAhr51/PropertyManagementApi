@@ -100,7 +100,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         }
         public async Task<RentInvoice?> GetInvoiceRentalByIdAsync(int invoiceId) =>
             await _context.RentInvoices
-                          .Include(r => r.PropertyId) // optional: eager load relationships
+                          .Include(r => r.Property) // optional: eager load relationships
                           .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
 
         public async Task<IEnumerable<RentInvoice>> GetAllInvoiceRentalsAsync() =>
@@ -111,10 +111,34 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                           .Where(i => i.RentMonth == month && i.RentYear == year)
                           .ToListAsync();
 
-        public async Task UpdateInvoiceRentalAsync(RentInvoice invoice)
+        public async Task<bool> UpdateInvoiceRentalAsync(RentInvoiceCreateDto rentInvoice)
         {
-            _context.RentInvoices.Update(invoice);
-            await _context.SaveChangesAsync();
+            if (rentInvoice == null)
+            {
+                _logger.LogWarning("Attempted to update a null RentInvoice");
+                return false;
+            }
+            var existingInvoice = await _context.RentInvoices.FindAsync(rentInvoice.InvoiceId);
+            if (existingInvoice == null)
+            {
+                _logger.LogWarning("No RentInvoice found with InvoiceId {InvoiceId}", rentInvoice.InvoiceId);
+                return false;
+            }
+            // Update the properties of the existing invoice
+            existingInvoice.Amount = rentInvoice.Amount;
+            existingInvoice.DueDate = rentInvoice.DueDate;
+            existingInvoice.RentMonth = rentInvoice.RentMonth;
+            existingInvoice.RentYear = rentInvoice.RentYear;
+            existingInvoice.Notes = rentInvoice.Notes;
+            existingInvoice.PropertyId = rentInvoice.PropertyId;
+            existingInvoice.CreatedDate = DateTime.UtcNow;
+
+            _logger.LogInformation("Updating RentInvoice with InvoiceId {InvoiceId}", rentInvoice.InvoiceId);
+
+            _context.Invoices.Update(existingInvoice);
+            var save = await _context.SaveChangesAsync();
+
+            return save > 0;
         }
 
         public async Task<bool> DeleteInvoiceRentalAsync(int invoiceId)

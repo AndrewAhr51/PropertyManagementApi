@@ -43,9 +43,9 @@ namespace PropertyManagementAPI.Application.Services.Property
             return await _propertyRepository.GetPropertiesByOwnerIdAsync(ownerId);
         }
 
-        public async Task<PropertyDto?> UpdatePropertyAsync(int propertyId, PropertyDto propertyDto)
+        public async Task<PropertyDto?> UpdatePropertyAsync(PropertyDto propertyDto)
         {
-            return await _propertyRepository.UpdatePropertyAsync(propertyId, propertyDto);
+            return await _propertyRepository.UpdatePropertyAsync(propertyDto);
         }
 
         public async Task<bool> SetActivatePropertyAsync(int propertyId)

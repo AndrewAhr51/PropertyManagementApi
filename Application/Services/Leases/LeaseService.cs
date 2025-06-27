@@ -9,27 +9,27 @@ public class LeaseService : ILeaseService
         _repository = repository;
     }
 
-    public async Task<LeaseDto> CreateAsync(LeaseDto dto)
+    public async Task<LeaseDto> CreateLeaseAsync(LeaseDto dto)
     {
         return await _repository.CreateLeaseAsync(dto);
     }
 
-    public async Task<IEnumerable<LeaseDto>> GetAllAsync()
+    public async Task<IEnumerable<LeaseDto>> GetAllLeaseAsync()
     {
         return await _repository.GetAllLeasesAsync();
     }
 
-    public async Task<LeaseDto?> GetByIdAsync(int leaseId)
+    public async Task<LeaseDto?> GetLeaseByIdAsync(int leaseId)
     {
         return await _repository.GetLeaseByIdAsync(leaseId);
     }
 
-    public async Task<bool> UpdateAsync(int leaseId, LeaseDto dto)
+    public async Task<bool> UpdateLeaseAsync(int leaseId, LeaseDto dto)
     {
         return await _repository.UpdateLeaseByIdAsync(leaseId, dto);
     }
 
-    public async Task<bool> DeleteAsync(int leaseId)
+    public async Task<bool> DeleteLeaseAsync(int leaseId)
     {
         return await _repository.DeleteLeaseByIdAsync(leaseId);
     }

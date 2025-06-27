@@ -9,24 +9,24 @@ public class PricingService : IPricingService
         _repository = repository;
     }
 
-    public async Task<PricingDto> CreateAsync(PricingDto dto)
+    public async Task<PricingDto> CreatePricingAsync(PricingDto dto)
     {
-        return await _repository.AddAsync(dto);
+        return await _repository.AddPricingAsync(dto);
     }
 
     public async Task<IEnumerable<PricingDto>> GetAllAsync()
     {
-        return await _repository.GetAllAsync();
+        return await _repository.GetPricingAllPricingAsync();
     }
 
-    public async Task<PricingDto> GetByIdAsync(int id)
+    public async Task<PricingDto> GetPricingByIdAsync(int id)
     {
-        return await _repository.GetByIdAsync(id);
+        return await _repository.GetPricingByIdAsync(id);
     }
 
-    public async Task<bool> UpdateAsync(int id, PricingDto dto)
+    public async Task<bool> UpdatePricingAsync(PricingDto dto)
     {
-        return await _repository.UpdateAsync(id, dto);
+        return await _repository.UpdatePricingAsync(dto);
     }
 
     public async Task<PricingDto> GetLatestForPropertyAsync(int propertyId)

@@ -47,20 +47,13 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
                 if (amountDue == 0)
                 {
-                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
-                    return false;
+                    _logger.LogWarning("No Legal fee balance information was found for PropertyId {PropertyId}", dto.PropertyId);
                 }
                 else
                 {
+                    dto.Amount += amountDue;
                     _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
                 }
-
-                //Override the amount due with late fee if applicable
-                if (dto.Amount > 0)
-                {
-                    amountDue = dto.Amount;
-                }
-
 
                 var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
 
@@ -71,7 +64,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     Email = customerInvoiceInfo.Email,
                     ReferenceNumber = referenceNumber,
                     CaseReference = dto.CaseReference,
-                    Amount = amountDue,
+                    Amount = dto.Amount,
                     DueDate = dto.DueDate,
                     PropertyId = dto.PropertyId,
                     InvoiceTypeId = invoiceTypeId,

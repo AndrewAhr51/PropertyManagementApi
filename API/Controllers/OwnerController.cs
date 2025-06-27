@@ -89,15 +89,10 @@ public class OwnerController : ControllerBase
             return BadRequest("Invalid owner data.");
         }
 
-        var updatedOwner = await _ownersService.UpdateOwnerAsync(ownerId, ownerDto);
-        if (updatedOwner == null)
-        {
-            _logger.LogWarning($"Owner with ID {ownerId} not found.");
-            return NotFound("Owner not found.");
-        }
-
+        var save = await _ownersService.UpdateOwnerAsync(ownerDto);
+        
         _logger.LogInformation($"Owner {ownerDto.FirstName} {ownerDto.LastName} updated successfully.");
-        return Ok(updatedOwner);
+        return Ok(save);
     }
 
     // ✅ Delete owner

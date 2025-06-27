@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Property;
-using PropertyManagementAPI.Domain.Entities.Property;
+using PropertyManagementAPI.Domain.Entities.Properties;
 using PropertyManagementAPI.Infrastructure.Data;
 
 public class LeaseRepository : ILeaseRepository
@@ -95,6 +95,7 @@ public class LeaseRepository : ILeaseRepository
 
         entity.StartDate = dto.StartDate;
         entity.EndDate = dto.EndDate;
+        entity.DepositAmount = dto.DepositAmount;
         entity.MonthlyRent = dto.MonthlyRent;
         entity.DepositPaid = dto.DepositPaid;
         entity.SignedDate = dto.SignedDate;
