@@ -108,20 +108,17 @@ CREATE TABLE RolePermissions (
 CREATE TABLE Users (
     UserId INT PRIMARY KEY AUTO_INCREMENT,
     UserName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100) NOT NULL UNIQUE,
+	Email NVARCHAR(255) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(255) NOT NULL,
     RoleId INT NOT NULL,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
     -- Password Reset Fields
     ResetToken NVARCHAR(255) NULL,
     ResetTokenExpiration DATETIME NULL,
-
     -- Multi-Factor Authentication (MFA)
     MfaCode NVARCHAR(6) NULL,
     MfaCodeExpiration DATETIME NULL,
-    
     IsMfaEnabled BOOLEAN DEFAULT TRUE,
     IsActive BOOLEAN DEFAULT TRUE
 );
@@ -133,9 +130,9 @@ ALTER TABLE Users ADD CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES 
 CREATE INDEX IX_MfaCode ON Users (MfaCode);
 
 -- Property Table
-CREATE TABLE Property (
+CREATE TABLE Properties (
     PropertyId INT PRIMARY KEY AUTO_INCREMENT,
-    Name NVARCHAR(255) NOT NULL,
+    PropertyName NVARCHAR(255) NOT NULL,
     Address NVARCHAR(255) NOT NULL,
     Address1 NVARCHAR(255) NULL,
     City NVARCHAR(100) NOT NULL,
@@ -163,7 +160,7 @@ CREATE TABLE PropertyPhotos (
     UploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
 -- Tenants Table
@@ -171,14 +168,17 @@ CREATE TABLE Tenants (
     TenantId INT PRIMARY KEY AUTO_INCREMENT,
     PropertyId INT NOT NULL,
     UserId INT NOT NULL,
+    PrimaryTenant BOOLEAN DEFAULT FALSE,
     FirstName NVARCHAR(100),
     LastName NVARCHAR(100),
     PhoneNumber NVARCHAR(20),
+	Email NVARCHAR(255) NOT NULL UNIQUE,
     MoveInDate DATE,
+    Balance DECIMAL(10,2) DEFAULT 0,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
 -- Pricing Table
@@ -192,12 +192,13 @@ CREATE TABLE Pricing (
     UtilitiesIncluded BOOLEAN DEFAULT FALSE,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
 -- Owners Table
 CREATE TABLE Owners (
     OwnerId INT PRIMARY KEY AUTO_INCREMENT,
+    PrimaryOwner BOOLEAN DEFAULT FALSE,
     FirstName NVARCHAR(100) NOT NULL,
     LastName NVARCHAR(100) NOT NULL,
     Email NVARCHAR(255) NOT NULL UNIQUE,
@@ -219,8 +220,16 @@ CREATE TABLE PropertyOwners (
     OwnerId INT NOT NULL,
     OwnershipPercentage DECIMAL(5,2) DEFAULT 100,
     PRIMARY KEY (PropertyId, OwnerId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
+);
+
+CREATE TABLE PropertyTenants (
+    PropertyId INT NOT NULL,
+    TenantId INT NOT NULL,
+    PRIMARY KEY (PropertyId, TenantId),
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 -- Payments Table
 CREATE TABLE Payments (
@@ -230,12 +239,14 @@ CREATE TABLE Payments (
     PropertyId INT NOT NULL,
     Amount DECIMAL(10,2) NOT NULL,
     PaymentMethodId INT NOT NULL,
+    Status NVARCHAR(50) NOT NULL,
+    Notes TEXT NULL,
     TransactionDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ReferenceNumber NVARCHAR(100) NOT NULL,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)    
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)    
 );
 
 -- Credit Card Information
@@ -251,7 +262,7 @@ CREATE TABLE CreditCardInfo (
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
 -- Billing Address
@@ -279,7 +290,7 @@ CREATE TABLE SpecialInstructions (
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId)
 );
 
@@ -314,7 +325,7 @@ CREATE TABLE MaintenanceRequests (
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
 -- Vendors
@@ -372,15 +383,18 @@ CREATE TABLE Leases (
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
 CREATE TABLE Invoices (
     invoiceId INT PRIMARY KEY AUTO_INCREMENT,
     CustomerName VARCHAR(100) DEFAULT 'unknown',
+    Email VARCHAR(255) NOT NULL ,
+    ReferenceNumber VARCHAR(50) NOT NULL, 
     amount DECIMAL(18,2) NOT NULL,
     duedate DATETIME NOT NULL,
     propertyid int NOT NULL,
+    tenantid int NOT NULL DEFAULT 0,
     IsPaid BOOLEAN DEFAULT FALSE,
     status VARCHAR(50) DEFAULT 'Pending',
     notes TEXT,
@@ -390,7 +404,6 @@ CREATE TABLE Invoices (
 );
 
 -- Subtype Tables with ON DELETE CASCADE
-
 CREATE TABLE RentInvoices (
     invoiceId INT PRIMARY KEY,
     rentmonth INT,
@@ -462,7 +475,7 @@ CREATE TABLE Documents (
     Category VARCHAR(100),
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 
@@ -490,7 +503,7 @@ CREATE TABLE PaymentReminders (
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId),
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId)
 );
 
@@ -502,7 +515,7 @@ CREATE TABLE Notes (
     NoteText TEXT NOT NULL,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (PropertyId) REFERENCES Property(PropertyId)
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
 -- Flattened View
@@ -541,12 +554,27 @@ LEFT JOIN PropertyTaxInvoices pt ON i.invoiceId = pt.invoiceId
 LEFT JOIN InsuranceInvoices ins ON i.invoiceId = ins.invoiceId
 LEFT JOIN LegalFeeInvoices l ON i.invoiceId = l.invoiceId;
 
+CREATE TRIGGER after_invoice_insert
+AFTER INSERT ON Invoices
+FOR EACH ROW
+UPDATE Tenants
+SET Balance = Balance + NEW.amount
+WHERE TenantId = NEW.TenantId;
+
+CREATE TRIGGER after_payment_insert
+AFTER INSERT ON Payments
+FOR EACH ROW
+UPDATE Tenants
+SET Balance = Balance - NEW.Amount
+WHERE TenantId = NEW.TenantId;
+
 -- Optimized Indexes
 CREATE INDEX IX_ResetToken ON Users (ResetToken);
-CREATE INDEX IX_UserEmail ON Users (Email);
-CREATE INDEX IX_Property_City ON Property(City);
-CREATE INDEX IX_Property_State ON Property(State);
-CREATE INDEX IX_Property_IsAvailable ON Property(IsAvailable);
+CREATE INDEX IX_TenantEmail ON Tenants (Email);
+CREATE INDEX IX_OwnerEmail ON Owners (Email);
+CREATE INDEX IX_Property_City ON Properties(City);
+CREATE INDEX IX_Property_State ON Properties(State);
+CREATE INDEX IX_Property_IsAvailable ON Properties(IsAvailable);
 CREATE INDEX IX_Owners_Email ON Owners(Email);
 CREATE INDEX IX_PropertyOwners_PropertyId ON PropertyOwners(PropertyId);
 CREATE INDEX IX_PropertyOwners_OwnerId ON PropertyOwners(OwnerId);
@@ -566,5 +594,4 @@ CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policynumber);
 CREATE INDEX idx_legal_case ON LegalFeeInvoices(casereference);
 CREATE INDEX idx_utilityname ON LkupUtilities (UtilityName);
 CREATE UNIQUE INDEX idx_utilityname_unique ON LkupUtilities (UtilityName);
-CREATE INDEX idx_cleaning_type_name ON LkupCleaningType (CleaningTypeName);
 CREATE UNIQUE INDEX idx_cleaning_type_name_unique ON LkupCleaningType (CleaningTypeName);

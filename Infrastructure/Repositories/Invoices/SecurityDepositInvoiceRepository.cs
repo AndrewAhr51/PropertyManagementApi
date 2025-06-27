@@ -29,45 +29,64 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
             try
             {
-                int invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(dto.InvoiceType);
-                if (invoiceTypeId == -1)
+                var invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(dto.InvoiceType);
+                if (invoiceTypeId == null)
                 {
-                    _logger.LogWarning("Invalid invoice type: {InvoiceType}", dto.InvoiceType);
+                    throw new ArgumentException($"Invalid invoice type: {dto.InvoiceType}");
+                }
+
+                var customerInvoiceInfo = await _invoiceRepository.GetPropertyTenantInfoAsync(dto.PropertyId);
+                if (customerInvoiceInfo == null)
+                {
+                    _logger.LogWarning("No tenant information found for PropertyId {PropertyId}", dto.PropertyId);
                     return false;
                 }
 
-                var depositAmount = await SecurityDepositAmountAsync(dto.PropertyId);
-                if (depositAmount == -1)
+                var amountDueTask = _invoiceRepository.GetAmountDueAsync(dto, null);
+                decimal amountDue = await amountDueTask;
+
+                if (amountDue == 0)
                 {
-                    _logger.LogWarning("Invalid security deposit amount for PropertyId {PropertyId}", dto.PropertyId);
+                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
                     return false;
                 }
-
-                var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
-                if (string.IsNullOrEmpty(CustomerName))
+                else
                 {
-                    _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
                 }
+
+                //Override the amount due with late fee if applicable
+                if (dto.Amount > 0)
+                {
+                    amountDue = dto.Amount;
+                }
+
+
+                var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
 
                 var newInvoice = new SecurityDepositInvoice
                 {
-                    PropertyId = dto.PropertyId,
-                    ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
-                    CustomerName = CustomerName ?? "Unknown",
-                    InvoiceTypeId = invoiceTypeId,
+                    CustomerName = customerInvoiceInfo.CustomerName,
+                    TenantId = customerInvoiceInfo.TenantId,
+                    Email = customerInvoiceInfo.Email,
+                    ReferenceNumber = referenceNumber,
+                    Amount = (decimal)amountDue,
                     DueDate = dto.DueDate,
-                    DepositAmount = (decimal)depositAmount,
-                    IsRefundable = dto.IsRefundable,
+                    PropertyId = dto.PropertyId,
+                    InvoiceTypeId = invoiceTypeId,
                     Notes = dto.Notes,
+                    DepositAmount = (decimal)amountDue,
+                    IsRefundable = dto.IsRefundable,
+                    Status = "Pending",
                     CreatedBy = "Web",
-                    Status = "Pending"
+                    CreatedDate = DateTime.UtcNow
                 };
 
                 _context.SecurityDepositInvoices.Add(newInvoice);
                 var saved = await _context.SaveChangesAsync() > 0;
 
                 _logger.LogInformation("Security deposit invoice created for PropertyId {PropertyId} with amount {Amount}",
-                    dto.PropertyId, depositAmount);
+                    dto.PropertyId, amountDue);
 
                 return saved;
             }

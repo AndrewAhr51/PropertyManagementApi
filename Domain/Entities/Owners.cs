@@ -12,6 +12,9 @@ namespace PropertyManagementAPI.Domain.Entities
         public int UserId { get; set; }
 
         [Required]
+        public bool PrimaryOwner { get; set; }
+
+        [Required]
         [MaxLength(100)]
         public string FirstName { get; set; }
 

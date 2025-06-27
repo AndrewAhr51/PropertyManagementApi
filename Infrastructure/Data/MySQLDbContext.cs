@@ -24,6 +24,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Owner> Owners { get; set; }
         public DbSet<Properties> Properties { get; set; }
         public DbSet<PropertyOwner> PropertyOwners { get; set; }
+        public DbSet<PropertyTenant> PropertyTenants { get; set; }
         public DbSet<PropertyPhotos> PropertyPhotos { get; set; }
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
         public DbSet<Pricing> Pricing { get; set; }

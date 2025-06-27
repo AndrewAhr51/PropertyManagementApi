@@ -29,11 +29,10 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
             try
             {
-                int invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(dto.InvoiceType);
-                if (invoiceTypeId == -1)
+                var invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(dto.InvoiceType);
+                if (invoiceTypeId == null)
                 {
-                    _logger.LogWarning("Invalid invoice type: {InvoiceType}", dto.InvoiceType);
-                    return false;
+                    throw new ArgumentException($"Invalid invoice type: {dto.InvoiceType}");
                 }
 
                 int cleaningTypeId = await CleaningTypeExistsAsync(dto.CleaningType);
@@ -42,23 +41,47 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     _logger.LogWarning("Invalid cleaning type: {InvoiceType}", dto.CleaningType);
                     return false;
                 }
-
-                var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
-                if (string.IsNullOrEmpty(CustomerName))
+                var customerInvoiceInfo = await _invoiceRepository.GetPropertyTenantInfoAsync(dto.PropertyId);
+                if (customerInvoiceInfo == null)
                 {
-                    _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+                    _logger.LogWarning("No tenant information found for PropertyId {PropertyId}", dto.PropertyId);
+                    return false;
                 }
-                
+
+                var amountDueTask = _invoiceRepository.GetAmountDueAsync(dto, null);
+                decimal amountDue = await amountDueTask;
+
+                if (amountDue == 0)
+                {
+                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
+                    return false;
+                }
+                else
+                {
+                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
+                }
+
+                //Override the amount due with late fee if applicable
+                if (dto.Amount > 0)
+                {
+                    amountDue = dto.Amount;
+                }
+
+                var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
+
                 var newInvoice = new CleaningFeeInvoice
                 {
+                    CustomerName = customerInvoiceInfo.CustomerName,
+                    TenantId = customerInvoiceInfo.TenantId,
+                    Email = customerInvoiceInfo.Email,
+                    ReferenceNumber = referenceNumber,
+                    Amount = amountDue,
+                    DueDate = dto.DueDate,
                     PropertyId = dto.PropertyId,
-                    ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
-                    CustomerName = CustomerName ?? "Unknown",
                     InvoiceTypeId = invoiceTypeId,
                     CleaningTypeId = cleaningTypeId,
-                    Amount = dto.Amount,
-                    DueDate = dto.DueDate,
                     Notes = dto.Notes,
+                    CreatedDate = DateTime.UtcNow,
                     CreatedBy = "Web",
                     Status = "Pending"
                 };

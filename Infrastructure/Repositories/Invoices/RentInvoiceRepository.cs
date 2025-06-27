@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Domain.Entities.Invoices;
@@ -14,7 +15,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         private readonly ILogger<RentInvoiceRepository> _logger;
         private readonly IInvoiceRepository _invoiceRepository;
 
-        public RentInvoiceRepository(MySqlDbContext context,  ILogger<RentInvoiceRepository> logger, IInvoiceRepository invoiceRepository)
+        public RentInvoiceRepository(MySqlDbContext context, ILogger<RentInvoiceRepository> logger, IInvoiceRepository invoiceRepository)
         {
             _context = context;
             _logger = logger;
@@ -24,6 +25,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         public async Task<bool> CreateInvoiceRentalAsync(RentInvoiceCreateDto dto)
         {
             decimal lateFee = 50;
+            
             _logger.LogInformation("Creating invoice for TenantId {TenantId}", dto.PropertyId);
             try
             {
@@ -38,19 +40,24 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 {
                     throw new ArgumentException($"Invalid invoice type: {dto.InvoiceType}");
                 }
+                
+                var customerInvoiceInfo = await _invoiceRepository.GetPropertyTenantInfoAsync(dto.PropertyId);
+                if (customerInvoiceInfo == null)
+                {
+                    _logger.LogWarning("No tenant information found for PropertyId {PropertyId}", dto.PropertyId);
+                    return false;
+                }
 
                 var amountDueTask = _invoiceRepository.GetAmountDueAsync(dto, null);
                 decimal amountDue = await amountDueTask;
 
                 if (amountDue == 0)
                 {
-                    throw new ArgumentException($"Error retrieving the Amount due information from the lease Property: {dto.PropertyId}");
+                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
+                    return false;
                 }
-
-                var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
-                if (string.IsNullOrEmpty(CustomerName))
-                {
-                    _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+                else {
+                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
                 }
 
                 //Override the amount due with late fee if applicable
@@ -59,10 +66,14 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     amountDue = dto.Amount;
                 }
 
+                var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
+
                 var newInvoice = new RentInvoice
                 {
-                    CustomerName = CustomerName ?? "Unknown",
-                    ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
+                    CustomerName = customerInvoiceInfo.CustomerName,
+                    TenantId = customerInvoiceInfo.TenantId,
+                    Email = customerInvoiceInfo.Email,
+                    ReferenceNumber = referenceNumber,
                     Amount = amountDue,
                     DueDate = dto.DueDate,
                     PropertyId = dto.PropertyId,
@@ -72,7 +83,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     Notes = dto.Notes,
                     CreatedDate = DateTime.UtcNow
                 };
-                               
+
                 _context.Invoices.Add(newInvoice);
                 var saved = await _context.SaveChangesAsync() > 0;
 

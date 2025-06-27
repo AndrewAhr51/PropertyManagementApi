@@ -29,10 +29,16 @@ public class InsuranceInvoiceRepository : IInsuranceInvoiceRepository
 
         try
         {
-            int invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(dto.InvoiceType);
-            if (invoiceTypeId == -1)
+            var invoiceTypeId = await _invoiceRepository.InvoiceTypeExistsAsync(dto.InvoiceType);
+            if (invoiceTypeId == null)
             {
-                _logger.LogWarning("Invalid invoice type: {InvoiceType}", dto.InvoiceType);
+                throw new ArgumentException($"Invalid invoice type: {dto.InvoiceType}");
+            }
+
+            var customerInvoiceInfo = await _invoiceRepository.GetPropertyTenantInfoAsync(dto.PropertyId);
+            if (customerInvoiceInfo == null)
+            {
+                _logger.LogWarning("No tenant information found for PropertyId {PropertyId}", dto.PropertyId);
                 return false;
             }
 
@@ -41,29 +47,41 @@ public class InsuranceInvoiceRepository : IInsuranceInvoiceRepository
 
             if (amountDue == 0)
             {
-                throw new ArgumentException($"Error retrieving the Amount due information from the insurance for Property: {dto.PropertyId}");
+                _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
+                return false;
+            }
+            else
+            {
+                _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
             }
 
-            var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
-            if (string.IsNullOrEmpty(CustomerName))
+            //Override the amount due with late fee if applicable
+            if (dto.Amount > 0)
             {
-                _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
+                amountDue = dto.Amount;
             }
+
+
+            var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
 
             var newInvoice = new InsuranceInvoice
             {
+
+                CustomerName = customerInvoiceInfo.CustomerName,
+                TenantId = customerInvoiceInfo.TenantId,
+                Email = customerInvoiceInfo.Email,
+                ReferenceNumber = referenceNumber,
+                Amount = amountDue,
+                DueDate = dto.DueDate,
                 PropertyId = dto.PropertyId,
-                ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
-                CustomerName = CustomerName ?? "Unknown",
                 InvoiceTypeId = invoiceTypeId,
+                Notes = dto.Notes,
                 CoveragePeriodEnd = dto.CoveragePeriodEnd,
                 CoveragePeriodStart = dto.CoveragePeriodStart,
                 PolicyNumber = dto.PolicyNumber,
-                Amount = dto.Amount,
-                DueDate = dto.DueDate,
-                Notes = dto.Notes,
-                CreatedBy = "Web",
-                Status = "Pending"
+                Status = "Pending",
+                CreatedDate = DateTime.UtcNow,
+                CreatedBy = "Web"
             };
 
             _context.InsuranceInvoices.Add(newInvoice);

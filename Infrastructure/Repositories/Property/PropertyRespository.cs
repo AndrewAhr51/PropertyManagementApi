@@ -18,7 +18,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
         {
             var property = new Properties
             {
-                Name = dto.Name,
+                PropertyName = dto.PropertyName,
                 Address = dto.Address,
                 Address1 = dto.Address1,
                 City = dto.City,
@@ -59,7 +59,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
                 .Select(p => new PropertyDto
                 {
                     PropertyId = p.PropertyId,
-                    Name = p.Name,
+                    PropertyName = p.PropertyName,
                     Address = p.Address,
                     Address1 = p.Address1,
                     City = p.City,
@@ -82,7 +82,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
             return p == null ? null : new PropertyDto
             {
                 PropertyId = p.PropertyId,
-                Name = p.Name,
+                PropertyName = p.PropertyName,
                 Address = p.Address,
                 Address1 = p.Address1,
                 City = p.City,
@@ -106,7 +106,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
                 .Select(po => new PropertyDto
                 {
                     PropertyId = po.Property.PropertyId,
-                    Name = po.Property.Name,
+                    PropertyName = po.Property.PropertyName,
                     Address = po.Property.Address,
                     Address1 = po.Property.Address1,
                     City = po.Property.City,
@@ -130,7 +130,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
             var property = await _context.Properties.FindAsync(propertyId);
             if (property == null) return null;
 
-            property.Name = dto.Name;
+            property.PropertyName = dto.PropertyName;
             property.Address = dto.Address;
             property.Address1 = dto.Address1;
             property.City = dto.City;

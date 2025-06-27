@@ -4,10 +4,13 @@ namespace PropertyManagementAPI.Domain.DTOs
 {
     public class OwnerDto
     {
-        public int OwnerId { get; set; } // Unique Identifier
+        public int OwnerId { get; set; } 
 
         [Required]
-        public int UserId { get; set; } // Must match a valid User in the Users table
+        public int UserId { get; set; }
+
+        [Required]
+        public bool PrimaryOwner { get; set; } = false;
 
         [Required]
         [MaxLength(100)]

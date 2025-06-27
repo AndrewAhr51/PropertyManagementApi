@@ -43,17 +43,19 @@ public class PropertyTaxInvoiceRepository : IPropertyTaxInvoiceRepository
                 propertyTaxAmount = dto.Amount;
             }
 
-            var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
-            if (string.IsNullOrEmpty(CustomerName))
+            var TenantName = await _invoiceRepository.GetPropertyTenantNameAsync(dto.PropertyId);
+            if (string.IsNullOrEmpty(TenantName))
             {
                 _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
             }
 
+            var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
+
             var newInvoice = new PropertyTaxInvoice
             {
                 PropertyId = dto.PropertyId,
-                ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
-                CustomerName = CustomerName ?? "Unknown",
+                ReferenceNumber = referenceNumber,
+                CustomerName = TenantName ?? "Unknown",
                 InvoiceTypeId = invoiceTypeId,
                 Amount = propertyTaxAmount,
                 DueDate = dto.DueDate,

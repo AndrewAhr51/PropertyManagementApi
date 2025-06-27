@@ -10,7 +10,7 @@ namespace PropertyManagementAPI.Domain.Entities
 
         [Required]
         [MaxLength(255)]
-        public string Name { get; set; }
+        public string PropertyName { get; set; }
 
         [Required]
         [MaxLength(255)]

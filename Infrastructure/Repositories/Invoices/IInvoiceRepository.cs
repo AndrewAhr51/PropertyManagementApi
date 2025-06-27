@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 
@@ -24,7 +25,11 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
         Task<decimal> GetBalanceForwardAsync(int propertyId, DateTime asOfDate);
 
-        Task<string> GetPropertyOwnerNameAsync(int propertyId);
+        Task<List<OwnerInfo>> GetPropertyOwnerInfoAsync(int propertyId);
+
+        Task<CustomerInvoiceInfo> GetPropertyTenantInfoAsync(int propertyId);
+
+        Task<string> GetPropertyTenantNameAsync(int propertyId);
 
         Task<int> GetInvoiceTypeIdByNameAsync(string invoiceTypeName);
 
