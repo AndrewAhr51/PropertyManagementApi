@@ -131,12 +131,14 @@ INSERT INTO RolePermissions (RoleId, PermissionId) VALUES
 INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedDate, IsMfaEnabled, IsActive) VALUES
 ('admin_user', 'admin@example.com', 'hashed_password_1', 1, CURRENT_TIMESTAMP, TRUE, TRUE),
 ('manager_user', 'manager@example.com', 'hashed_password_2', 2, CURRENT_TIMESTAMP, TRUE, TRUE),
-('john_doe', 'tenant@example.com', 'hashed_password_3', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
 ('jane_smith', 'owner@example.com', 'hashed_password_4', 4, CURRENT_TIMESTAMP, TRUE, TRUE),
-('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, CURRENT_TIMESTAMP, TRUE, TRUE);
+('john_doe', 'tenant@example.com', 'hashed_password_3', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
+('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
+('mary_jane', 'mary.jane@example.com', 'hashed_password_6', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
+('john smith', 'john.smith@example.com', 'hashed_password_7', 3, CURRENT_TIMESTAMP, TRUE, TRUE);
 
 -- ✅ Insert seed data into Property table
-INSERT INTO Property (Name, Address, Address1, City, State, PostalCode, Country, Bedrooms, Bathrooms, SquareFeet, PropertyTaxes, Insurance, IsAvailable, IsActive) VALUES
+INSERT INTO Properties (PropertyName, Address, Address1, City, State, PostalCode, Country, Bedrooms, Bathrooms, SquareFeet, PropertyTaxes, Insurance, IsAvailable, IsActive) VALUES
 ('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 2000, 1200,TRUE, TRUE),
 ('Ocean Breeze Condo', '456 Beach Ave', 'Unit 5', 'Miami', 'FL', '33101', 'USA', 2, 2, 1200, 3000, 1300,TRUE, TRUE),
 ('Mountain Retreat', '789 Pine Rd', 'Cabin 3', 'Denver', 'CO', '80201', 'USA', 4, 3, 2500, 4000, 2000,TRUE, TRUE);
@@ -154,10 +156,10 @@ INSERT INTO Pricing (PropertyId, EffectiveDate, RentalAmount, DepositAmount, Lea
 (3, '2024-12-12', 3200.00, 6400.00, '24 Months', TRUE);
 
 -- ✅ Insert seed data into Owners table
-INSERT INTO Owners (FirstName, LastName, Email, Phone, Address1, Address2, City, State, PostalCode, Country, IsActive) VALUES
-('Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA', TRUE),
-('Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', TRUE),
-('Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', TRUE);
+INSERT INTO Owners (PrimaryOwner, FirstName, LastName, Email, Phone, Address1, Address2, City, State, PostalCode, Country, IsActive) VALUES
+(1,'Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA', TRUE),
+(1,'Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', TRUE),
+(1,'Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', TRUE);
 
 -- ✅ Insert seed data into PropertyOwners table
 INSERT INTO PropertyOwners (PropertyId, OwnerId, OwnershipPercentage) VALUES
@@ -166,14 +168,17 @@ INSERT INTO PropertyOwners (PropertyId, OwnerId, OwnershipPercentage) VALUES
 (3, 3, 100.00);
 
 -- ✅ Insert seed data into Tenants table
-INSERT INTO Tenants (UserId, PropertyId, FirstName, LastName, PhoneNumber, MoveInDate) VALUES
-(3, 1, 'John', 'Doe', '555-1234', '2024-01-15'),
-(5, 2, 'Michael', 'Johnson', '555-9876', '2022-09-20');
+INSERT INTO Tenants (TenantId, UserId, PropertyId, PrimaryTenant, FirstName, LastName, Email, PhoneNumber, MoveInDate) VALUES
+(3, 3, 1, 1, 'John', 'Doe', 'john.doe@example.com', '555-1234', '2024-01-15'),
+(5, 5, 2, 1,'Michael', 'Johnson', 'michael.johnson@example.com', '555-9876', '2022-09-20'),
+(6, 6, 2, 0,'Mary', 'Johnson',  'mary.johnson@example.com','555-9876', '2022-09-20'),
+(7, 7, 3, 1, 'John', 'Smith',  'john.smith@example.com','555-5555', '2022-10-01');
 
--- ✅ Insert seed data into Payments table
-INSERT INTO Payments (TenantId, PropertyId, Amount, PaymentMethodId, TransactionDate, ReferenceNumber) VALUES
-(1, 1, 2500.00, 1, CURRENT_TIMESTAMP, 'REF123456'),
-(2, 3, 3200.00, 3, CURRENT_TIMESTAMP, 'REF345678');
+INSERT INTO PropertyTenants (PropertyId, TenantId) VALUES
+(1, 3),
+(2, 5),
+(2, 6),
+(3, 7);
 
 -- Seed data for common utility types
 INSERT INTO LkupUtilities (UtilityName, Description) VALUES

@@ -14,11 +14,17 @@ namespace PropertyManagementAPI.Domain.Entities
         [Required]
         public int UserId { get; set; }
 
+        [Required]
+        public bool PrimaryTenant { get; set; } = false;
+
         [MaxLength(100)]
         public string FirstName { get; set; }
 
         [MaxLength(100)]
         public string LastName { get; set; }
+
+        [MaxLength(255)]
+        public string Email { get; set; }
 
         [MaxLength(20)]
         public string PhoneNumber { get; set; }

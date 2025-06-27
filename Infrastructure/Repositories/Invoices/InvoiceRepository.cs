@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PropertyManagementAPI.Application.Services.Email;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
+using PropertyManagementAPI.Domain.DTOs;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 using PropertyManagementAPI.Domain.Entities;
 using PropertyManagementAPI.Domain.Entities.Invoices;
@@ -18,8 +19,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         private readonly IExportService<CumulativeInvoiceDto> _exportService;
         private readonly IEmailService _emailService;
 
-
-
         public InvoiceRepository(MySqlDbContext context, ILogger<InvoiceDto> logger, IExportService<CumulativeInvoiceDto> exportService, IEmailService emailService)
         {
             _context = context;
@@ -28,8 +27,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             _emailService = emailService;
         }
 
-        public async Task<decimal> GetAmountDueAsync(InvoiceCreateDto invoice, string? UtilityType)
+        public async Task<decimal> GetAmountDueAsync(InvoiceCreateDto invoice, string? utilityType)
         {
+            decimal amountDue = 0;
             try
             {
                 if (invoice == null)
@@ -45,113 +45,34 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 }
 
                 var previousMonth = new DateTime(invoice.DueDate.Year, invoice.DueDate.Month, 1).AddMonths(-1);
-                decimal amountDue = 0;
                 Invoice? previousInvoice = null;
 
                 switch (invoice.InvoiceType)
                 {
                     case "Rent":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Rent");
-
-                            var lease = await GetLeaseInformationAsync(invoice.PropertyId);
-                            if (lease == null)
-                            {
-                                _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
-                                return 0;
-                            }
-
-                            decimal discount = lease.MonthlyRent * (lease.Discount / 100m);
-                            amountDue = lease.MonthlyRent - discount;
-
-                            previousInvoice = await _context.RentInvoices
-                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
-                                            r.PropertyId == invoice.PropertyId &&
-                                            r.Status != "Paid" &&
-                                            r.DueDate.Month == previousMonth.Month &&
-                                            r.DueDate.Year == previousMonth.Year)
-                                .FirstOrDefaultAsync();
+                            amountDue = await GetRentAmountAsync(invoice.PropertyId, previousMonth); 
                             break;
                         }
-
                     case "Utilities":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Utilities");
-                            int utilityTypeId = await GetUtilityTypeNameByIdAsync(UtilityType);
-
-                            previousInvoice = await _context.UtilityInvoices
-                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
-                                            r.UtilityTypeId == utilityTypeId &&
-                                            r.PropertyId == invoice.PropertyId &&
-                                            r.Status != "Paid" &&
-                                            r.DueDate.Month == previousMonth.Month &&
-                                            r.DueDate.Year == previousMonth.Year)
-                                .FirstOrDefaultAsync();
+                            amountDue = await GetUtilityAmountAsync(invoice.PropertyId, utilityType, previousMonth);
                             break;
                         }
                     case "SecurityDeposit":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("SecurityDeposit");
-
-                            var lease = await GetLeaseInformationAsync(invoice.PropertyId);
-                            if (lease == null)
-                            {
-                                _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
-                                return 0;
-                            }
-                            amountDue = lease.DepositAmount;
-
-                            previousInvoice = await _context.SecurityDepositInvoices
-                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
-                                            r.PropertyId == invoice.PropertyId &&
-                                            r.Status != "Paid" &&
-                                            r.DueDate.Month == previousMonth.Month &&
-                                            r.DueDate.Year == previousMonth.Year)
-                                .FirstOrDefaultAsync();
+                            amountDue = await GetDepositAmountAsync(invoice.PropertyId, previousMonth); 
                             break;
                         }
                     case "PropertyTax":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("PropertyTax");
-
-                            var property = await GetPropertyInformationAsync(invoice.PropertyId);
-                            if (property == null)
-                            {
-                                _logger.LogWarning("No active lease found for PropertyId {PropertyId}", invoice.PropertyId);
-                                return 0;
-                            }
-                            amountDue = property.PropertyTaxes;
-                            previousInvoice = await _context.PropertyTaxInvoices
-                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
-                                            r.PropertyId == invoice.PropertyId &&
-                                            r.Status != "Paid" &&
-                                            r.DueDate.Month == previousMonth.Month &&
-                                            r.DueDate.Year == previousMonth.Year)
-                                .FirstOrDefaultAsync();
+                            amountDue = await GetPropertyChargeAsync(invoice.PropertyId, previousMonth, invoice.InvoiceType); 
                             break;
-
                         }
                     case "Insurance":
                         {
-                            int invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Insurance");
-
-                            var property = await GetPropertyInformationAsync(invoice.PropertyId);
-
-                            if (property == null)
-                            {
-                                _logger.LogWarning("No property found for PropertyId {PropertyId}", invoice.PropertyId);
-                                return 0;
-                            }
-                            amountDue = property.Insurance;
-                            previousInvoice = await _context.PropertyTaxInvoices
-                                .Where(r => r.InvoiceTypeId == invoiceTypeId &&
-                                            r.PropertyId == invoice.PropertyId &&
-                                            r.Status != "Paid" &&
-                                            r.DueDate.Month == previousMonth.Month &&
-                                            r.DueDate.Year == previousMonth.Year)
-                                .FirstOrDefaultAsync();
+                            amountDue = await GetPropertyChargeAsync(invoice.PropertyId, previousMonth, invoice.InvoiceType); 
                             break;
-
                         }
                     default:
                         _logger.LogWarning("Invalid InvoiceType {InvoiceType}", invoice.InvoiceType);
@@ -202,17 +123,117 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return null; // Fix for CS8603: Return null explicitly for nullable type.
             }
         }
-        public async Task<string> GetPropertyOwnerNameAsync(int propertyId)
+        public async Task<List<OwnerInfo>> GetPropertyOwnerInfoAsync(int propertyId)
         {
-            var owner = await _context.PropertyOwners
-                .Where(po => po.PropertyId == propertyId)
+            var ownersInfo = await _context.Properties
+                .Where(p => p.PropertyId == propertyId)
+                .Join(_context.PropertyOwners,
+                      p => p.PropertyId,
+                      po => po.PropertyId,
+                      (p, po) => new { p.PropertyName, po.OwnerId })
                 .Join(_context.Owners,
-                      po => po.OwnerId,
+                      x => x.OwnerId,
                       o => o.OwnerId,
-                      (po, o) => new { o.FirstName, o.LastName })
-                .FirstOrDefaultAsync();
+                      (x, o) => new OwnerInfo
+                      {
+                          PropertyId = propertyId,
+                          PropertyName = x.PropertyName,
+                          OwnerId = o.OwnerId,
+                          FirstName = o.FirstName,
+                          LastName = o.LastName,
+                          Email = o.Email
+                      })
+                .ToListAsync();
+            return ownersInfo;
+        }
+        public async Task<CustomerInvoiceInfo> GetPropertyTenantInfoAsync(int propertyId)
+        {
+            CustomerInvoiceInfo customerInvoiceInfo = new CustomerInvoiceInfo();
 
-            return owner != null ? $"{owner.FirstName} {owner.LastName}" : "Unknown Owner";
+            var tenantInfo = await _context.Properties
+                .Where(p => p.PropertyId == propertyId)
+                .Join(_context.PropertyTenants,
+                      p => p.PropertyId,
+                      pt => pt.PropertyId,
+                      (p, pt) => new { p.PropertyName, pt.TenantId, p.PropertyId })
+                .Join(_context.Tenants,
+                      x => x.TenantId,
+                      t => t.TenantId,
+                      (x, t) => new { x, t })
+                .Where(joined => joined.t.PrimaryTenant) // 🧠 Only primary tenant
+                .Select(joined => new TenantInfo
+                {
+                    PropertyId = joined.x.PropertyId,
+                    PropertyName = joined.x.PropertyName,
+                    TenantId = joined.t.TenantId,
+                    FirstName = joined.t.FirstName,
+                    LastName = joined.t.LastName,
+                    Email = joined.t.Email
+                })
+                .FirstOrDefaultAsync();
+            if (tenantInfo is null)
+            {
+                _logger.LogWarning("No Tenant Info found for PropertyId: {PropertyId}", propertyId);
+                _logger.LogInformation("Returning empty tenant info list for PropertyId: {PropertyId}", propertyId);
+                return new CustomerInvoiceInfo(); // Return an empty list instead of null
+            }
+            else
+            {
+                var tenantNames = $"{tenantInfo.FirstName} {tenantInfo.LastName}";
+                customerInvoiceInfo.PropertyId = tenantInfo.PropertyId;
+                customerInvoiceInfo.PropertyName = tenantInfo.PropertyName;
+                customerInvoiceInfo.TenantId = tenantInfo.TenantId;
+                customerInvoiceInfo.CustomerName = tenantNames;
+                customerInvoiceInfo.Email = tenantInfo.Email;
+                _logger.LogInformation("Tenant Info found for PropertyId: {PropertyId}: {TenantNames}", propertyId, tenantNames);
+            }
+
+            return customerInvoiceInfo;
+
+        }
+        public async Task<string> GetPropertyTenantNameAsync(int propertyId)
+        {
+            var tenantNames = string.Empty;
+
+            var tenants = await _context.Properties
+                .Where(p => p.PropertyId == propertyId)
+                .Join(_context.Tenants,
+                      p => p.PropertyId,
+                      t => t.PropertyId,
+                      (p, t) => new PropertyNameDto
+                      {
+                          CustomerName = $"{t.FirstName} {t.LastName}",
+                          PropertyName = p.PropertyName
+                      })
+                .ToListAsync();
+
+            // Optional: Return a fallback entry if no tenants found
+            if (!tenants.Any())
+            {
+                tenants.Add(new PropertyNameDto
+                {
+                    CustomerName = "Unknown Tenant",
+                    PropertyName = "Unknown Property"
+                });
+            }
+
+            if (tenants is null || tenants.Count == 0)
+            {
+                _logger.LogWarning("No Tenant Name found for PropertyId: {PropertyId}", propertyId);
+            }
+            else
+            {
+                tenantNames = string.Join(", ", tenants.Select(t => t.CustomerName));
+
+                _logger.LogInformation("Tenant Name(s) found for PropertyId: {PropertyId}: {TenantNames}", propertyId, tenantNames);
+
+                if (string.IsNullOrWhiteSpace(tenantNames))
+                {
+                    _logger.LogWarning("No valid Customer Names found for PropertyId: {PropertyId}", propertyId);
+                }
+            }
+
+            return tenantNames;
         }
         public async Task<int> GetInvoiceTypeIdByNameAsync(string invoiceTypeName)
         {
@@ -477,7 +498,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
             return dto; // ✅ Return the properly converted list
         }
-
         public async Task<List<CumulativeInvoiceDto>> SendInvoiceAsync(int invoiceId, string recipientEmail)
         {
             var invoices = await GetInvoicesByInvoiceIdAsync(invoiceId);
@@ -555,7 +575,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                         CustomerName = x.Invoice.CustomerName,
                         ReferenceNumber = x.Invoice.ReferenceNumber,
                         PropertyId = x.Invoice.PropertyId,
-                        PropertyName = p.Name, // 🔧 FIXED: was p.Name
+                        PropertyName = p.PropertyName, // 🔧 FIXED: was p.Name
                         Amount = x.Invoice.Amount,
                         DueDate = x.Invoice.DueDate,
                         CreatedDate = x.Invoice.CreatedDate,
@@ -585,6 +605,82 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 BreakdownByType = grouped,
                 MonthlyTotals = monthly
             };
+        }
+        private async Task<decimal> GetRentAmountAsync(int propertyId, DateTime previousMonth)
+        {
+            var lease = await GetLeaseInformationAsync(propertyId);
+            if (lease == null)
+            {
+                _logger.LogWarning("No active lease for PropertyId: {PropertyId}", propertyId);
+                return 0;
+            }
+
+            var invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Rent");
+            var discount = lease.MonthlyRent * (lease.Discount / 100m);
+            var baseRent = lease.MonthlyRent - discount;
+
+            var previous = await _context.RentInvoices
+                .Where(r => r.InvoiceTypeId == invoiceTypeId && r.PropertyId == propertyId && r.Status != "Paid" &&
+                            r.DueDate.Month == previousMonth.Month && r.DueDate.Year == previousMonth.Year)
+                .FirstOrDefaultAsync();
+
+            return baseRent + (previous?.Amount ?? 0);
+        }
+        private async Task<decimal> GetUtilityAmountAsync(int propertyId, string? utilityType, DateTime previousMonth)
+        {
+            var invoiceTypeId = await GetInvoiceTypeIdByNameAsync("Utilities");
+            var utilityTypeId = await GetUtilityTypeNameByIdAsync(utilityType);
+
+            var previous = await _context.UtilityInvoices
+                .Where(r => r.InvoiceTypeId == invoiceTypeId && r.UtilityTypeId == utilityTypeId &&
+                            r.PropertyId == propertyId && r.Status != "Paid" &&
+                            r.DueDate.Month == previousMonth.Month && r.DueDate.Year == previousMonth.Year)
+                .FirstOrDefaultAsync();
+
+            return previous?.Amount ?? 0;
+        }
+        private async Task<decimal> GetDepositAmountAsync(int propertyId, DateTime previousMonth)
+        {
+            var lease = await GetLeaseInformationAsync(propertyId);
+            if (lease == null)
+            {
+                _logger.LogWarning("No active lease for PropertyId: {PropertyId}", propertyId);
+                return 0;
+            }
+
+            var invoiceTypeId = await GetInvoiceTypeIdByNameAsync("SecurityDeposit");
+
+            var previous = await _context.SecurityDepositInvoices
+                .Where(r => r.InvoiceTypeId == invoiceTypeId && r.PropertyId == propertyId && r.Status != "Paid" &&
+                            r.DueDate.Month == previousMonth.Month && r.DueDate.Year == previousMonth.Year)
+                .FirstOrDefaultAsync();
+
+            return lease.DepositAmount + (previous?.Amount ?? 0);
+        }
+        private async Task<decimal> GetPropertyChargeAsync(int propertyId, DateTime previousMonth, string chargeType)
+        {
+            var property = await GetPropertyInformationAsync(propertyId);
+            if (property == null)
+            {
+                _logger.LogWarning("No property found for PropertyId: {PropertyId}", propertyId);
+                return 0;
+            }
+
+            var invoiceTypeId = await GetInvoiceTypeIdByNameAsync(chargeType);
+            var invoiceSet = chargeType == "PropertyTax" ? _context.PropertyTaxInvoices : _context.PropertyTaxInvoices;
+
+            var previous = await invoiceSet
+                .Where(r => r.InvoiceTypeId == invoiceTypeId && r.PropertyId == propertyId && r.Status != "Paid" &&
+                            r.DueDate.Month == previousMonth.Month && r.DueDate.Year == previousMonth.Year)
+                .FirstOrDefaultAsync();
+
+            var baseAmount = chargeType == "PropertyTax" ? property.PropertyTaxes : property.Insurance;
+            return baseAmount + (previous?.Amount ?? 0);
+        }
+        private decimal LogAndReturnZero(string type)
+        {
+            _logger.LogWarning("Unknown InvoiceType: {InvoiceType}", type);
+            return 0;
         }
     }
 }

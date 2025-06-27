@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Application.Services.Roles
         // ✅ Create a role
         public async Task<RolesDto> CreateRoleAsync(CreateRoleDto roleDto)
         {
-            var newRole = new Roles
+            var newRole = new Role
             {
                 Name = roleDto.Name,
                 Description = roleDto.Description

@@ -35,42 +35,38 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     throw new ArgumentException($"Invalid invoice type: {dto.InvoiceType}");
                 }
 
-                var utilityTypeId = await UtilityTypeExistsAsync(dto.UtilityType);
-                if (utilityTypeId == null)
+                  var customerInvoiceInfo = await _invoiceRepository.GetPropertyTenantInfoAsync(dto.PropertyId);
+                if (customerInvoiceInfo == null)
                 {
-                    throw new ArgumentException($"Invalid utility type: {dto.UtilityType}");
+                    _logger.LogWarning("No tenant information found for PropertyId {PropertyId}", dto.PropertyId);
+                    return false;
                 }
 
                 var amountDueTask = _invoiceRepository.GetAmountDueAsync(dto, dto.UtilityType);
                 decimal amountDue = await amountDueTask;
 
-                
-                if (amountDue > 0)
+                if (amountDue == 0)
                 {
-                    amountDue += 50; // Adding late fee if applicable
+                    _logger.LogWarning("No Rental amoount information found for PropertyId {PropertyId}", dto.PropertyId);
+                    return false;
                 }
-
-                if (dto.Amount > 0)
-                {
-                    amountDue += dto.Amount; // Adding any additional amount specified in the DTO
+                else {
+                    _logger.LogInformation("Amount due for TenantId {TenantId} is {AmountDue}", dto.PropertyId, amountDue);
                 }
-
-                var CustomerName = await _invoiceRepository.GetPropertyOwnerNameAsync(dto.PropertyId);
-                if (string.IsNullOrEmpty(CustomerName))
-                {
-                    _logger.LogWarning("No Customer Name found for PropertyId: {PropertyId}", dto.PropertyId);
-                }
+                var referenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId);
 
                 var newinvoice = new UtilityInvoice
                 {
                     PropertyId = dto.PropertyId,
-                    ReferenceNumber = ReferenceNumberHelper.Generate("INV", dto.PropertyId),
-                    CustomerName = CustomerName ?? "Unknown",
-                    InvoiceTypeId = invoiceTypeId,
-                    UtilityTypeId = utilityTypeId,
+                    ReferenceNumber = referenceNumber,
+                    TenantId = customerInvoiceInfo.TenantId,
+                    CustomerName = customerInvoiceInfo.CustomerName,
+                    Email = customerInvoiceInfo.Email,
+                    Amount = amountDue,
                     DueDate = dto.DueDate,
-                    Amount = dto.UsageAmount + amountDue,
+                    InvoiceTypeId = invoiceTypeId,
                     Notes = dto.Notes,
+                    CreatedDate = DateTime.UtcNow
                 };
 
                 _context.UtilityInvoices.Add(newinvoice);

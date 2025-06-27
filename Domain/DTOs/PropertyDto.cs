@@ -5,11 +5,12 @@ namespace PropertyManagementAPI.Domain.DTOs
 {
     public class PropertyDto
     {
+        [Required]
         public int PropertyId { get; set; }
 
         [Required]
         [MaxLength(255)]
-        public string Name { get; set; }
+        public string PropertyName { get; set; }
 
         [Required]
         [MaxLength(255)]
@@ -55,5 +56,6 @@ namespace PropertyManagementAPI.Domain.DTOs
         // Optional: for linking to PropertyOwners
         public int OwnerId { get; set; }
         public decimal OwnershipPercentage { get; set; } = 100;
+        
     }
 }
