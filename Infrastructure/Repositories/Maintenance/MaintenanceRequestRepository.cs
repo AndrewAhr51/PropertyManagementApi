@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PropertyManagementAPI.Domain.DTOs.Maintenance;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.Entities.Maintenance;
 using PropertyManagementAPI.Infrastructure.Data;
 
 public class MaintenanceRequestRepository : IMaintenanceRequestRepository

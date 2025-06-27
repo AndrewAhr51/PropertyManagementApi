@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Domain.DTOs.Pricing;
+using PropertyManagementAPI.Domain.DTOs.Property;
 
 [ApiController]
 [Route("api/pricing")]

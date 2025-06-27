@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PropertyManagementAPI.Domain.DTOs.Pricing
+namespace PropertyManagementAPI.Domain.DTOs.Property
 {
     public class PricingDto
     {

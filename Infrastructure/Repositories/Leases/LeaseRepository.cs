@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Property;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.Entities.Property;
 using PropertyManagementAPI.Infrastructure.Data;
 
 public class LeaseRepository : ILeaseRepository

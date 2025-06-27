@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Payments;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.Entities.Payments;
 using PropertyManagementAPI.Infrastructure.Data;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Payments

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Documents;
-using PropertyManagementAPI.Domain.Entities;
+using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Infrastructure.Data;
 
 public class DocumentRepository : IDocumentRepository
