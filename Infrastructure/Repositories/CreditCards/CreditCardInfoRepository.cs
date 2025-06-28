@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.Entities.CreditCard;
 using PropertyManagementAPI.Infrastructure.Data;
 using System.Text;
 using System.Threading.Tasks;

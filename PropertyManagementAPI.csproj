@@ -7,6 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Application\Services\CreditCards\**" />
+    <Compile Remove="Infrastructure\Repositories\CreditCards\**" />
+    <Content Remove="Application\Services\CreditCards\**" />
+    <Content Remove="Infrastructure\Repositories\CreditCards\**" />
+    <EmbeddedResource Remove="Application\Services\CreditCards\**" />
+    <EmbeddedResource Remove="Infrastructure\Repositories\CreditCards\**" />
+    <None Remove="Application\Services\CreditCards\**" />
+    <None Remove="Infrastructure\Repositories\CreditCards\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="API\Controllers\CreditCardInfoController.cs" />
     <Compile Remove="Infrastructure\Repositories\IInvoiceRepository.cs" />
     <Compile Remove="Infrastructure\Repositories\InvoiceRepository.cs" />
   </ItemGroup>
@@ -37,6 +49,10 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0-preview.3.efcore.9.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Domain\Entities\CreditCard\" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
-﻿using PropertyManagementAPI.Domain.DTOs.CreditCard;
-using PropertyManagementAPI.Domain.Entities.CreditCard;
+﻿using PropertyManagementAPI.Domain.DTOs.Payments;
+using PropertyManagementAPI.Domain.Entities.Payments;
 using System.Text;
 
 namespace PropertyManagementAPI.Application.Services.CreditCards

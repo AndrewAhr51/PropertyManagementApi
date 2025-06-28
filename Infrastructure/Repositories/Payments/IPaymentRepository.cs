@@ -4,10 +4,10 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 {
     public interface IPaymentRepository
     {
-        Task<Payment> CreatePaymentAsync(Payment payment);
-        Task<Payment?> GetPaymentByIdAsync(int paymentId);
-        Task<IEnumerable<Payment>> GetPaymentByTenantIdAsync(int tenantId);
-        Task SavePaymentChangesAsync();
+        Task<Payment> GetByIdAsync(int paymentId);
+        Task<IEnumerable<Payment>> GetByInvoiceIdAsync(int invoiceId);
+        Task AddAsync(Payment payment);
+        Task SaveChangesAsync();
     }
 
 }

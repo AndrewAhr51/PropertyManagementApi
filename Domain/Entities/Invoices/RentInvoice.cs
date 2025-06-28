@@ -12,7 +12,6 @@ namespace PropertyManagementAPI.Domain.Entities.Invoices
         public int PropertyId { get; set; }
         public Propertys Property { get; set; } // Navigation property
 
-        public int TenantId { get; set; }
         public Tenant Tenant { get; set; } // Navigation property
     }
 

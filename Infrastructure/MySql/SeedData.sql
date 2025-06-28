@@ -200,3 +200,57 @@ INSERT INTO LkupCleaningType (CleaningTypeName, Description) VALUES
 ('Carpet Cleaning', 'Professional carpet shampooing or steaming'),
 ('Window Cleaning', 'Interior and exterior window washing'),
 ('Appliance Cleaning', 'Detailed cleaning of kitchen and laundry appliances');
+
+-- 🔹 CARD TOKENS
+INSERT INTO CardToken (TokenValue, CardBrand, Last4Digits, Expiration, TenantId, OwnerId, IsDefault, LinkedOn)
+VALUES  
+('tok_visa_123', 'Visa', '4242', '2026-12-31', 3, 1, TRUE, NOW()),   -- John Doe (TenantId = 3)
+('tok_mc_456', 'MasterCard', '5454', '2025-10-31', 5, 2, FALSE, NOW()); -- Michael Johnson (TenantId = 5)
+
+-- 🔹 BANK ACCOUNTS
+INSERT INTO BankAccountInfo (BankName, AccountNumberMasked, RoutingNumber, AccountType, CreatedOn)
+VALUES 
+('Chase', '****1234', '021000021', 'Checking', NOW()),
+('Bank of America', '****5678', '026009593', 'Savings', NOW());
+
+-- 🔹 BILLING ADDRESSES
+INSERT INTO BillingAddress (StreetLine1, StreetLine2, City, State, PostalCode, Country, AvsResult, IsVerified, CreatedOn)
+VALUES 
+('123 Main St', '', 'Orlando', 'FL', '32801', 'USA', 'Y', TRUE, NOW()),
+('456 Elm St', 'Apt 2B', 'Tampa', 'FL', '33602', 'USA', 'N', FALSE, NOW());
+
+-- 🔹 BILLING ADDRESS HISTORY
+INSERT INTO BillingAddressHistory (BillingAddressId, StreetLine1, StreetLine2, City, State, PostalCode, Country, AvsResult, IsVerified, ChangedOn)
+VALUES 
+(1, '123 Main St', '', 'Orlando', 'FL', '32801', 'USA', 'Y', TRUE, NOW()),
+(2, '456 Elm St', 'Apt 2B', 'Tampa', 'FL', '33602', 'USA', 'N', FALSE, NOW());
+
+-- 🔹 PREFERRED METHODS
+INSERT INTO PreferredMethod (
+    TenantId, OwnerId, MethodType, CardTokenId, BankAccountInfoId, IsDefault, UpdatedOn)
+VALUES
+(3, NULL, 'Card', 1, NULL, TRUE, NOW()),  -- John Doe
+(NULL, 2, 'Bank', NULL, 2, TRUE, NOW());  -- Make sure OwnerId 2 exists!
+
+-- 🔹 Invoices (linked to seeded TenantId values: 3, 5, etc.)
+INSERT INTO Invoices (
+    invoiceId, CustomerName, Email, ReferenceNumber, amount, duedate,
+    propertyid, tenantid, IsPaid, status, notes, invoicetypeid, CreatedBy
+)
+VALUES
+(101, 'John Doe', 'john.doe@example.com', 'REF-101', 1200.00, '2024-12-01', 1, 3, FALSE, 'Pending', 'First rent invoice', 1, 'Web'),
+(102, 'Michael Johnson', 'michael.johnson@example.com', 'REF-102', 950.00, '2024-12-15', 2, 5, FALSE, 'Pending', 'Lease renewal', 1, 'Web'),
+(103, 'John Doe', 'john.doe@example.com', 'REF-103', 500.00, '2025-01-01', 1, 3, FALSE, 'Pending', 'Late fee notice', 2, 'Web');
+
+-- 🔹 PAYMENTS (TPH-style)
+-- Adjusting to TenantId = 3 and 5 from your seed
+INSERT INTO Payments (
+    Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
+    CardType, Last4Digits, AuthorizationCode,
+    CheckNumber, CheckBankName,
+    BankAccountNumber, RoutingNumber, TransactionId
+)
+VALUES
+(1200.00, NOW(), 'REF-001', 101, 3, null, 'Card', 'Visa', '4242', 'AUTH123', NULL, NULL, NULL, NULL, NULL),
+(950.00, NOW(), 'REF-002', 102, 5, null, 'Check', NULL, NULL, NULL, 'CHK789', 'Wells Fargo', NULL, NULL, NULL),
+(500.00, NOW(), 'REF-003', 103, 3, null, 'Transfer', NULL, NULL, NULL, NULL, NULL, '****1234', '021000021', 'TXN456');

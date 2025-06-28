@@ -309,97 +309,175 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         }
         public async Task<IEnumerable<Invoice>> GetAllInvoicesForPropertyAsync(int propertyId)
         {
-            return await _context.Invoices
-                .Where(i => i.PropertyId == propertyId)
-                .OrderBy(i => i.CreatedDate)
-                .ToListAsync();
-
+            try
+            {
+                return await _context.Invoices
+                    .Where(i => i.PropertyId == propertyId)
+                    .OrderBy(i => i.CreatedDate)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving invoices for PropertyId {PropertyId}", propertyId);
+                throw;
+            }
         }
         public async Task<IEnumerable<Invoice>> GetAllInvoicesForPropertyAsync(int propertyId, string? status = null)
         {
-            var query = _context.Invoices.AsQueryable()
-                .Where(i => i.PropertyId == propertyId);
+            try
+            {
+                var query = _context.Invoices.AsQueryable()
+                    .Where(i => i.PropertyId == propertyId);
 
-            if (!string.IsNullOrWhiteSpace(status))
-                query = query.Where(i => i.Status == status);
+                if (!string.IsNullOrWhiteSpace(status))
+                    query = query.Where(i => i.Status == status);
 
-            return await query
-                .OrderBy(i => i.CreatedDate)
-                .ToListAsync();
+                return await query
+                    .OrderBy(i => i.CreatedDate)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving invoices for PropertyId {PropertyId} with Status '{Status}'", propertyId, status);
+                throw;
+            }
         }
         public async Task<IEnumerable<Invoice>> GetInvoicesByInvoiceIdAsync(int invoiceId, string? status = null)
         {
-            var query = _context.Invoices.AsQueryable()
-                .Where(i => i.InvoiceId == invoiceId);
+            try
+            {
+                var query = _context.Invoices.AsQueryable()
+                    .Where(i => i.InvoiceId == invoiceId);
 
-            if (!string.IsNullOrWhiteSpace(status))
-                query = query.Where(i => i.Status == status);
+                if (!string.IsNullOrWhiteSpace(status))
+                    query = query.Where(i => i.Status == status);
 
-            return await query
-                .OrderBy(i => i.CreatedDate)
-                .ToListAsync();
+                return await query
+                    .OrderBy(i => i.CreatedDate)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving invoice with ID {InvoiceId} and Status '{Status}'", invoiceId, status);
+                throw;
+            }
         }
         public async Task<IEnumerable<Invoice>> GetAllInvoicesAsync()
         {
-            return await _context.Invoices
-                .OrderBy(i => i.PropertyId)
-                .ThenBy(i => i.CreatedDate)
-                .ToListAsync();
+            try
+            {
+                return await _context.Invoices
+                    .OrderBy(i => i.PropertyId)
+                    .ThenBy(i => i.CreatedDate)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all invoices");
+                throw;
+            }
         }
         public async Task<decimal> GetTotalAmountByPropertyAsync(int propertyId, string? status = null)
         {
-            var query = _context.Invoices
-                .Where(i => i.PropertyId == propertyId);
+            try
+            {
+                var query = _context.Invoices
+                    .Where(i => i.PropertyId == propertyId);
 
-            if (!string.IsNullOrWhiteSpace(status))
-                query = query.Where(i => i.Status == status);
+                if (!string.IsNullOrWhiteSpace(status))
+                    query = query.Where(i => i.Status == status);
 
-            return await query.SumAsync(i => i.Amount);
+                return await query.SumAsync(i => i.Amount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating total invoice amount for PropertyId {PropertyId} with Status '{Status}'", propertyId, status);
+                throw;
+            }
         }
         public async Task<Dictionary<string, decimal>> GetAmountByTypeAsync(int propertyId)
         {
-            return await _context.Invoices
-                .Where(i => i.PropertyId == propertyId)
-                .GroupBy(i => i.GetType().Name)
-                .ToDictionaryAsync(g => g.Key, g => g.Sum(i => i.Amount));
+            try
+            {
+                return await _context.Invoices
+                    .Where(i => i.PropertyId == propertyId)
+                    .GroupBy(i => i.GetType().Name)
+                    .ToDictionaryAsync(g => g.Key, g => g.Sum(i => i.Amount));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating invoice totals by type for PropertyId {PropertyId}", propertyId);
+                throw;
+            }
         }
         public async Task<Dictionary<string, decimal>> GetMonthlyTotalsAsync(int propertyId, int year)
         {
-            return await _context.Invoices
-                .Where(i => i.PropertyId == propertyId && i.CreatedDate.Year == year)
-                .GroupBy(i => i.CreatedDate.Month.ToString("D2"))
-                .ToDictionaryAsync(g => g.Key, g => g.Sum(i => i.Amount));
+            try
+            {
+                return await _context.Invoices
+                    .Where(i => i.PropertyId == propertyId && i.CreatedDate.Year == year)
+                    .GroupBy(i => i.CreatedDate.Month.ToString("D2"))
+                    .ToDictionaryAsync(g => g.Key, g => g.Sum(i => i.Amount));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating monthly totals for PropertyId {PropertyId} in Year {Year}", propertyId, year);
+                throw;
+            }
         }
         public async Task<IEnumerable<Invoice>> GetFilteredAsync(int propertyId, string? type, string? status, DateTime? dueBefore)
         {
-            var query = _context.Invoices
-                .Where(i => i.PropertyId == propertyId);
+            try
+            {
+                var query = _context.Invoices
+                    .Where(i => i.PropertyId == propertyId);
 
-            if (!string.IsNullOrWhiteSpace(status))
-                query = query.Where(i => i.Status == status);
+                if (!string.IsNullOrWhiteSpace(status))
+                    query = query.Where(i => i.Status == status);
 
-            if (dueBefore.HasValue)
-                query = query.Where(i => i.DueDate <= dueBefore.Value);
+                if (dueBefore.HasValue)
+                    query = query.Where(i => i.DueDate <= dueBefore.Value);
 
-            var invoices = await query.ToListAsync(); // Execute SQL first
+                var invoices = await query.ToListAsync(); // Execute SQL first
 
-            if (!string.IsNullOrWhiteSpace(type))
-                invoices = invoices.Where(i => i.GetType().Name == type).ToList(); // Filter in memory
+                if (!string.IsNullOrWhiteSpace(type))
+                    invoices = invoices.Where(i => i.GetType().Name == type).ToList(); // Filter in memory
 
-            return invoices;
+                return invoices;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error filtering invoices for PropertyId {PropertyId} with Status '{Status}', Type '{Type}', DueBefore {DueBefore}",
+                    propertyId, status, type, dueBefore);
+                throw;
+            }
         }
         public async Task<decimal> GetBalanceForwardAsync(int propertyId, DateTime asOfDate)
         {
-            return await _context.Invoices
-                .Where(i => i.PropertyId == propertyId && i.DueDate < asOfDate && !i.IsPaid)
-                .SumAsync(i => i.Amount);
+            try
+            {
+                return await _context.Invoices
+                    .Where(i => i.PropertyId == propertyId && i.DueDate < asOfDate && !i.IsPaid)
+                    .SumAsync(i => i.Amount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating balance forward for PropertyId {PropertyId} as of {AsOfDate}", propertyId, asOfDate);
+                throw;
+            }
         }
         public async Task<Invoice?> GetInvoiceByIdAsync(int invoiceId)
         {
-            var invoice = await _context.Invoices
-                .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
-
-            return invoice;
+            try
+            {
+                return await _context.Invoices
+                    .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving invoice with ID {InvoiceId}", invoiceId);
+                throw;
+            }
         }
         public async Task<List<CumulativeInvoiceDto>> ExportExcel(int propertyId)
         {

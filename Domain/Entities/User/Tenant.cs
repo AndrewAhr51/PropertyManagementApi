@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PropertyManagementAPI.Domain.Entities.Payments;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementAPI.Domain.Entities.User
@@ -33,5 +34,10 @@ namespace PropertyManagementAPI.Domain.Entities.User
         
         public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+     
+        [ForeignKey(nameof(UserId))]
+        public Users Users { get; set; }
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }

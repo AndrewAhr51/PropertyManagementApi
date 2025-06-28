@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities.CreditCard;
+﻿using PropertyManagementAPI.Domain.Entities.Payments.Credit;
 
 public interface ICreditCardInfoRepository
 {

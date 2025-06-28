@@ -1,5 +1,16 @@
 USE PropertyManagement;
+DROP TRIGGER IF EXISTS after_invoice_insert;
+DROP TRIGGER IF EXISTS after_invoice_update;
+DROP TRIGGER IF EXISTS before_invoice_delete;
+DROP TRIGGER IF EXISTS audit_invoice_insert;
+DROP TRIGGER IF EXISTS audit_invoice_update;
+DROP TRIGGER IF EXISTS audit_invoice_delete;
+DROP TRIGGER IF EXISTS LogBillingAddressInsert;
+DROP TRIGGER IF EXISTS LogBillingAddressUpdate;
+DROP TRIGGER IF EXISTS LogBillingAddressDelete;
+
 -- ✅ Drop tables with foreign key dependencies first
+DROP TABLE IF EXISTS InvoiceAuditLog;
 DROP TABLE IF EXISTS RolePermissions;
 DROP TABLE IF EXISTS PaymentReminders;
 DROP TABLE IF EXISTS DocumentStorage;
@@ -16,6 +27,16 @@ DROP TABLE IF EXISTS CleaningFeeInvoices;
 DROP TABLE IF EXISTS SecurityDepositInvoices;
 DROP TABLE IF EXISTS UtilityInvoices;
 DROP TABLE IF EXISTS RentInvoices;
+DROP TABLE IF EXISTS TenantBankAccount;
+DROP TABLE IF EXISTS OwnerBankAccount; 
+DROP TABLE IF EXISTS PreferredMethod;
+DROP TABLE IF EXISTS CardToken; 
+DROP TABLE IF EXISTS BankAccountInfo;
+DROP TABLE IF EXISTS SpecialInstructions;
+DROP TABLE IF EXISTS CheckPayments;
+DROP TABLE IF EXISTS WireTransfers;
+DROP TABLE IF EXISTS CreditCardPayments;
+DROP TABLE IF EXISTS Payments;
 
 -- ✅ Drop base invoice table
 DROP TABLE IF EXISTS Invoices;
@@ -27,9 +48,10 @@ DROP TABLE IF EXISTS AccessLogs;
 DROP TABLE IF EXISTS MaintenanceRequests;
 DROP TABLE IF EXISTS Emails;
 DROP TABLE IF EXISTS SpecialInstructions;
+DROP TABLE IF EXISTS BillingAddressHistory;
 DROP TABLE IF EXISTS BillingAddress;
 DROP TABLE IF EXISTS CreditCardInfo;
-DROP TABLE IF EXISTS Payments;
+
 DROP TABLE IF EXISTS PropertyTenants;
 DROP TABLE IF EXISTS PropertyOwners;
 
