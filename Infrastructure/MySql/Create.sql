@@ -1,4 +1,4 @@
-USE propertymanagement;
+﻿USE propertymanagement;
 
 CREATE TABLE LkupUtilities (
     UtilityId INT PRIMARY KEY AUTO_INCREMENT,
@@ -209,6 +209,7 @@ CREATE TABLE Owners (
     State NVARCHAR(100) NOT NULL,
     PostalCode NVARCHAR(20) NOT NULL,
     Country NVARCHAR(100) NOT NULL,
+	Balance DECIMAL(10,2) DEFAULT 0,
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -230,68 +231,6 @@ CREATE TABLE PropertyTenants (
     PRIMARY KEY (PropertyId, TenantId),
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
-);
--- Payments Table
-CREATE TABLE Payments (
-    PaymentId INT PRIMARY KEY AUTO_INCREMENT,
-    InvoiceId INT NOT NULL, 
-    TenantId INT NOT NULL,
-    PropertyId INT NOT NULL,
-    Amount DECIMAL(10,2) NOT NULL,
-    PaymentMethodId INT NOT NULL,
-    Status NVARCHAR(50) NOT NULL,
-    Notes TEXT NULL,
-    TransactionDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ReferenceNumber NVARCHAR(100) NOT NULL,
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)    
-);
-
--- Credit Card Information
-CREATE TABLE CreditCardInfo (
-    CardId INT PRIMARY KEY AUTO_INCREMENT,
-    TenantId INT NOT NULL,
-    PropertyId INT NOT NULL,
-    CardHolderName NVARCHAR(255),
-    CardNumber VARBINARY(256),  -- Should be encrypted using MySQL AES functions
-    LastFourDigits NVARCHAR(4),
-    ExpirationDate NVARCHAR(7),
-    CVV VARBINARY(256),  -- Consider security best practices for storage
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
-);
-
--- Billing Address
-CREATE TABLE BillingAddress (
-    BillingAddressId INT PRIMARY KEY AUTO_INCREMENT,
-    CardId INT NOT NULL,
-    AddressLine NVARCHAR(255) NOT NULL,
-    AddressLine2 NVARCHAR(255) NULL,
-    City NVARCHAR(100) NOT NULL,
-    State NVARCHAR(100) NOT NULL,
-    PostalCode NVARCHAR(20) NOT NULL,
-    Country NVARCHAR(100) NOT NULL,
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (CardId) REFERENCES CreditCardInfo(CardId)
-);
-
--- Special Instructions
-CREATE TABLE SpecialInstructions (
-    InstructionId INT PRIMARY KEY AUTO_INCREMENT,
-    TenantId INT NULL,
-    PropertyId INT NULL,
-    PaymentId INT NULL,
-    InstructionText TEXT,
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
-    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
-    FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId)
 );
 
 -- Emails
@@ -394,7 +333,8 @@ CREATE TABLE Invoices (
     amount DECIMAL(18,2) NOT NULL,
     duedate DATETIME NOT NULL,
     propertyid int NOT NULL,
-    tenantid int NOT NULL DEFAULT 0,
+    tenantid int NULL,
+    ownerid int NULL,
     IsPaid BOOLEAN DEFAULT FALSE,
     status VARCHAR(50) DEFAULT 'Pending',
     notes TEXT,
@@ -465,6 +405,139 @@ CREATE TABLE LegalFeeInvoices (
     FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
 );
 
+-- Payment Table
+CREATE TABLE Payments (
+    PaymentId INT AUTO_INCREMENT PRIMARY KEY,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaidOn DATETIME NOT NULL,
+    ReferenceNumber VARCHAR(50) NOT NULL,
+    InvoiceId INT NOT NULL,
+    TenantId INT NULL,  -- ✅ Now nullable
+    OwnerId INT NULL,   -- ✅ Now nullable
+    PaymentType VARCHAR(20) NOT NULL, -- "Card", "Check", "Transfer"
+
+    -- Card fields
+    CardType VARCHAR(20),
+    Last4Digits VARCHAR(4),
+    AuthorizationCode VARCHAR(50),
+
+    -- Check fields
+    CheckNumber VARCHAR(30),
+    CheckBankName VARCHAR(50),
+
+    -- Transfer fields
+    BankAccountNumber VARCHAR(30),
+    RoutingNumber VARCHAR(20),
+    TransactionId VARCHAR(50),
+
+    FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId),
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
+    FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
+);
+
+CREATE TABLE CheckPayments (
+    PaymentId INT PRIMARY KEY,
+    CheckNumber VARCHAR(50),
+    CheckBankName VARCHAR(100),
+    FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId) ON DELETE CASCADE
+);
+  
+CREATE TABLE WireTransfers (
+    PaymentId INT PRIMARY KEY,
+    BankAccountNumber VARCHAR(50),
+    RoutingNumber VARCHAR(20),
+    TransactionId VARCHAR(50),
+    FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId) ON DELETE CASCADE
+);
+CREATE TABLE CreditCardPayments (
+    PaymentId INT PRIMARY KEY,
+    CardType VARCHAR(50),
+    Last4Digits VARCHAR(4),
+    AuthorizationCode VARCHAR(50),
+    FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId) ON DELETE CASCADE
+);
+
+CREATE TABLE BillingAddress (
+    BillingAddressId INT AUTO_INCREMENT PRIMARY KEY,
+    StreetLine1 VARCHAR(100),
+    StreetLine2 VARCHAR(100),
+    City VARCHAR(50),
+    State VARCHAR(50),
+    PostalCode VARCHAR(20),
+    Country VARCHAR(50),
+    AvsResult VARCHAR(10),
+    IsVerified BOOLEAN DEFAULT FALSE,
+    CreatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE BillingAddressHistory (
+    BillingAddressHistoryId INT AUTO_INCREMENT PRIMARY KEY,
+    BillingAddressId INT NOT NULL,
+    StreetLine1 VARCHAR(100),
+    StreetLine2 VARCHAR(100),
+    City VARCHAR(50),
+    State VARCHAR(50),
+    PostalCode VARCHAR(20),
+    Country VARCHAR(50),
+    AvsResult VARCHAR(10),
+    IsVerified BOOLEAN DEFAULT FALSE,
+    ChangedOn DATETIME NOT NULL,
+
+    FOREIGN KEY (BillingAddressId) REFERENCES BillingAddress(BillingAddressId)
+);
+
+CREATE TABLE BankAccountInfo (
+    BankAccountInfoId INT AUTO_INCREMENT PRIMARY KEY,
+    BankName VARCHAR(50),
+    AccountNumberMasked VARCHAR(20),
+    RoutingNumber VARCHAR(20),
+    AccountType VARCHAR(20),
+    CreatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE CardToken (
+    CardTokenId INT AUTO_INCREMENT PRIMARY KEY,
+    TokenValue VARCHAR(100) NOT NULL,
+    CardBrand VARCHAR(20),
+    Last4Digits VARCHAR(4),
+    Expiration DATE NOT NULL,
+    TenantId INT NOT NULL,
+    OwnerId INT NOT NULL,
+    IsDefault BOOLEAN DEFAULT FALSE,
+    LinkedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
+    FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
+);
+
+CREATE TABLE PreferredMethod (
+    PreferredMethodId INT AUTO_INCREMENT PRIMARY KEY,
+    TenantId INT,
+    OwnerId INT,
+    MethodType VARCHAR(20) NOT NULL, -- "Card", "Bank", etc.
+    CardTokenId INT,
+    BankAccountInfoId INT,
+    IsDefault BOOLEAN DEFAULT FALSE,
+    UpdatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
+    FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId),
+    FOREIGN KEY (CardTokenId) REFERENCES CardToken(CardTokenId),
+    FOREIGN KEY (BankAccountInfoId) REFERENCES BankAccountInfo(BankAccountInfoId)
+);
+
+-- Special Instructions
+CREATE TABLE SpecialInstructions (
+    InstructionId INT PRIMARY KEY AUTO_INCREMENT,
+    TenantId INT NULL,
+    PropertyId INT NULL,
+    PaymentId INT NULL,
+    InstructionText TEXT,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
+    FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId)
+);
 -- Documents
 CREATE TABLE Documents (
     DocumentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -522,65 +595,269 @@ CREATE TABLE InvoiceAuditLog (
     AuditId INT AUTO_INCREMENT PRIMARY KEY,
     InvoiceId INT NOT NULL,
     ActionType ENUM('Created', 'Updated', 'Deleted') NOT NULL,
-    ChangedBy INT NOT NULL, -- Reference to Users table
+    ChangedBy CHAR(50) NOT NULL,
     ChangeTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     OldValues JSON NULL,
     NewValues JSON NULL,
     ChangeReason VARCHAR(255) NULL,
 
-    FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId),
-    FOREIGN KEY (ChangedBy) REFERENCES Users(UserId)
+    FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId)
 );
 
--- Flattened View
-CREATE OR REPLACE VIEW InvoiceDetailsView AS
-SELECT 
-    i.invoiceId,
-    i.amount,
-    i.duedate,
-    i.propertyid,
-    i.status,
-    i.notes,
-    i.invoicetypeid,
-    r.rentmonth,
-    r.rentyear,
-    u.utilitytypeid,
-    u.usageamount,
-    sd.isrefundable,
-    c.cleaningtypeId,
-    lt.terminationreason,
-    p.spotidentifier,
-    pt.taxperiodstart,
-    pt.taxperiodend,
-    ins.policynumber,
-    ins.coverageperiodstart,
-    ins.coverageperiodend,
-    l.casereference
+-- 📘 Start custom delimiter for compound statements
+DELIMITER //
 
-FROM Invoices i
-LEFT JOIN RentInvoices r ON i.invoiceId = r.invoiceId
-LEFT JOIN UtilityInvoices u ON i.invoiceId = u.invoiceId
-LEFT JOIN SecurityDepositInvoices sd ON i.invoiceId = sd.invoiceId
-LEFT JOIN CleaningFeeInvoices c ON i.invoiceId = c.invoiceId
-LEFT JOIN LeaseTerminationInvoices lt ON i.invoiceId = lt.invoiceId
-LEFT JOIN ParkingFeeInvoices p ON i.invoiceId = p.invoiceId
-LEFT JOIN PropertyTaxInvoices pt ON i.invoiceId = pt.invoiceId
-LEFT JOIN InsuranceInvoices ins ON i.invoiceId = ins.invoiceId
-LEFT JOIN LegalFeeInvoices l ON i.invoiceId = l.invoiceId;
-
+-- 🔸 1. Update Tenant Balance When Invoice Is Inserted
 CREATE TRIGGER after_invoice_insert
 AFTER INSERT ON Invoices
 FOR EACH ROW
-UPDATE Tenants
-SET Balance = Balance + NEW.amount
-WHERE TenantId = NEW.TenantId;
+BEGIN
+    IF NEW.IsPaid = FALSE THEN
+        UPDATE Tenants
+        SET Balance = Balance + NEW.Amount
+        WHERE TenantId = NEW.TenantId;
+    END IF;
+END;
+//
 
-CREATE TRIGGER after_payment_insert
+-- 🔸 2. Adjust Tenant Balance on Invoice Update
+CREATE TRIGGER after_invoice_update
+AFTER UPDATE ON Invoices
+FOR EACH ROW
+BEGIN
+    DECLARE delta DECIMAL(10,2);
+
+    -- Amount changed while unpaid
+    IF OLD.IsPaid = FALSE AND NEW.IsPaid = FALSE AND OLD.Amount != NEW.Amount THEN
+        SET delta = NEW.Amount - OLD.Amount;
+        UPDATE Tenants
+        SET Balance = Balance + delta
+        WHERE TenantId = NEW.TenantId;
+    END IF;
+
+    -- Invoice marked as paid
+    IF OLD.IsPaid = FALSE AND NEW.IsPaid = TRUE THEN
+        UPDATE Tenants
+        SET Balance = Balance - OLD.Amount
+        WHERE TenantId = NEW.TenantId;
+    END IF;
+
+    -- Invoice marked as unpaid again
+    IF OLD.IsPaid = TRUE AND NEW.IsPaid = FALSE THEN
+        UPDATE Tenants
+        SET Balance = Balance + NEW.Amount
+        WHERE TenantId = NEW.TenantId;
+    END IF;
+END;
+//
+
+-- 🔸 3. Subtract Balance if Unpaid Invoice Is Deleted
+CREATE TRIGGER before_invoice_delete
+BEFORE DELETE ON Invoices
+FOR EACH ROW
+BEGIN
+    IF OLD.IsPaid = FALSE THEN
+        UPDATE Tenants
+        SET Balance = Balance - OLD.Amount
+        WHERE TenantId = OLD.TenantId;
+    END IF;
+END;
+//
+
+-- 🔸 4. Log Invoice Creation in Audit Table
+CREATE TRIGGER audit_invoice_insert
+AFTER INSERT ON Invoices
+FOR EACH ROW
+BEGIN
+    INSERT INTO InvoiceAuditLog (InvoiceId, ActionType, ChangedBy, NewValues)
+    VALUES (
+        NEW.InvoiceId,
+        'Created',
+        NEW.CreatedBy,
+        JSON_OBJECT(
+            'Amount', NEW.Amount,
+            'DueDate', NEW.DueDate,
+            'Status', NEW.Status,
+            'IsPaid', NEW.IsPaid
+        )
+    );
+END;
+//
+
+-- 🔸 5. Log Invoice Updates
+CREATE TRIGGER audit_invoice_update
+AFTER UPDATE ON Invoices
+FOR EACH ROW
+BEGIN
+    INSERT INTO InvoiceAuditLog (InvoiceId, ActionType, ChangedBy, OldValues, NewValues)
+    VALUES (
+        NEW.InvoiceId,
+        'Updated',
+        NEW.CreatedBy,
+        JSON_OBJECT(
+            'Amount', OLD.Amount,
+            'DueDate', OLD.DueDate,
+            'Status', OLD.Status,
+            'IsPaid', OLD.IsPaid
+        ),
+        JSON_OBJECT(
+            'Amount', NEW.Amount,
+            'DueDate', NEW.DueDate,
+            'Status', NEW.Status,
+            'IsPaid', NEW.IsPaid
+        )
+    );
+END;
+//
+
+-- 🔸 6. Log Invoice Deletion
+CREATE TRIGGER audit_invoice_delete
+BEFORE DELETE ON Invoices
+FOR EACH ROW
+BEGIN
+    INSERT INTO InvoiceAuditLog (InvoiceId, ActionType, ChangedBy, OldValues)
+    VALUES (
+        OLD.InvoiceId,
+        'Deleted',
+        OLD.CreatedBy,
+        JSON_OBJECT(
+            'Amount', OLD.Amount,
+            'DueDate', OLD.DueDate,
+            'Status', OLD.Status,
+            'IsPaid', OLD.IsPaid
+        )
+    );
+END;
+//
+CREATE TRIGGER LogBillingAddressUpdate
+AFTER UPDATE ON BillingAddress
+FOR EACH ROW
+BEGIN
+    INSERT INTO BillingAddressHistory (
+        BillingAddressId,
+        StreetLine1,
+        StreetLine2,
+        City,
+        State,
+        PostalCode,
+        Country,
+        AvsResult,
+        IsVerified,
+        ChangedOn
+    )
+    VALUES (
+        OLD.BillingAddressId,
+        OLD.StreetLine1,
+        OLD.StreetLine2,
+        OLD.City,
+        OLD.State,
+        OLD.PostalCode,
+        OLD.Country,
+        OLD.AvsResult,
+        OLD.IsVerified,
+        NOW()
+    );
+END$$
+
+CREATE TRIGGER LogBillingAddressInsert
+AFTER INSERT ON BillingAddress
+FOR EACH ROW
+BEGIN
+    INSERT INTO BillingAddressHistory (
+        BillingAddressId,
+        StreetLine1,
+        StreetLine2,
+        City,
+        State,
+        PostalCode,
+        Country,
+        AvsResult,
+        IsVerified,
+        ChangedOn
+    )
+    VALUES (
+        NEW.BillingAddressId,
+        NEW.StreetLine1,
+        NEW.StreetLine2,
+        NEW.City,
+        NEW.State,
+        NEW.PostalCode,
+        NEW.Country,
+        NEW.AvsResult,
+        NEW.IsVerified,
+        NOW()
+    );
+END$$
+
+CREATE TRIGGER LogBillingAddressDelete
+BEFORE DELETE ON BillingAddress
+FOR EACH ROW
+BEGIN
+    INSERT INTO BillingAddressHistory (
+        BillingAddressId,
+        StreetLine1,
+        StreetLine2,
+        City,
+        State,
+        PostalCode,
+        Country,
+        AvsResult,
+        IsVerified,
+        ChangedOn
+    )
+    VALUES (
+        OLD.BillingAddressId,
+        OLD.StreetLine1,
+        OLD.StreetLine2,
+        OLD.City,
+        OLD.State,
+        OLD.PostalCode,
+        OLD.Country,
+        OLD.AvsResult,
+        OLD.IsVerified,
+        NOW()
+    );
+END$$
+
+
+CREATE TRIGGER trg_adjust_balance_after_payment
 AFTER INSERT ON Payments
 FOR EACH ROW
-UPDATE Tenants
-SET Balance = Balance - NEW.Amount
-WHERE TenantId = NEW.TenantId;
+BEGIN
+    -- If payment is for a tenant only
+    IF NEW.TenantId IS NOT NULL AND NEW.OwnerId IS NULL THEN
+        UPDATE Tenants
+        SET Balance = Balance - NEW.Amount
+        WHERE TenantId = NEW.TenantId;
+
+    -- If payment is for an owner only
+    ELSEIF NEW.OwnerId IS NOT NULL AND NEW.TenantId IS NULL THEN
+        UPDATE Owners
+        SET Balance = Balance + NEW.Amount
+        WHERE OwnerId = NEW.OwnerId;
+    END IF;
+END$$
+
+CREATE TRIGGER trg_reverse_balance_after_payment_delete
+AFTER DELETE ON Payments
+FOR EACH ROW
+BEGIN
+    -- Reverse Tenant balance if only TenantId is set
+    IF OLD.TenantId IS NOT NULL AND OLD.OwnerId IS NULL THEN
+        UPDATE Tenants
+        SET Balance = Balance + OLD.Amount
+        WHERE TenantId = OLD.TenantId;
+
+    -- Reverse Owner balance if only OwnerId is set
+    ELSEIF OLD.OwnerId IS NOT NULL AND OLD.TenantId IS NULL THEN
+        UPDATE Owners
+        SET Balance = Balance - OLD.Amount
+        WHERE OwnerId = OLD.OwnerId;
+    END IF;
+END$$
+
+-- Reset to default delimiter
+DELIMITER ;
 
 -- Optimized Indexes
 CREATE INDEX IX_ResetToken ON Users (ResetToken);

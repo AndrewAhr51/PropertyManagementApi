@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.Entities.CreditCard;
 using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Maintenance;

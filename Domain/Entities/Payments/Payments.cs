@@ -3,7 +3,7 @@ using PropertyManagementAPI.Domain.Entities.Invoices;
 
 namespace PropertyManagementAPI.Domain.Entities.Payments
 {
-    public class Payment
+    public class Payments
     {
         public int PaymentId { get; set; }
         public int InvoiceId { get; set; }

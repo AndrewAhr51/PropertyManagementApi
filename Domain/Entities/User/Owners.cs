@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PropertyManagementAPI.Domain.Entities.Payments;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementAPI.Domain.Entities.User
@@ -59,5 +60,7 @@ namespace PropertyManagementAPI.Domain.Entities.User
         // ✅ Navigation property with explicit foreign key
         [ForeignKey(nameof(UserId))]
         public Users Users { get; set; }
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }

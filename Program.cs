@@ -12,18 +12,17 @@ using PdfSharp.Fonts;
 using PropertyManagementAPI.API.Mapping;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services.Auth;
-using PropertyManagementAPI.Application.Services.CreditCards;
 using PropertyManagementAPI.Application.Services.Documents;
 using PropertyManagementAPI.Application.Services.Email;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Application.Services.Notes;
 using PropertyManagementAPI.Application.Services.Owners;
-using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Application.Services.Property;
 using PropertyManagementAPI.Application.Services.Roles;
 using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Application.Services.Vendors;
+using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 //
@@ -70,8 +69,6 @@ builder.Services.AddScoped<IRentInvoiceRepository, RentInvoiceRepository>();
 builder.Services.AddScoped<IRentalInvoiceService, RentalInvoiceService>();
 builder.Services.AddScoped<IUtilityInvoiceRepository, UtilityInvoiceRepository>();
 builder.Services.AddScoped<IUtilityInvoiceService, UtilityInvoiceService>();
-builder.Services.AddScoped<ICreditCardInfoRepository, CreditCardInfoRepository>();
-builder.Services.AddScoped<ICreditCardInfoService, CreditCardInfoService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
 builder.Services.AddScoped<ILeaseService, LeaseService>();
 builder.Services.AddScoped<ILeaseTerminationInvoiceRepository, LeaseTerminationInvoiceRepository>();
@@ -86,8 +83,6 @@ builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IPropertyPhotosRepository, PropertyPhotosRepository>();
 builder.Services.AddScoped<IPropertyPhotosService, PropertyPhotosService>();
-builder.Services.AddScoped<IPaymentMethodsRepository, PaymentMethodsRepository>();
-builder.Services.AddScoped<IPaymentMethodsService, PaymentMethodsService>();
 builder.Services.AddScoped<IPricingRepository, PricingRepository>();
 builder.Services.AddScoped<IPricingService, PricingService>();
 builder.Services.AddScoped<IEmailRepository, EmailRepository>();
@@ -111,6 +106,14 @@ builder.Services.AddScoped<IInvoiceExportService, InvoiceExportService>();
 builder.Services.AddScoped<IExportService<CumulativeInvoiceDto>, InvoiceExportService>();
 builder.Services.AddScoped<ICumulativeInvoicesRepository, CumulativeInvoicesRepository>();
 builder.Services.AddScoped<ICummulativeInvoicesService, CummulativeInvoicesService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+builder.Services.AddScoped<IBankAccountService, BankAccountService>();
+builder.Services.AddScoped<ICardTokenRepository, CardTokenRepository>();
+builder.Services.AddScoped<ICardTokenService, CardTokenService>();
+builder.Services.AddScoped<IPreferredMethodRepository, PreferredMethodRepository>();
+builder.Services.AddScoped<IPreferredMethodService, PreferredMethodService>();
 
 builder.Services.AddControllers();
 
@@ -169,9 +172,6 @@ foreach (var section in builder.Configuration.GetChildren())
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
-
 
 var app = builder.Build();
 

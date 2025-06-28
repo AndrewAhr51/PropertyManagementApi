@@ -1,97 +1,110 @@
-﻿using AutoMapper;
+﻿using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Payments;
 using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 
 namespace PropertyManagementAPI.Application.Services.Payments
 {
     public class PaymentService : IPaymentService
     {
-        private readonly IPaymentRepository _paymentRepo;
+        private readonly IPaymentRepository _paymentRepository;
+        private readonly IInvoiceRepository _invoiceRepository;
+        private readonly ILogger<PaymentService> _logger;
 
-        public PaymentService(IPaymentRepository paymentRepo)
+
+        public PaymentService(IPaymentRepository paymentRepo, IInvoiceRepository invoiceRepo, ILogger<PaymentService> logger)
         {
-            _paymentRepo = paymentRepo;
+            _paymentRepository = paymentRepo;
+            _invoiceRepository = invoiceRepo;
+            _logger = logger;
+        }
+        public async Task<Payment> CreatePaymentAsync(CreatePaymentDto dto)
+        {
+            try
+            {
+                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
+                if (invoice == null || invoice.TenantId != dto.TenantId)
+                    throw new InvalidOperationException("Invalid invoice or tenant mismatch.");
+
+                Payment payment = dto.PaymentMethod switch
+                {
+                    "Card" => new CardPayment
+                    {
+                        CardType = dto.Metadata.GetValueOrDefault("CardType"),
+                        Last4Digits = dto.Metadata.GetValueOrDefault("Last4Digits"),
+                        AuthorizationCode = dto.Metadata.GetValueOrDefault("AuthorizationCode")
+                    },
+                    "Check" => new CheckPayment
+                    {
+                        CheckNumber = dto.Metadata.GetValueOrDefault("CheckNumber"),
+                        CheckBankName = dto.Metadata.GetValueOrDefault("BankName")
+                    },
+                    "Transfer" => new ElectronicTransferPayment
+                    {
+                        BankAccountNumber = dto.Metadata.GetValueOrDefault("BankAccountNumber"),
+                        RoutingNumber = dto.Metadata.GetValueOrDefault("RoutingNumber"),
+                        TransactionId = dto.Metadata.GetValueOrDefault("TransactionId")
+                    },
+                    _ => throw new NotSupportedException($"Unsupported payment method: {dto.PaymentMethod}")
+                };
+
+                if (dto.OwnerId == 0)
+                {
+                    dto.OwnerId = null;
+                }
+
+                if (dto.TenantId == 0)
+                {
+                    dto.TenantId = null;
+                }
+
+                payment.Amount = dto.Amount;
+                payment.PaidOn = dto.PaidOn;
+                payment.InvoiceId = dto.InvoiceId;
+                payment.TenantId = dto.TenantId;
+                payment.OwnerId = dto.OwnerId;
+                payment.PaymentType = dto.PaymentMethod;
+                payment.ReferenceNumber = ReferenceNumberHelper.Generate("REF", invoice.PropertyId);
+
+                await _paymentRepository.AddAsync(payment);
+                await _paymentRepository.SaveChangesAsync();
+
+                _logger.LogInformation("Payment created successfully: {ReferenceNumber}", payment.ReferenceNumber);
+
+                return payment;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating payment for InvoiceId {InvoiceId}, TenantId {TenantId}", dto.InvoiceId, dto.TenantId);
+                throw;
+            }
         }
 
-        public async Task<PaymentDto> CreatePaymentAsync(CreatePaymentDto dto)
+        public async Task<Payment> GetPaymentByIdAsync(int paymentId)
         {
-            var payment = new Payment
+            try
             {
-                InvoiceId = dto.InvoiceId,
-                TenantId = dto.TenantId,
-                PropertyId = dto.PropertyId,
-                Amount = dto.Amount,
-                PaymentMethodId = dto.PaymentMethodId,
-                Status = dto.Status,
-                Notes = dto.Notes,
-                ReferenceNumber = dto.ReferenceNumber,
-                CreatedBy = dto.CreatedBy ?? "Web",
-                TransactionDate = DateTime.UtcNow,
-                CreatedDate = DateTime.UtcNow
-            };
-
-            await _paymentRepo.CreatePaymentAsync(payment);
-            await _paymentRepo.SavePaymentChangesAsync();
-
-            return new PaymentDto
+                return await _paymentRepository.GetByIdAsync(paymentId);
+            }
+            catch (Exception ex)
             {
-                PaymentId = payment.PaymentId,
-                InvoiceId = payment.InvoiceId,
-                TenantId = payment.TenantId,
-                PropertyId = payment.PropertyId,
-                Amount = payment.Amount,
-                PaymentMethodId = payment.PaymentMethodId,
-                Status = payment.Status,
-                Notes = payment.Notes,
-                ReferenceNumber = payment.ReferenceNumber,
-                CreatedBy = payment.CreatedBy,
-                TransactionDate = payment.TransactionDate,
-                CreatedDate = payment.CreatedDate
-            };
+                _logger.LogError(ex, "Error retrieving payment with ID {PaymentId}", paymentId);
+                throw;
+            }
         }
 
-        public async Task<PaymentDto?> GetPaymentAsync(int paymentId)
+        public async Task<IEnumerable<Payment>> GetPaymentsByInvoiceIdAsync(int invoiceId)
         {
-            var payment = await _paymentRepo.GetPaymentByIdAsync(paymentId);
-            if (payment is null) return null;
-
-            return new PaymentDto
+            try
             {
-                PaymentId = payment.PaymentId,
-                InvoiceId = payment.InvoiceId,
-                TenantId = payment.TenantId,
-                PropertyId = payment.PropertyId,
-                Amount = payment.Amount,
-                PaymentMethodId = payment.PaymentMethodId,
-                Status = payment.Status,
-                Notes = payment.Notes,
-                ReferenceNumber = payment.ReferenceNumber,
-                CreatedBy = payment.CreatedBy,
-                TransactionDate = payment.TransactionDate,
-                CreatedDate = payment.CreatedDate
-            };
-        }
-
-        public async Task<IEnumerable<PaymentDto>> GetPaymentsByTenantAsync(int tenantId)
-        {
-            var payments = await _paymentRepo.GetPaymentByTenantIdAsync(tenantId);
-
-            return payments.Select(p => new PaymentDto
+                return await _paymentRepository.GetByInvoiceIdAsync(invoiceId);
+            }
+            catch (Exception ex)
             {
-                PaymentId = p.PaymentId,
-                InvoiceId = p.InvoiceId,
-                TenantId = p.TenantId,
-                PropertyId = p.PropertyId,
-                Amount = p.Amount,
-                PaymentMethodId = p.PaymentMethodId,
-                Status = p.Status,
-                Notes = p.Notes,
-                ReferenceNumber = p.ReferenceNumber,
-                CreatedBy = p.CreatedBy,
-                TransactionDate = p.TransactionDate,
-                CreatedDate = p.CreatedDate
-            });
+                _logger.LogError(ex, "Error retrieving payments for InvoiceId {InvoiceId}", invoiceId);
+                throw;
+            }
         }
     }
 }

@@ -1,11 +1,10 @@
-﻿using PropertyManagementAPI.Common.Helpers;
+﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
-using System;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 {
-
     public class PaymentRepository : IPaymentRepository
     {
         private readonly MySqlDbContext _context;
@@ -15,33 +14,37 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
             _context = context;
         }
 
-        public async Task<Payment> CreatePaymentAsync(Payment payment)
+        public async Task<Payment> GetByIdAsync(int paymentId)
         {
-            // Assign a unique reference number if not already set
-            if (string.IsNullOrWhiteSpace(payment.ReferenceNumber))
+            var payments = await _context.Payments
+                .Include(p => p.Invoice) 
+                .Include(p => p.Tenant)
+                .Include(p => p.Owner)
+                .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+
+            if (payments == null)
             {
-                payment.ReferenceNumber = ReferenceNumberHelper.Generate("PMT", payment.TenantId);
+                throw new KeyNotFoundException($"Payment with ID {paymentId} not found.");
             }
 
+            return payments;
+        }
+
+        public async Task<IEnumerable<Payment>> GetByInvoiceIdAsync(int invoiceId)
+        {
+            return await _context.Payments
+                .Where(p => p.InvoiceId == invoiceId)
+                .ToListAsync();
+        }
+
+        public async Task AddAsync(Payment payment)
+        {
             await _context.Payments.AddAsync(payment);
-            return payment;
         }
 
-        public Task<Payment?> GetPaymentByIdAsync(int paymentId)
+        public async Task SaveChangesAsync()
         {
-            return _context.Payments.FindAsync(paymentId).AsTask();
-        }
-
-        public Task<IEnumerable<Payment>> GetPaymentByTenantIdAsync(int tenantId)
-        {
-            return Task.FromResult<IEnumerable<Payment>>(
-                _context.Payments.Where(p => p.TenantId == tenantId).ToList()
-            );
-        }
-
-        public Task SavePaymentChangesAsync()
-        {
-            return _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
     }
 }

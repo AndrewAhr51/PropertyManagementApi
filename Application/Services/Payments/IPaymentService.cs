@@ -1,12 +1,13 @@
 ﻿using PropertyManagementAPI.Domain.DTOs.Payments;
+using PropertyManagementAPI.Domain.Entities.Payments;
 
 namespace PropertyManagementAPI.Application.Services.Payments
 {
     public interface IPaymentService
     {
-        Task<PaymentDto> CreatePaymentAsync(CreatePaymentDto dto);
-        Task<PaymentDto?> GetPaymentAsync(int paymentId);
-        Task<IEnumerable<PaymentDto>> GetPaymentsByTenantAsync(int tenantId);
+        Task<Payment> CreatePaymentAsync(CreatePaymentDto dto);
+        Task<Payment> GetPaymentByIdAsync(int paymentId);
+        Task<IEnumerable<Payment>> GetPaymentsByInvoiceIdAsync(int invoiceId);
     }
 
 }

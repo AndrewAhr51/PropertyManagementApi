@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.Entities.CreditCard;
 using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Maintenance;
@@ -39,8 +38,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Lease> Leases { get; set; }
         public DbSet<Document> Documents { get; set; }
-        public DbSet<DocumentStorage> DocumentStorage { get; set; }
-        public DbSet<CreditCardInfo> CreditCardInfo { get; set; }
+        public DbSet<DocumentStorage> DocumentStorage { get; set; }        
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<Note> Notes { get; set; }
         public DbSet<LkupInvoiceType> LkupInvoiceType { get; set; }
@@ -54,6 +52,15 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<InsuranceInvoice> InsuranceInvoices { get; set; }
         public DbSet<LegalFeeInvoice> LegalFeeInvoices { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<CardPayment> CardPayments { get; set; }
+        public DbSet<CreditCardInfo> CreditCardInfo { get; set; }
+        public DbSet<BankAccountInfo> BankAccountInfo { get; set; }
+        public DbSet<PreferredMethod> PreferredMethods { get; set; }
+        public DbSet<CardToken> CardTokens { get; set; }
+        public DbSet<CheckPayment> CheckPayments { get; set; }
+        public DbSet<WireTransfer> WireTransfers { get; set; }
+        public DbSet<CreditCardPayment> CreditCardPayments { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -91,8 +98,58 @@ namespace PropertyManagementAPI.Infrastructure.Data
             modelBuilder.Entity<InsuranceInvoice>().ToTable("InsuranceInvoices");
             modelBuilder.Entity<LegalFeeInvoice>().ToTable("LegalFeeInvoices");
 
-            // Optional: additional model configuration goes here
-        }
+            // 🔸 TPT Inheritance for Payments
+            modelBuilder.Entity<Payment>().ToTable("Payments");
+            modelBuilder.Entity<CardPayment>().ToTable("CardPayments");
+            modelBuilder.Entity<CheckPayment>().ToTable("CheckPayments");
+            modelBuilder.Entity<ElectronicTransferPayment>().ToTable("ElectronicTransferPayments");
+            modelBuilder.Entity<WireTransfer>().ToTable("WireTransfers");
+            modelBuilder.Entity<CreditCardPayment>().ToTable("CreditCardPayments");
 
+            // 🔸 Payment Relationships
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Invoice)
+                .WithMany(i => i.Payments)
+                .HasForeignKey(p => p.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Tenant)
+                .WithMany(t => t.Payments)
+                .HasForeignKey(p => p.TenantId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Owner)
+                .WithMany(o => o.Payments)
+                .HasForeignKey(p => p.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 🔸 PreferredMethod Relationships
+            modelBuilder.Entity<PreferredMethod>()
+                .HasOne(pm => pm.CardToken)
+                .WithMany()
+                .HasForeignKey(pm => pm.CardTokenId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PreferredMethod>()
+                .HasOne(pm => pm.BankAccountInfo)
+                .WithMany(b => b.PreferredMethods)
+                .HasForeignKey(pm => pm.BankAccountInfoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PreferredMethod>()
+                .HasOne(pm => pm.Tenant)
+                .WithMany()
+                .HasForeignKey(pm => pm.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PreferredMethod>()
+                .HasOne(pm => pm.Owner)
+                .WithMany()
+                .HasForeignKey(pm => pm.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }
+

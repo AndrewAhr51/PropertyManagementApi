@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PropertyManagementAPI.Domain.Entities.CreditCard;
+namespace PropertyManagementAPI.Domain.Entities.Payments;
 
 public class CreditCardInfo
 {

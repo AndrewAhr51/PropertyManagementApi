@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Application.Services.CreditCards;
-using PropertyManagementAPI.Domain.DTOs.CreditCard;
+using PropertyManagementAPI.Application.Services.Payments;
+using PropertyManagementAPI.Domain.DTOs.Payments;
 
 [ApiController]
 [Route("api/creditcards")]

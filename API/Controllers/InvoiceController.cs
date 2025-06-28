@@ -95,7 +95,7 @@ namespace PropertyManagementAPI.API.Controllers
             return Ok("Invoice email sent successfully.");
         }
 
-        [HttpPost("send-cumultive-invoice/{invoiceId:int}")]
+        [HttpPost("send-cumultive-invoice/{propertyId:int}")]
         public async Task<IActionResult> SendCummulativeInvoice(int propertyId, [FromQuery] string recipientEmail)
         {
             var invoices = await _invoiceService.SendCumulativeInvoiceAsync(propertyId, recipientEmail);

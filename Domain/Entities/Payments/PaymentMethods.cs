@@ -6,16 +6,21 @@ namespace PropertyManagementAPI.Domain.Entities.Payments
     public class PaymentMethods
     {
         [Key]
-        public int PaymentMethodId { get; set; }
+        public int PreferredMethodId { get; set; }
 
-        [Required]
-        [MaxLength(100)]
-        public string MethodName { get; set; }
+        // Party association (only one should be set)
+        public int? TenantId { get; set; }
+        public int? OwnerId { get; set; }
 
-        [MaxLength(255)]
-        public string Description { get; set; }
+        // Type of payment method
+        public string MethodType { get; set; } // e.g., "Card", "Bank", "Check"
 
-        [Required]
-        public bool IsActive { get; set; }
+        // References to tokenized/card or bank info
+        public int? CardTokenId { get; set; }
+        public int? BankAccountInfoId { get; set; }
+
+        public bool IsDefault { get; set; }
+        public DateTime UpdatedOn { get; set; }
+
     }
 }
