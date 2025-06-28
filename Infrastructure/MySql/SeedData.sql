@@ -252,5 +252,4 @@ INSERT INTO Payments (
 )
 VALUES
 (1200.00, NOW(), 'REF-001', 101, 3, null, 'Card', 'Visa', '4242', 'AUTH123', NULL, NULL, NULL, NULL, NULL),
-(950.00, NOW(), 'REF-002', 102, 5, null, 'Check', NULL, NULL, NULL, 'CHK789', 'Wells Fargo', NULL, NULL, NULL),
 (500.00, NOW(), 'REF-003', 103, 3, null, 'Transfer', NULL, NULL, NULL, NULL, NULL, '****1234', '021000021', 'TXN456');

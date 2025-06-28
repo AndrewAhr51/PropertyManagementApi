@@ -9,6 +9,8 @@ DROP TRIGGER IF EXISTS LogBillingAddressInsert;
 DROP TRIGGER IF EXISTS LogBillingAddressUpdate;
 DROP TRIGGER IF EXISTS LogBillingAddressDelete;
 
+
+
 -- ✅ Drop tables with foreign key dependencies first
 DROP TABLE IF EXISTS InvoiceAuditLog;
 DROP TABLE IF EXISTS RolePermissions;
@@ -16,6 +18,7 @@ DROP TABLE IF EXISTS PaymentReminders;
 DROP TABLE IF EXISTS DocumentStorage;
 DROP TABLE IF EXISTS Documents;
 DROP TABLE IF EXISTS Notes;
+DROP TABLE IF EXISTS triggerlog;
 
 -- ✅ Drop invoice subtype tables before Invoices
 DROP TABLE IF EXISTS LegalFeeInvoices;

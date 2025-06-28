@@ -604,8 +604,14 @@ CREATE TABLE InvoiceAuditLog (
     FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId)
 );
 
+CREATE TABLE TriggerLog (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Message VARCHAR(255),
+    FiredAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 📘 Start custom delimiter for compound statements
-DELIMITER //
+DELIMITER $$
 
 -- 🔸 1. Update Tenant Balance When Invoice Is Inserted
 CREATE TRIGGER after_invoice_insert
@@ -618,7 +624,6 @@ BEGIN
         WHERE TenantId = NEW.TenantId;
     END IF;
 END;
-//
 
 -- 🔸 2. Adjust Tenant Balance on Invoice Update
 CREATE TRIGGER after_invoice_update
@@ -626,7 +631,6 @@ AFTER UPDATE ON Invoices
 FOR EACH ROW
 BEGIN
     DECLARE delta DECIMAL(10,2);
-
     -- Amount changed while unpaid
     IF OLD.IsPaid = FALSE AND NEW.IsPaid = FALSE AND OLD.Amount != NEW.Amount THEN
         SET delta = NEW.Amount - OLD.Amount;
@@ -649,7 +653,6 @@ BEGIN
         WHERE TenantId = NEW.TenantId;
     END IF;
 END;
-//
 
 -- 🔸 3. Subtract Balance if Unpaid Invoice Is Deleted
 CREATE TRIGGER before_invoice_delete
@@ -662,7 +665,6 @@ BEGIN
         WHERE TenantId = OLD.TenantId;
     END IF;
 END;
-//
 
 -- 🔸 4. Log Invoice Creation in Audit Table
 CREATE TRIGGER audit_invoice_insert
@@ -682,7 +684,6 @@ BEGIN
         )
     );
 END;
-//
 
 -- 🔸 5. Log Invoice Updates
 CREATE TRIGGER audit_invoice_update
@@ -708,7 +709,6 @@ BEGIN
         )
     );
 END;
-//
 
 -- 🔸 6. Log Invoice Deletion
 CREATE TRIGGER audit_invoice_delete
@@ -728,7 +728,7 @@ BEGIN
         )
     );
 END;
-//
+
 CREATE TRIGGER LogBillingAddressUpdate
 AFTER UPDATE ON BillingAddress
 FOR EACH ROW
@@ -819,36 +819,55 @@ BEGIN
     );
 END$$
 
-
 CREATE TRIGGER trg_adjust_balance_after_payment
 AFTER INSERT ON Payments
 FOR EACH ROW
 BEGIN
-    -- If payment is for a tenant only
     IF NEW.TenantId IS NOT NULL AND NEW.OwnerId IS NULL THEN
         UPDATE Tenants
         SET Balance = Balance - NEW.Amount
         WHERE TenantId = NEW.TenantId;
-
-    -- If payment is for an owner only
+		INSERT INTO TriggerLog (Message) VALUES (CONCAT('Trigger fired for TenantId: ', NEW.TenantId));
+        
     ELSEIF NEW.OwnerId IS NOT NULL AND NEW.TenantId IS NULL THEN
         UPDATE Owners
         SET Balance = Balance + NEW.Amount
         WHERE OwnerId = NEW.OwnerId;
+        
+        INSERT INTO TriggerLog (Message) VALUES (CONCAT('Trigger fired for OwnerId: ', NEW.OwnerId));
+    END IF;
+    
+END$$
+
+CREATE TRIGGER trg_adjust_balance_after_payment_update
+AFTER UPDATE ON Payments
+FOR EACH ROW
+BEGIN
+    -- Tenant-only payment adjustment
+    IF NEW.TenantId IS NOT NULL AND NEW.OwnerId IS NULL THEN
+        UPDATE Tenants
+        SET Balance = Balance + OLD.Amount - NEW.Amount
+        WHERE TenantId = NEW.TenantId;
+
+    -- Owner-only payment adjustment
+    ELSEIF NEW.OwnerId IS NOT NULL AND NEW.TenantId IS NULL THEN
+        UPDATE Owners
+        SET Balance = Balance - OLD.Amount + NEW.Amount
+        WHERE OwnerId = NEW.OwnerId;
     END IF;
 END$$
 
-CREATE TRIGGER trg_reverse_balance_after_payment_delete
+CREATE TRIGGER trg_adjust_balance_after_payment_delete
 AFTER DELETE ON Payments
 FOR EACH ROW
 BEGIN
-    -- Reverse Tenant balance if only TenantId is set
+    -- If payment was for a tenant only
     IF OLD.TenantId IS NOT NULL AND OLD.OwnerId IS NULL THEN
         UPDATE Tenants
         SET Balance = Balance + OLD.Amount
         WHERE TenantId = OLD.TenantId;
 
-    -- Reverse Owner balance if only OwnerId is set
+    -- If payment was for an owner only
     ELSEIF OLD.OwnerId IS NOT NULL AND OLD.TenantId IS NULL THEN
         UPDATE Owners
         SET Balance = Balance - OLD.Amount
