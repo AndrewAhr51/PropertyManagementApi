@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -9,7 +8,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PdfSharp.Fonts;
-using PropertyManagementAPI.API.Mapping;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services.Auth;
 using PropertyManagementAPI.Application.Services.Documents;
@@ -50,9 +48,6 @@ builder.Services.AddDbContext<MySqlDbContext>(options =>
         .UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySQLConnection")))
         .ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>()
 );
-
-// Register AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
 
 // ✅ Register Repositories & Services 
 builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
@@ -118,6 +113,8 @@ builder.Services.AddScoped<IPreferredMethodService, PreferredMethodService>();
 
 builder.Services.AddSingleton<PayPalClient>();
 builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
+
+builder.Services.AddScoped<IStripeService, StripeService>();
 
 builder.Services.AddScoped<PaymentAuditLogger>();
 

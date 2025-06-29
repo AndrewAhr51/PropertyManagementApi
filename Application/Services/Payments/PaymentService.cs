@@ -16,19 +16,22 @@ namespace PropertyManagementAPI.Application.Services.Payments
         private readonly ILogger<PaymentService> _logger;
         private readonly IPaymentProcessor _paymentProcessor;
         private readonly PaymentAuditLogger _auditLogger;
+        private readonly IStripeService _stripeService;
 
         public PaymentService(
             IPaymentRepository paymentRepository,
             IInvoiceRepository invoiceRepository,
             ILogger<PaymentService> logger,
             IPaymentProcessor paymentProcessor,
-            PaymentAuditLogger auditLogger)
+            PaymentAuditLogger auditLogger,
+            IStripeService stripeService)
         {
             _paymentRepository = paymentRepository;
             _invoiceRepository = invoiceRepository;
             _paymentProcessor = paymentProcessor;
             _logger = logger;
             _auditLogger = auditLogger;
+            _stripeService = stripeService;
         }
 
         public async Task<Payment> CreatePaymentAsync(CreatePaymentDto dto)
@@ -65,6 +68,7 @@ namespace PropertyManagementAPI.Application.Services.Payments
                     InvoiceId = invoice.InvoiceId,
                     InvoiceReference = invoice.ReferenceNumber
                 };
+
             }
             catch (Exception ex)
             {
@@ -97,6 +101,7 @@ namespace PropertyManagementAPI.Application.Services.Payments
 
                 await _paymentRepository.AddPaymentAsync(payment); 
                 await _paymentRepository.SavePaymentChangesAsync();
+
                 return payment;
             }
             catch (Exception ex)
@@ -106,6 +111,42 @@ namespace PropertyManagementAPI.Application.Services.Payments
             }
         }
 
+        public async Task<StripePaymentResponseDto> CreateStripePaymentIntentAsync(CreateStripeDto dto)
+        {
+            StripePaymentResponseDto stripeDto = new StripePaymentResponseDto();
+            try
+            {
+                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
+                if (invoice == null)
+                    throw new ArgumentException($"Invoice {dto.InvoiceId} not found");
+
+                var intent = await _stripeService.CreatePaymentIntentAsync(dto.Amount, dto.Currency);
+
+                stripeDto = new StripePaymentResponseDto
+                {
+                    ClientSecret = intent.ClientSecret,
+                    Status = intent.Status,
+                    Amount = dto.Amount,
+                    Currency = dto.Currency,
+                    InvoiceId = invoice.InvoiceId,
+                    InvoiceReference = invoice.ReferenceNumber
+                };
+
+                var save = await _paymentRepository.CreateStripePaymentAsync(dto);
+                if (!save)
+                {
+                    throw new InvalidOperationException("Failed to save Stripe payment details.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating Stripe payment intent for InvoiceId {InvoiceId}", dto.InvoiceId);
+                throw;
+            }
+
+            return stripeDto;
+
+        }
         public async Task<Invoice?> GetInvoiceAsync(int invoiceId)
         {
             try

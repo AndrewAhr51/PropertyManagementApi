@@ -461,8 +461,10 @@ CREATE TABLE WireTransfers (
     TransactionId VARCHAR(50),
     FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId) ON DELETE CASCADE
 );
-CREATE TABLE CreditCardPayments (
+CREATE TABLE CardPayments (
     PaymentId INT PRIMARY KEY,
+    OrderId VARCHAR(100),
+    Status VARCHAR(100),
     CardType VARCHAR(50),
     Last4Digits VARCHAR(4),
     AuthorizationCode VARCHAR(50),

@@ -9,25 +9,29 @@
   <ItemGroup>
     <Compile Remove="Application\Services\CreditCards\**" />
     <Compile Remove="Infrastructure\Repositories\CreditCards\**" />
+    <Compile Remove="Infrastructure\SQL Server\**" />
     <Content Remove="Application\Services\CreditCards\**" />
     <Content Remove="Infrastructure\Repositories\CreditCards\**" />
+    <Content Remove="Infrastructure\SQL Server\**" />
     <EmbeddedResource Remove="Application\Services\CreditCards\**" />
     <EmbeddedResource Remove="Infrastructure\Repositories\CreditCards\**" />
+    <EmbeddedResource Remove="Infrastructure\SQL Server\**" />
     <None Remove="Application\Services\CreditCards\**" />
     <None Remove="Infrastructure\Repositories\CreditCards\**" />
+    <None Remove="Infrastructure\SQL Server\**" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="API\Controllers\CreditCardInfoController.cs" />
+    <Compile Remove="Infrastructure\Data\SQLServerDbContext.cs" />
     <Compile Remove="Infrastructure\Repositories\IInvoiceRepository.cs" />
     <Compile Remove="Infrastructure\Repositories\InvoiceRepository.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.17" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
@@ -35,8 +39,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0-preview.5.25277.114">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -44,12 +47,13 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.12.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.12.1" />
     <PackageReference Include="PayPalCheckoutSdk" Version="1.0.4" />
     <PackageReference Include="PDFsharp" Version="6.2.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0-preview.3.efcore.9.0.0" />
+    <PackageReference Include="Stripe.net" Version="48.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
   </ItemGroup>
 
   <ItemGroup>

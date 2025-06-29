@@ -19,13 +19,15 @@ namespace PropertyManagementAPI.API.Controllers
         private readonly IPaymentService _paymentService;
         private readonly PayPalHttpClient _payPalClient;
         private readonly PaymentAuditLogger _auditLogger;
+        private readonly ILogger<PaymentsController> _logger;
 
 
-        public PaymentsController(IPaymentService paymentService, PayPalClient payPalClient, PaymentAuditLogger auditLogger)
+        public PaymentsController(IPaymentService paymentService, PayPalClient payPalClient, PaymentAuditLogger auditLogger, ILogger<PaymentsController> logger)
         {
             _paymentService = paymentService;
             _payPalClient = payPalClient.Client();
             _auditLogger = auditLogger;
+            _logger = logger;
         }
 
         // POST: api/payments
@@ -120,6 +122,22 @@ namespace PropertyManagementAPI.API.Controllers
                    performedBy: "Web"
                );
                 return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("stripe")]
+        public async Task<IActionResult> CreateStripePayment([FromBody] CreateStripeDto dto)
+        {
+            
+            try
+            {
+                var response = await _paymentService.CreateStripePaymentIntentAsync(dto);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Stripe payment failed for InvoiceId {InvoiceId}", dto.InvoiceId);
+                return StatusCode(500, new { message = "Stripe payment failed.", ex.Message });
             }
         }
 
