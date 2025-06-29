@@ -435,6 +435,18 @@ CREATE TABLE Payments (
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
 );
 
+CREATE TABLE PaymentAuditLog (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    PaymentId INT NULL,
+    Gateway VARCHAR(50) NOT NULL,
+    Action VARCHAR(50) NOT NULL,
+    Status VARCHAR(50) NOT NULL,
+    ResponsePayload JSON,
+    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PerformedBy VARCHAR(100),
+
+    FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId) ON DELETE SET NULL
+);
 CREATE TABLE CheckPayments (
     PaymentId INT PRIMARY KEY,
     CheckNumber VARCHAR(50),

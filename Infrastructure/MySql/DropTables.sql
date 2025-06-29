@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS DocumentStorage;
 DROP TABLE IF EXISTS Documents;
 DROP TABLE IF EXISTS Notes;
 DROP TABLE IF EXISTS triggerlog;
+DROP TABLE IF EXISTS PaymentAuditLog;
 
 -- ✅ Drop invoice subtype tables before Invoices
 DROP TABLE IF EXISTS LegalFeeInvoices;
