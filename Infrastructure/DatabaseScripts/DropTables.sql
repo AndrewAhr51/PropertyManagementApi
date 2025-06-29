@@ -39,7 +39,7 @@ DROP TABLE IF EXISTS BankAccountInfo;
 DROP TABLE IF EXISTS SpecialInstructions;
 DROP TABLE IF EXISTS CheckPayments;
 DROP TABLE IF EXISTS WireTransfers;
-DROP TABLE IF EXISTS CreditCardPayments;
+DROP TABLE IF EXISTS CardPayments;
 DROP TABLE IF EXISTS Payments;
 
 -- ✅ Drop base invoice table
