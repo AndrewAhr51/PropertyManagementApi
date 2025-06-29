@@ -2,6 +2,7 @@
 using PayPalCheckoutSdk.Orders;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.Entities.Invoices;
+using PropertyManagementAPI.Infrastructure.Payments;
 
 namespace PropertyManagementAPI.Application.Services.Payments
 {

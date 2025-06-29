@@ -1,21 +1,25 @@
 ﻿using PayPalCheckoutSdk.Core;
 using Microsoft.Extensions.Configuration;
 
-public class PayPalClient
+namespace PropertyManagementAPI.Infrastructure.Payments
 {
-    private readonly IConfiguration _config;
 
-    public PayPalClient(IConfiguration config)
+    public class PayPalClient
     {
-        _config = config;
-    }
+        private readonly string _clientId;
+        private readonly string _secret;
 
-    public PayPalHttpClient Client()
-    {
-        var environment = new SandboxEnvironment(
-            _config["PayPal:ClientId"],
-            _config["PayPal:Secret"]
-        );
-        return new PayPalHttpClient(environment);
+        public PayPalClient(string clientId, string secret)
+        {
+            _clientId = clientId;
+            _secret = secret;
+        }
+
+        public PayPalHttpClient Client()
+        {
+            var environment = new SandboxEnvironment(_clientId, _secret);
+            return new PayPalHttpClient(environment);
+        }
+
     }
 }

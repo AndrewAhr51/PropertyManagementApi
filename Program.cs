@@ -36,6 +36,7 @@ using PropertyManagementAPI.Infrastructure.Repositories.Property;
 using PropertyManagementAPI.Infrastructure.Repositories.Roles;
 using PropertyManagementAPI.Infrastructure.Repositories.Users;
 using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
+using PropertyManagementAPI.Infrastructure.Payments;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -48,6 +49,15 @@ builder.Services.AddDbContext<MySqlDbContext>(options =>
         .UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySQLConnection")))
         .ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>()
 );
+
+var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
+var stripePublishableKey = builder.Configuration["Stripe:PublishableKey"];
+
+var paypalClientId = builder.Configuration["PayPal:ClientId"];
+var paypalSecret = builder.Configuration["PayPal:Secret"];
+
+var encryptionKey = builder.Configuration["EncryptionSettings:Key"];
+var encryptionIV = builder.Configuration["EncryptionSettings:IV"];
 
 // ✅ Register Repositories & Services 
 builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
@@ -111,12 +121,28 @@ builder.Services.AddScoped<ICardTokenService, CardTokenService>();
 builder.Services.AddScoped<IPreferredMethodRepository, PreferredMethodRepository>();
 builder.Services.AddScoped<IPreferredMethodService, PreferredMethodService>();
 
-builder.Services.AddSingleton<PayPalClient>();
 builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
 
-builder.Services.AddScoped<IStripeService, StripeService>();
-
 builder.Services.AddScoped<PaymentAuditLogger>();
+
+builder.Services.AddSingleton<PayPalClient>(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var clientId = config["PayPal:ClientId"];
+    var secret = config["PayPal:Secret"];
+
+    return new PayPalClient(clientId, secret);
+});
+
+
+builder.Services.AddScoped<IStripeService, StripeService>(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var secretKey = config["Stripe:SecretKey"];
+    var publishableKey = config["Stripe:PublishableKey"];
+
+    return new StripeService(secretKey, publishableKey);
+});
 
 builder.Services.AddControllers();
 
