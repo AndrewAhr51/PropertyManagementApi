@@ -8,105 +8,76 @@ using PropertyManagementAPI.Domain.Entities.Properties;
 using PropertyManagementAPI.Domain.Entities.Roles;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Domain.Entities.Vendors;
-using System.Data;
-using System.Security;
 
 namespace PropertyManagementAPI.Infrastructure.Data
 {
-
     public class MySqlDbContext : DbContext
     {
         public MySqlDbContext(DbContextOptions<MySqlDbContext> options) : base(options) { }
 
-        // Custom entities
+        // DbSets
         public DbSet<Users> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
-        public DbSet<RentInvoice> RentInvoices { get; set; }
-        public DbSet<UtilityInvoice> UtilityInvoices { get; set; }
-        public DbSet<Permissions> Permissions { get; set; }
-        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Payment> Payments { get; set; }
         public DbSet<Owner> Owners { get; set; }
+        public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<Lease> Leases { get; set; }
+        public DbSet<Document> Documents { get; set; }
+        public DbSet<DocumentStorage> DocumentStorage { get; set; }
+        public DbSet<Vendor> Vendors { get; set; }
+        public DbSet<Note> Notes { get; set; }
+        public DbSet<PaymentMethods> PaymentMethods { get; set; }
+        public DbSet<PreferredMethod> PreferredMethods { get; set; }
+        public DbSet<Pricing> Pricing { get; set; }
         public DbSet<Propertys> Properties { get; set; }
         public DbSet<PropertyOwner> PropertyOwners { get; set; }
         public DbSet<PropertyTenant> PropertyTenants { get; set; }
         public DbSet<PropertyPhotos> PropertyPhotos { get; set; }
-        public DbSet<PaymentMethods> PaymentMethods { get; set; }
-        public DbSet<Pricing> Pricing { get; set; }
         public DbSet<MaintenanceRequests> MaintenanceRequests { get; set; }
-        public DbSet<Tenant> Tenants { get; set; }
-        public DbSet<Lease> Leases { get; set; }
-        public DbSet<Document> Documents { get; set; }
-        public DbSet<DocumentStorage> DocumentStorage { get; set; }        
-        public DbSet<Vendor> Vendors { get; set; }
-        public DbSet<Note> Notes { get; set; }
         public DbSet<LkupInvoiceType> LkupInvoiceType { get; set; }
         public DbSet<LkupUtilities> LkupUtilities { get; set; }
         public DbSet<LkupCleaningType> LkupCleaningType { get; set; }
-        public DbSet<SecurityDepositInvoice> SecurityDepositInvoices { get; set; }
-        public DbSet<CleaningFeeInvoice> CleaningFeeInvoices { get; set; }
-        public DbSet<LeaseTerminationInvoice> LeaseTerminationInvoices { get; set; }
-        public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; }
-        public DbSet<PropertyTaxInvoice> PropertyTaxInvoices { get; set; }
-        public DbSet<InsuranceInvoice> InsuranceInvoices { get; set; }
-        public DbSet<LegalFeeInvoice> LegalFeeInvoices { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<CardPayment> CardPayments { get; set; }
-        public DbSet<CreditCardInfo> CreditCardInfo { get; set; }
-        public DbSet<BankAccountInfo> BankAccountInfo { get; set; }
-        public DbSet<PreferredMethod> PreferredMethods { get; set; }
-        public DbSet<CardToken> CardTokens { get; set; }
-        public DbSet<CheckPayment> CheckPayments { get; set; }
-        public DbSet<WireTransfer> WireTransfers { get; set; }
-        public DbSet<CreditCardPayment> CreditCardPayments { get; set; }
-        
+        public DbSet<PaymentAuditLog> PaymentAuditLogs { get; set; } = null!;
+        public DbSet<CleaningFeeInvoice> CleaningFeeInvoices { get; set; } = null!;
+        public DbSet<InsuranceInvoice> InsuranceInvoices { get; set; } = null!;
+        public DbSet<RentInvoice> RentInvoices { get; set; } = null!;
+        public DbSet<UtilityInvoice> UtilityInvoices { get; set; } = null!;
+        public DbSet<SecurityDepositInvoice> SecurityDepositInvoices { get; set; } = null!;
+        public DbSet<PropertyTaxInvoice> PropertyTaxInvoices { get; set; } = null!;
+        public DbSet<LeaseTerminationInvoice> LeaseTerminationInvoices { get; set; } = null!;
+        public DbSet<LegalFeeInvoice> LegalFeeInvoices { get; set; } = null!;
+        public DbSet<CardToken> CardTokens { get; set; } = null!;
+        public DbSet<BankAccountInfo> BankAccountInfo { get; set; } = null!;
+        public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; } = null!;
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            foreach (var entity in modelBuilder.Model.GetEntityTypes())
-            {
-                Console.WriteLine($"Entity: {entity.Name}");
-                foreach (var prop in entity.GetProperties())
-                {
-                    Console.WriteLine($"  Property: {prop.Name}, Type: {prop.ClrType}");
-                }
-            }
-
-            // ✅ Enforce consistent PK mapping
-            modelBuilder.Entity<Invoice>()
-                .HasKey(x => x.InvoiceId);
-
-            modelBuilder.Entity<Invoice>()
-                .Property(x => x.InvoiceId)
-                .HasColumnType("int");
-
-            modelBuilder.Entity<LegalFeeInvoice>()
-                .HasBaseType<Invoice>(); // Reinforce inheritance
-
-            // Configure TPT inheritance
+            // Invoice TPT Inheritance
             modelBuilder.Entity<Invoice>().ToTable("Invoices");
-            modelBuilder.Entity<RentInvoice>().ToTable("RentInvoices");
-            modelBuilder.Entity<UtilityInvoice>().ToTable("UtilityInvoices");
-            modelBuilder.Entity<SecurityDepositInvoice>().ToTable("SecurityDepositInvoices");
-            modelBuilder.Entity<CleaningFeeInvoice>().ToTable("CleaningFeeInvoices");
-            modelBuilder.Entity<LeaseTerminationInvoice>().ToTable("LeaseTerminationInvoices");
-            modelBuilder.Entity<ParkingFeeInvoice>().ToTable("ParkingFeeInvoices");
-            modelBuilder.Entity<PropertyTaxInvoice>().ToTable("PropertyTaxInvoices");
-            modelBuilder.Entity<InsuranceInvoice>().ToTable("InsuranceInvoices");
-            modelBuilder.Entity<LegalFeeInvoice>().ToTable("LegalFeeInvoices");
+            modelBuilder.Entity<RentInvoice>().ToTable("RentInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<UtilityInvoice>().ToTable("UtilityInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<SecurityDepositInvoice>().ToTable("SecurityDepositInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<CleaningFeeInvoice>().ToTable("CleaningFeeInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<LeaseTerminationInvoice>().ToTable("LeaseTerminationInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<ParkingFeeInvoice>().ToTable("ParkingFeeInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<PropertyTaxInvoice>().ToTable("PropertyTaxInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<InsuranceInvoice>().ToTable("InsuranceInvoices").HasBaseType<Invoice>();
+            modelBuilder.Entity<LegalFeeInvoice>().ToTable("LegalFeeInvoices").HasBaseType<Invoice>();
 
-            // 🔸 TPT Inheritance for Payments
+            // Payment TPT Inheritance
             modelBuilder.Entity<Payment>().ToTable("Payments");
-            modelBuilder.Entity<CardPayment>().ToTable("CardPayments");
-            modelBuilder.Entity<CheckPayment>().ToTable("CheckPayments");
-            modelBuilder.Entity<ElectronicTransferPayment>().ToTable("ElectronicTransferPayments");
-            modelBuilder.Entity<WireTransfer>().ToTable("WireTransfers");
-            modelBuilder.Entity<CreditCardPayment>().ToTable("CreditCardPayments");
+            modelBuilder.Entity<CardPayment>().ToTable("CardPayments").HasBaseType<Payment>();
+            modelBuilder.Entity<CheckPayment>().ToTable("CheckPayments").HasBaseType<Payment>();
+            modelBuilder.Entity<ElectronicTransferPayment>().ToTable("ElectronicTransferPayments").HasBaseType<Payment>();
+            modelBuilder.Entity<WireTransfer>().ToTable("WireTransfers").HasBaseType<Payment>();
+            modelBuilder.Entity<CreditCardPayment>().ToTable("CreditCardPayments").HasBaseType<Payment>();
 
-            // 🔸 Payment Relationships
+            // Payment Relationships
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Invoice)
                 .WithMany(i => i.Payments)
@@ -125,7 +96,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
                 .HasForeignKey(p => p.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // 🔸 PreferredMethod Relationships
+            // PreferredMethod Relationships
             modelBuilder.Entity<PreferredMethod>()
                 .HasOne(pm => pm.CardToken)
                 .WithMany()
@@ -149,7 +120,23 @@ namespace PropertyManagementAPI.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(pm => pm.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // PaymentAuditLog
+            modelBuilder.Entity<PaymentAuditLog>(entity =>
+            {
+                entity.ToTable("PaymentAuditLog");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Gateway).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Action).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.PerformedBy).HasMaxLength(100);
+                entity.Property(e => e.ResponsePayload).HasColumnType("json");
+
+                entity.HasOne(e => e.Payment)
+                      .WithMany()
+                      .HasForeignKey(e => e.PaymentId)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
         }
     }
 }
-

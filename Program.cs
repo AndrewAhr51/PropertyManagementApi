@@ -18,11 +18,12 @@ using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Application.Services.Notes;
 using PropertyManagementAPI.Application.Services.Owners;
+using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Application.Services.Property;
 using PropertyManagementAPI.Application.Services.Roles;
 using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Application.Services.Vendors;
-using PropertyManagementAPI.Application.Services.Payments;
+using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 //
@@ -114,6 +115,11 @@ builder.Services.AddScoped<ICardTokenRepository, CardTokenRepository>();
 builder.Services.AddScoped<ICardTokenService, CardTokenService>();
 builder.Services.AddScoped<IPreferredMethodRepository, PreferredMethodRepository>();
 builder.Services.AddScoped<IPreferredMethodService, PreferredMethodService>();
+
+builder.Services.AddSingleton<PayPalClient>();
+builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
+
+builder.Services.AddScoped<PaymentAuditLogger>();
 
 builder.Services.AddControllers();
 

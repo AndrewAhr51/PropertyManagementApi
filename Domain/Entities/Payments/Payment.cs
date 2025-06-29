@@ -28,8 +28,6 @@ namespace PropertyManagementAPI.Domain.Entities.Payments
         public string RoutingNumber { get; set; } = null!; // Routing number (only for Transfer payments)
 
         public string TransactionId { get; set; } = null!; // Transaction ID (only for Transfer payments)
-
-
         public DateTime PaidOn { get; set; }
 
         [Required]
