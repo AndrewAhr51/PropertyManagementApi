@@ -123,7 +123,7 @@ builder.Services.AddScoped<PaymentAuditLogger>();
 
 builder.Services.AddControllers();
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
 // ✅ Ensure JwtSettings Exists & Generate Test Key If Missing
 var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
