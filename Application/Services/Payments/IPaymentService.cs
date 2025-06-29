@@ -19,6 +19,6 @@ namespace PropertyManagementAPI.Application.Services.Payments
         Task<Invoice?> GetInvoiceAsync(int invoiceId);
         Task<string> CreatePayPalOrderAsync(decimal amount, string currency, Invoice invoice);
         Task<string> GetApprovalLinkAsync(string orderId);
-        
+        Task <StripePaymentResponseDto>CreateStripePaymentIntentAsync(CreateStripeDto dto);
     }
 }

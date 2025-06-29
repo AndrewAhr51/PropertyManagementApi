@@ -50,8 +50,8 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<LegalFeeInvoice> LegalFeeInvoices { get; set; } = null!;
         public DbSet<CardToken> CardTokens { get; set; } = null!;
         public DbSet<BankAccountInfo> BankAccountInfo { get; set; } = null!;
-        public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; } = null!;
-
+        public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; } = null!; 
+        public DbSet<CardPayment> CardPayments { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,8 +75,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
             modelBuilder.Entity<CheckPayment>().ToTable("CheckPayments").HasBaseType<Payment>();
             modelBuilder.Entity<ElectronicTransferPayment>().ToTable("ElectronicTransferPayments").HasBaseType<Payment>();
             modelBuilder.Entity<WireTransfer>().ToTable("WireTransfers").HasBaseType<Payment>();
-            modelBuilder.Entity<CreditCardPayment>().ToTable("CreditCardPayments").HasBaseType<Payment>();
-
+            
             // Payment Relationships
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Invoice)
