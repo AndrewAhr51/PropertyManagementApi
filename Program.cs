@@ -123,7 +123,14 @@ builder.Services.AddScoped<PaymentAuditLogger>();
 
 builder.Services.AddControllers();
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+// ✅ Load appsettings.json if it exists (optional for security)
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+// ⚠️ Warning if appsettings.json is missing
+if (!File.Exists("appsettings.json"))
+{
+    Console.WriteLine("⚠️ Warning: appsettings.json not found. Please copy appsettings.json.example to appsettings.json and configure your settings.");
+}
 
 // ✅ Ensure JwtSettings Exists & Generate Test Key If Missing
 var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
