@@ -104,31 +104,6 @@ CREATE TABLE RolePermissions (
     FOREIGN KEY (PermissionId) REFERENCES Permissions(PermissionId)
 );
 
--- Users Table
-CREATE TABLE Users (
-    UserId INT PRIMARY KEY AUTO_INCREMENT,
-    UserName NVARCHAR(50) NOT NULL,
-	Email NVARCHAR(255) NOT NULL UNIQUE,
-    PasswordHash NVARCHAR(255) NOT NULL,
-    RoleId INT NOT NULL,
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    -- Password Reset Fields
-    ResetToken NVARCHAR(255) NULL,
-    ResetTokenExpiration DATETIME NULL,
-    -- Multi-Factor Authentication (MFA)
-    MfaCode NVARCHAR(6) NULL,
-    MfaCodeExpiration DATETIME NULL,
-    IsMfaEnabled BOOLEAN DEFAULT TRUE,
-    IsActive BOOLEAN DEFAULT TRUE
-);
-
--- Foreign Key for RoleId
-ALTER TABLE Users ADD CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES Roles(RoleId);
-
--- Index for MFA Code
-CREATE INDEX IX_MfaCode ON Users (MfaCode);
-
 -- Property Table
 CREATE TABLE Properties (
     PropertyId INT PRIMARY KEY AUTO_INCREMENT,
@@ -163,24 +138,6 @@ CREATE TABLE PropertyPhotos (
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
--- Tenants Table
-CREATE TABLE Tenants (
-    TenantId INT PRIMARY KEY AUTO_INCREMENT,
-    PropertyId INT NOT NULL,
-    UserId INT NOT NULL,
-    PrimaryTenant BOOLEAN DEFAULT FALSE,
-    FirstName NVARCHAR(100),
-    LastName NVARCHAR(100),
-    PhoneNumber NVARCHAR(20),
-	Email NVARCHAR(255) NOT NULL UNIQUE,
-    MoveInDate DATE,
-    Balance DECIMAL(10,2) DEFAULT 0,
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId),
-    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
-);
-
 -- Pricing Table
 CREATE TABLE Pricing (
     PriceId INT PRIMARY KEY AUTO_INCREMENT,
@@ -194,10 +151,34 @@ CREATE TABLE Pricing (
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
+-- Users Table
+CREATE TABLE Users (
+    UserId INT PRIMARY KEY AUTO_INCREMENT,
+    UserName NVARCHAR(50) NOT NULL,
+	Email NVARCHAR(255) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    RoleId INT NOT NULL,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    -- Password Reset Fields
+    ResetToken NVARCHAR(255) NULL,
+    ResetTokenExpiration DATETIME NULL,
+    -- Multi-Factor Authentication (MFA)
+    MfaCode NVARCHAR(6) NULL,
+    MfaCodeExpiration DATETIME NULL,
+    IsMfaEnabled BOOLEAN DEFAULT TRUE,
+    IsActive BOOLEAN DEFAULT TRUE
+);
+
+-- Foreign Key for RoleId
+ALTER TABLE Users ADD CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES Roles(RoleId);
+
+-- Index for MFA Code
+CREATE INDEX IX_MfaCode ON Users (MfaCode);
 
 -- Owners Table
 CREATE TABLE Owners (
-    OwnerId INT PRIMARY KEY AUTO_INCREMENT,
+    OwnerId INT PRIMARY KEY,
     PrimaryOwner BOOLEAN DEFAULT FALSE,
     FirstName NVARCHAR(100) NOT NULL,
     LastName NVARCHAR(100) NOT NULL,
@@ -212,7 +193,8 @@ CREATE TABLE Owners (
 	Balance DECIMAL(10,2) DEFAULT 0,
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (OwnerId) REFERENCES Users(UserId)
 );
 
 -- PropertyOwners (Association Table)
@@ -224,7 +206,22 @@ CREATE TABLE PropertyOwners (
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
 );
-
+-- Tenants Table
+CREATE TABLE Tenants (
+    TenantId INT PRIMARY KEY,
+    PropertyId INT NOT NULL,
+    PrimaryTenant BOOLEAN DEFAULT FALSE,
+    FirstName NVARCHAR(100),
+    LastName NVARCHAR(100),
+    PhoneNumber NVARCHAR(20),
+	Email NVARCHAR(255) NOT NULL UNIQUE,
+    MoveInDate DATE,
+    Balance DECIMAL(10,2) DEFAULT 0,
+    CreatedBy CHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (TenantId) REFERENCES Users(UserId),
+    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
+);
 CREATE TABLE PropertyTenants (
     PropertyId INT NOT NULL,
     TenantId INT NOT NULL,
@@ -514,8 +511,8 @@ CREATE TABLE CardToken (
     CardBrand VARCHAR(20),
     Last4Digits VARCHAR(4),
     Expiration DATE NOT NULL,
-    TenantId INT NOT NULL,
-    OwnerId INT NOT NULL,
+    TenantId INT,
+    OwnerId INT ,
     IsDefault BOOLEAN DEFAULT FALSE,
     LinkedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

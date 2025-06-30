@@ -10,9 +10,6 @@ namespace PropertyManagementAPI.Domain.Entities.User
         public int OwnerId { get; set; }
 
         [Required]
-        public int UserId { get; set; }
-
-        [Required]
         public bool PrimaryOwner { get; set; }
 
         [Required]
@@ -50,15 +47,23 @@ namespace PropertyManagementAPI.Domain.Entities.User
         [Required]
         [MaxLength(20)]
         public string PostalCode { get; set; }
+        
+        [Required]
+        [Column("Balance", TypeName = "decimal(18,2)")]
+        public decimal Balance { get; set; } = 0.0m;
 
         [Required]
         [MaxLength(100)]
         public string Country { get; set; }
 
         public bool IsActive { get; set; } = true;
+        [Required]
+        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
 
         // ✅ Navigation property with explicit foreign key
-        [ForeignKey(nameof(UserId))]
+        [ForeignKey(nameof(OwnerId))]
         public Users Users { get; set; }
 
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();

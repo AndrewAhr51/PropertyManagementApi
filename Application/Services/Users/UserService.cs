@@ -101,17 +101,17 @@ namespace PropertyManagementAPI.Application.Services.Users
         // ✅ Delete a user by ID
         public async Task<bool> DeleteUserAsync(int id)
         {
-            return await _userRepository.DeleteAsync(id);
+            return await _userRepository.SetActivateUser(id);
         }
 
         // ✅ Delete a user by email
         public async Task<bool> DeleteUserByEmailAsync(string email)
         {
-            return await _userRepository.DeleteByEmailAsync(email);
+            return await _userRepository.SetActivateUserByEmailAsync(email);
         }
         public async Task<bool> DeleteUserByUsernameAsync(string username)
         {
-            return await _userRepository.DeleteUserByUsernameAsync(username);
+            return await _userRepository.SetActivateUserByUsernameAsync(username);
         }
 
         private string HashPassword(string password)
@@ -124,9 +124,9 @@ namespace PropertyManagementAPI.Application.Services.Users
             return await _userRepository.GetRoleIdAsync(role);
         }
 
-        public async Task<bool> SetActivateUserAsync(int propertyId)
+        public async Task<bool> SetActivateUserAsync(int UserId)
         {
-            return await _userRepository.SetActivateUserAsync(propertyId);
+            return await _userRepository.SetActivateUserAsync(UserId);
         }
     }
 }

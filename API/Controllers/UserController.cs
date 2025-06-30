@@ -122,13 +122,13 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("{userId}/setactivate")]
-    public async Task<IActionResult> SetActivateOwner(int userId)
+    public async Task<IActionResult> SetActivateUser(int userId)
     {
         var success = await _userService.SetActivateUserAsync(userId);
         if (!success)
         {
-            _logger.LogWarning("SetActivateOwner: User with ID {UserId} not found or already inactive.", userId);
-            return NotFound("User not found or already inactive.");
+            _logger.LogWarning("SetActivateOwner: User with ID {UserId} not found.", userId);
+            return NotFound ($"User with ID {userId} not found.");
         }
 
         _logger.LogInformation("SetActivateOwner: User with ID {UserId} activation status toggled.", userId);

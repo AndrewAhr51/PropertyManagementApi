@@ -8,9 +8,9 @@ public interface IUserRepository
     Task<Users?> GetByUsernameAsync(string username);  // ✅ Retrieve a user by username
     Task<Users?> GetByEmailAsync(string email);  // ✅ Retrieve a user by email
     Task<bool> UpdateAsync(Users user);  // ✅ Update user details
-    Task<bool> DeleteAsync(int id);  // ✅ Remove a user by ID
-    Task<bool> DeleteByEmailAsync(string email);
-    Task<bool> DeleteUserByUsernameAsync(string username);
+    Task<bool> SetActivateUser(int id);  // ✅ Remove a user by ID
+    Task<bool> SetActivateUserByEmailAsync(string email);
+    Task<bool> SetActivateUserByUsernameAsync(string username);
     Task<int> GetRoleIdAsync(string role);  // ✅ Retrieve role ID by role name    
     Task<bool> SetActivateUserAsync(int id); 
 

@@ -16,12 +16,13 @@ public class TenantRepository : ITenantRepository
     {
         var entity = new Tenant
         {
+            TenantId = dto.UserId,
             PropertyId = dto.PropertyId,
-            UserId = dto.UserId,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             PhoneNumber = dto.PhoneNumber,
             MoveInDate = dto.MoveInDate,
+            Balance = 0.0m, // Default balance
         };
 
         _context.Tenants.Add(entity);

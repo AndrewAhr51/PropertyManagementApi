@@ -31,6 +31,10 @@ namespace PropertyManagementAPI.Domain.Entities.User
         public string PhoneNumber { get; set; }
 
         public DateTime? MoveInDate { get; set; }
+
+        [Required]
+        [Column("Balance", TypeName = "decimal(18,2)")]
+        public decimal Balance { get; set; } = 0.0m;
         
         public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
