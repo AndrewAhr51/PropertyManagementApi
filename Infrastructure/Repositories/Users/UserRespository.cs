@@ -1,8 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BCrypt.Net;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.EntityFrameworkCore;
+using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Data;
 using System;
 using System.Threading.Tasks;
-using BCrypt.Net;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Users
 {
@@ -15,7 +18,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
             _context = context;
             _logger = logger;
         }
-
 
         // ✅ Create a new user
         public async Task<Domain.Entities.User.Users> AddAsync(Domain.Entities.User.Users user)
@@ -133,32 +135,34 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
         }
 
         // ✅ Remove a user by ID
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> SetActivateUser(int id)
         {
             try
             {
-                if (id <= 0)
-                {
-                    _logger.LogWarning("Invalid user ID: {Id}", id);
-                    return false;
-                }
                 var user = await _context.Users.FindAsync(id);
                 if (user == null)
                 {
                     _logger.LogWarning("User not found for ID: {Id}", id);
                     return false;
                 }
-                _context.Users.Remove(user);
-                return await _context.SaveChangesAsync() > 0;
+
+                // ✅ Toggle IsActive to the opposite value
+                user.IsActive = !user.IsActive;
+
+                var isActive = user.IsActive;
+
+                var save = await _context.SaveChangesAsync();
+
+                return save > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting user with ID: {Id}", id);
+                _logger.LogError(ex, "Error inactivating the user with ID: {Id}", id);
                 throw new Exception("An error occurred while deleting the user.", ex);
             }
         }
 
-        public async Task<bool> DeleteByEmailAsync(string email)
+        public async Task<bool> SetActivateUserByEmailAsync(string email)
         {
             try
             {
@@ -171,17 +175,22 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
                 if (user == null) return false;
 
-                _context.Users.Remove(user);
-                return await _context.SaveChangesAsync() > 0;
+                // ✅ Toggle IsActive to the opposite value
+                user.IsActive = !user.IsActive;
+
+                var isActive = user.IsActive;
+
+                var save = await _context.SaveChangesAsync();
+
+                return save > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting user by email: {Email}", email);
-                throw new Exception("An error occurred while deleting the user.", ex);
+                _logger.LogError(ex, "Error deactivating the user with ID: {email}", email);
+                throw new Exception("An error occurred while deactivating the user.", ex);
             }
         }
-
-        public async Task<bool> DeleteUserByUsernameAsync(string username)
+        public async Task<bool> SetActivateUserByUsernameAsync(string username)
         {
             try
             {
@@ -194,15 +203,22 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
                 if (user == null) return false;
 
-                _context.Users.Remove(user);
-                return await _context.SaveChangesAsync() > 0;
+                // ✅ Toggle IsActive to the opposite value
+                user.IsActive = !user.IsActive;
+
+                var isActive = user.IsActive;
+
+                var save = await _context.SaveChangesAsync();
+
+                return save > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting user by username: {Username}", username);
-                throw new Exception("An error occurred while deleting the user.", ex);
+                _logger.LogError(ex, "Error deactivating the user with {username}", username);
+                throw new Exception("An error occurred while deactivating the user.", ex);
             }
         }
+        
         // ✅ Retrieve role ID by role name
         public async Task<int> GetRoleIdAsync(string role)
         {
@@ -526,7 +542,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
                 await _context.SaveChangesAsync();
 
                 // ✅ Step 2: Find owner by UserId
-                var owner = await _context.Owners.FirstOrDefaultAsync(o => o.UserId == userId);
+                var owner = await _context.Owners.FirstOrDefaultAsync(o => o.OwnerId == userId);
                 if (owner == null) return false;
 
                 owner.IsActive = isActive;
@@ -538,19 +554,29 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
                     .Select(po => po.PropertyId)
                     .ToListAsync();
 
-                // ✅ Step 4: Update IsActive on each property
-                var properties = await _context.Properties
-                    .Where(p => propertyIds.Contains(p.PropertyId))
-                    .ToListAsync();
-
-                foreach (var property in properties)
+                if (propertyIds == null || propertyIds.Count == 0)
                 {
-                    property.IsActive = isActive;
+                    _logger.LogWarning("No properties found for owner with ID: {OwnerId}", owner.OwnerId);
+                    return false;
+                } else {
+                    _logger.LogInformation("Found {Count} properties for owner with ID: {OwnerId}", propertyIds.Count, owner.OwnerId);
+                }
+                foreach (var propertyId in propertyIds)
+                {
+                    _logger.LogInformation("Property ID: {PropertyId}", propertyId);
+                    var property = await _context.Properties.FindAsync(propertyId);
+                    if (property == null)
+                    {
+                        _logger.LogWarning("Property with ID {PropertyId} not found.", propertyId);
+                        continue; // Skip to the next property if not found
+                    }
+                    _logger.LogInformation("Updating property with ID: {PropertyId} to IsActive: {IsActive}", propertyId, isActive);
+                    property.IsActive = isActive; // Update IsActive status
                 }
 
+                // ✅ Step 4: Save changes to properties
                 await _context.SaveChangesAsync();
                 return true;
-
             }
             catch (Exception ex)
             {

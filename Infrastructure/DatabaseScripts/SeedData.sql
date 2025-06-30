@@ -98,6 +98,26 @@ INSERT INTO lkupInvoiceStatus (Id, Name) VALUES
     (2, 'Paid'),
     (3, 'Overdue'),
     (4, 'Cancelled');
+    
+INSERT INTO LkupUtilities (UtilityName, Description) VALUES
+('Electricity', 'Electric power usage and billing'),
+('Water', 'Water supply and consumption'),
+('Gas', 'Natural gas usage'),
+('Trash', 'Garbage collection services'),
+('Internet', 'Broadband or fiber internet service'),
+('Sewer', 'Sewage and wastewater services'),
+('Recycling', 'Recyclable waste collection'),
+('Cable TV', 'Television cable service');
+
+INSERT INTO LkupCleaningType (CleaningTypeName, Description) VALUES
+('Move-In Cleaning', 'Deep cleaning before a new tenant moves in'),
+('Move-Out Cleaning', 'Thorough cleaning after a tenant vacates'),
+('Routine Cleaning', 'Scheduled maintenance cleaning'),
+('Emergency Cleaning', 'Unplanned cleaning due to damage or incident'),
+('Post-Renovation Cleaning', 'Cleanup after construction or remodeling'),
+('Carpet Cleaning', 'Professional carpet shampooing or steaming'),
+('Window Cleaning', 'Interior and exterior window washing'),
+('Appliance Cleaning', 'Detailed cleaning of kitchen and laundry appliances');
 
 -- ✅ Insert seed data into Roles table
 INSERT INTO Roles (Name, Description) VALUES
@@ -127,16 +147,6 @@ INSERT INTO RolePermissions (RoleId, PermissionId) VALUES
 -- Owner can view and edit their properties
 (4, 1), (4, 2);
 
--- ✅ Insert seed data into Users table
-INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedDate, IsMfaEnabled, IsActive) VALUES
-('admin_user', 'admin@example.com', 'hashed_password_1', 1, CURRENT_TIMESTAMP, TRUE, TRUE),
-('manager_user', 'manager@example.com', 'hashed_password_2', 2, CURRENT_TIMESTAMP, TRUE, TRUE),
-('jane_smith', 'owner@example.com', 'hashed_password_4', 4, CURRENT_TIMESTAMP, TRUE, TRUE),
-('john_doe', 'tenant@example.com', 'hashed_password_3', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
-('michael_johnson', 'michael.johnson@example.com', 'hashed_password_5', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
-('mary_jane', 'mary.jane@example.com', 'hashed_password_6', 3, CURRENT_TIMESTAMP, TRUE, TRUE),
-('john smith', 'john.smith@example.com', 'hashed_password_7', 3, CURRENT_TIMESTAMP, TRUE, TRUE);
-
 -- ✅ Insert seed data into Property table
 INSERT INTO Properties (PropertyName, Address, Address1, City, State, PostalCode, Country, Bedrooms, Bathrooms, SquareFeet, PropertyTaxes, Insurance, IsAvailable, IsActive) VALUES
 ('Sunset Villa', '123 Main St', 'Apt 1', 'Los Angeles', 'CA', '90001', 'USA', 3, 2, 1800, 2000, 1200,TRUE, TRUE),
@@ -155,57 +165,56 @@ INSERT INTO Pricing (PropertyId, EffectiveDate, RentalAmount, DepositAmount, Lea
 (2, '2024-12-12', 1800.00, 3600.00, '6 Months', FALSE),
 (3, '2024-12-12', 3200.00, 6400.00, '24 Months', TRUE);
 
--- ✅ Insert seed data into Owners table
-INSERT INTO Owners (PrimaryOwner, FirstName, LastName, Email, Phone, Address1, Address2, City, State, PostalCode, Country, IsActive) VALUES
-(1,'Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA', TRUE),
-(1,'Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', TRUE),
-(1,'Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', TRUE);
+-- ✅ Insert Users (admin, manager, 1 owner, 4 tenants)
+INSERT INTO Users (UserName, Email, PasswordHash, RoleId, CreatedDate, IsMfaEnabled, IsActive) VALUES
+('admin_user', 'admin@example.com', 'hashed_password_1', 1, CURRENT_TIMESTAMP, TRUE, TRUE),   -- Id = 1
+('manager_user', 'manager@example.com', 'hashed_password_2', 2, CURRENT_TIMESTAMP, TRUE, TRUE), -- Id = 2
+('alice_johnson', 'alice.johnson@example.com', 'hashed_password_3', 4, CURRENT_TIMESTAMP, TRUE, TRUE), -- Id = 3
+('bob_williams', 'bob.williams@example.com', 'hashed_password_4', 4, CURRENT_TIMESTAMP, TRUE, TRUE),   -- Id = 4
+('charlie_brown', 'charlie.brown@example.com', 'hashed_password_5', 4, CURRENT_TIMESTAMP, TRUE, TRUE), -- Id = 5
+('john_doe', 'john.doe@example.com', 'hashed_password_6', 3, CURRENT_TIMESTAMP, TRUE, TRUE),           -- Id = 6
+('michael_johnson', 'michael.johnson@example.com', 'hashed_password_7', 3, CURRENT_TIMESTAMP, TRUE, TRUE), -- Id = 7
+('mary_johnson', 'mary.johnson@example.com', 'hashed_password_8', 3, CURRENT_TIMESTAMP, TRUE, TRUE),      -- Id = 8
+('john_smith', 'john.smith@example.com', 'hashed_password_9', 3, CURRENT_TIMESTAMP, TRUE, TRUE);          -- Id = 9
 
--- ✅ Insert seed data into PropertyOwners table
+-- ✅ Insert matching Owners (OwnerId = Users.Id)
+INSERT INTO Owners (
+  OwnerId, PrimaryOwner, FirstName, LastName, Email, Phone,
+  Address1, Address2, City, State, PostalCode, Country, IsActive
+) VALUES
+(3, 1, 'Alice', 'Johnson', 'alice.johnson@example.com', '555-1234', '789 Oak St', 'Suite 5', 'Chicago', 'IL', '60601', 'USA', TRUE),
+(4, 1, 'Bob', 'Williams', 'bob.williams@example.com', '555-5678', '456 Maple Ave', NULL, 'Seattle', 'WA', '98101', 'USA', TRUE),
+(5, 1, 'Charlie', 'Brown', 'charlie.brown@example.com', '555-9876', '123 Pine Rd', 'Apt 2B', 'Denver', 'CO', '80201', 'USA', TRUE);
+
+-- ✅ Insert into PropertyOwners
 INSERT INTO PropertyOwners (PropertyId, OwnerId, OwnershipPercentage) VALUES
-(1, 1, 100.00),
-(2, 2, 100.00),
-(3, 3, 100.00);
+(1, 3, 100.00),
+(2, 4, 100.00),
+(3, 5, 100.00);
 
--- ✅ Insert seed data into Tenants table
-INSERT INTO Tenants (TenantId, UserId, PropertyId, PrimaryTenant, FirstName, LastName, Email, PhoneNumber, MoveInDate) VALUES
-(3, 3, 1, 1, 'John', 'Doe', 'john.doe@example.com', '555-1234', '2024-01-15'),
-(5, 5, 2, 1,'Michael', 'Johnson', 'michael.johnson@example.com', '555-9876', '2022-09-20'),
-(6, 6, 2, 0,'Mary', 'Johnson',  'mary.johnson@example.com','555-9876', '2022-09-20'),
-(7, 7, 3, 1, 'John', 'Smith',  'john.smith@example.com','555-5555', '2022-10-01');
+-- ✅ Insert Tenants (UserId = TenantId)
+INSERT INTO Tenants (
+  TenantId, PropertyId, PrimaryTenant,
+  FirstName, LastName, Email, PhoneNumber, MoveInDate
+) VALUES
+(6, 1, 1, 'John', 'Doe', 'john.doe@example.com', '555-1234', '2024-01-15'),
+(7, 2, 1, 'Michael', 'Johnson', 'michael.johnson@example.com', '555-9876', '2022-09-20'),
+(8, 2, 0, 'Mary', 'Johnson', 'mary.johnson@example.com', '555-9876', '2022-09-20'),
+(9, 3, 1, 'John', 'Smith', 'john.smith@example.com', '555-5555', '2022-10-01');
 
 INSERT INTO PropertyTenants (PropertyId, TenantId) VALUES
-(1, 3),
-(2, 5),
-(2, 6),
-(3, 7);
-
--- Seed data for common utility types
-INSERT INTO LkupUtilities (UtilityName, Description) VALUES
-('Electricity', 'Electric power usage and billing'),
-('Water', 'Water supply and consumption'),
-('Gas', 'Natural gas usage'),
-('Trash', 'Garbage collection services'),
-('Internet', 'Broadband or fiber internet service'),
-('Sewer', 'Sewage and wastewater services'),
-('Recycling', 'Recyclable waste collection'),
-('Cable TV', 'Television cable service');
-
-INSERT INTO LkupCleaningType (CleaningTypeName, Description) VALUES
-('Move-In Cleaning', 'Deep cleaning before a new tenant moves in'),
-('Move-Out Cleaning', 'Thorough cleaning after a tenant vacates'),
-('Routine Cleaning', 'Scheduled maintenance cleaning'),
-('Emergency Cleaning', 'Unplanned cleaning due to damage or incident'),
-('Post-Renovation Cleaning', 'Cleanup after construction or remodeling'),
-('Carpet Cleaning', 'Professional carpet shampooing or steaming'),
-('Window Cleaning', 'Interior and exterior window washing'),
-('Appliance Cleaning', 'Detailed cleaning of kitchen and laundry appliances');
+(1, 6),
+(2, 7),
+(2, 8),
+(3, 9);
 
 -- 🔹 CARD TOKENS
-INSERT INTO CardToken (TokenValue, CardBrand, Last4Digits, Expiration, TenantId, OwnerId, IsDefault, LinkedOn)
-VALUES  
-('tok_visa_123', 'Visa', '4242', '2026-12-31', 3, 1, TRUE, NOW()),   -- John Doe (TenantId = 3)
-('tok_mc_456', 'MasterCard', '5454', '2025-10-31', 5, 2, FALSE, NOW()); -- Michael Johnson (TenantId = 5)
+INSERT INTO CardToken (
+  TokenValue, CardBrand, Last4Digits, Expiration,
+  TenantId, OwnerId, IsDefault, LinkedOn
+) VALUES
+('tok_visa_123', 'Visa', '4242', '2026-12-31', 6, NULL, TRUE, NOW()),   -- John Doe
+('tok_mc_456', 'MasterCard', '5454', '2025-10-31', 7, NULL, FALSE, NOW()); -- Michael Johnson
 
 -- 🔹 BANK ACCOUNTS
 INSERT INTO BankAccountInfo (BankName, AccountNumberMasked, RoutingNumber, AccountType, CreatedOn)
@@ -225,12 +234,12 @@ VALUES
 (1, '123 Main St', '', 'Orlando', 'FL', '32801', 'USA', 'Y', TRUE, NOW()),
 (2, '456 Elm St', 'Apt 2B', 'Tampa', 'FL', '33602', 'USA', 'N', FALSE, NOW());
 
--- 🔹 PREFERRED METHODS
+-- ✅ Preferred payment methods
 INSERT INTO PreferredMethod (
-    TenantId, OwnerId, MethodType, CardTokenId, BankAccountInfoId, IsDefault, UpdatedOn)
-VALUES
-(3, NULL, 'Card', 1, NULL, TRUE, NOW()),  -- John Doe
-(NULL, 2, 'Bank', NULL, 2, TRUE, NOW());  -- Make sure OwnerId 2 exists!
+    TenantId, OwnerId, MethodType, CardTokenId, BankAccountInfoId, IsDefault, UpdatedOn
+) VALUES
+(6, NULL, 'Card', 1, NULL, TRUE, NOW()),    -- John Doe
+(NULL, 4, 'Bank', NULL, 2, TRUE, NOW());    -- Bob Williams
 
 -- 🔹 Invoices (linked to seeded TenantId values: 3, 5, etc.)
 INSERT INTO Invoices (
@@ -238,11 +247,10 @@ INSERT INTO Invoices (
     propertyid, tenantid, IsPaid, status, notes, invoicetypeid, CreatedBy
 )
 VALUES
-(101, 'John Doe', 'john.doe@example.com', 'REF-101', 1200.00, '2024-12-01', 1, 3, FALSE, 'Pending', 'First rent invoice', 1, 'Web'),
-(102, 'Michael Johnson', 'michael.johnson@example.com', 'REF-102', 950.00, '2024-12-15', 2, 5, FALSE, 'Pending', 'Lease renewal', 1, 'Web'),
-(103, 'John Doe', 'john.doe@example.com', 'REF-103', 500.00, '2025-01-01', 1, 3, FALSE, 'Pending', 'Late fee notice', 2, 'Web');
+(101, 'John Doe', 'john.doe@example.com', 'REF-101', 1200.00, '2024-12-01', 1, 6, FALSE, 'Pending', 'First rent invoice', 1, 'Web'),
+(102, 'Michael Johnson', 'michael.johnson@example.com', 'REF-102', 950.00, '2024-12-15', 2, 7, FALSE, 'Pending', 'Lease renewal', 1, 'Web'),
+(103, 'John Doe', 'john.doe@example.com', 'REF-103', 500.00, '2025-01-01', 1, 6, FALSE, 'Pending', 'Late fee notice', 2, 'Web');
 
--- 🔹 PAYMENTS (TPH-style)
 -- Adjusting to TenantId = 3 and 5 from your seed
 INSERT INTO Payments (
     Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
@@ -251,5 +259,5 @@ INSERT INTO Payments (
     BankAccountNumber, RoutingNumber, TransactionId
 )
 VALUES
-(1200.00, NOW(), 'REF-001', 101, 3, null, 'Card', 'Visa', '4242', 'AUTH123', NULL, NULL, NULL, NULL, NULL),
-(500.00, NOW(), 'REF-003', 103, 3, null, 'Transfer', NULL, NULL, NULL, NULL, NULL, '****1234', '021000021', 'TXN456');
+(1200.00, NOW(), 'REF-001', 101, 6, NULL, 'Card', 'Visa', '4242', 'AUTH123', NULL, NULL, NULL, NULL, NULL),
+(500.00, NOW(), 'REF-003', 103, 6, NULL, 'Transfer', NULL, NULL, NULL, NULL, NULL, '****1234', '021000021', 'TXN456');

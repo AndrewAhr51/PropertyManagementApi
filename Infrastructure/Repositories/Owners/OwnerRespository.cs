@@ -36,7 +36,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
             // ✅ Create new owner
             var owner = new Owner
             {
-                UserId = ownerDto.UserId,
+                OwnerId = ownerDto.UserId,
                 FirstName = ownerDto.FirstName,
                 LastName = ownerDto.LastName,
                 Email = ownerDto.Email,
@@ -46,7 +46,8 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
                 City = ownerDto.City,
                 State = ownerDto.State,
                 PostalCode = ownerDto.PostalCode,
-                Country = ownerDto.Country
+                Country = ownerDto.Country,
+                Balance = 0.0m, // Default balance
             };
 
             try
