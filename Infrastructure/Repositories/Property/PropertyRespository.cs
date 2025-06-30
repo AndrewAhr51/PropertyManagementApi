@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities.Properties;
+﻿using PropertyManagementAPI.Domain.Entities.Property;
 using PropertyManagementAPI.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Property;
@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
 
         public async Task<PropertyDto> AddPropertyAsync(PropertyDto dto)
         {
-            var property = new Propertys
+            var property = new Properties
             {
                 PropertyName = dto.PropertyName,
                 Address = dto.Address,
@@ -102,23 +102,23 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
         {
             return await _context.PropertyOwners
                 .Where(po => po.OwnerId == ownerId)
-                .Include(po => po.Property)
+                .Include(po => po.Properties)
                 .Select(po => new PropertyDto
                 {
-                    PropertyId = po.Property.PropertyId,
-                    PropertyName = po.Property.PropertyName,
-                    Address = po.Property.Address,
-                    Address1 = po.Property.Address1,
-                    City = po.Property.City,
-                    State = po.Property.State,
-                    PostalCode = po.Property.PostalCode,
-                    Country = po.Property.Country,
-                    Bedrooms = po.Property.Bedrooms,
-                    Bathrooms = po.Property.Bathrooms,
-                    SquareFeet = po.Property.SquareFeet,
-                    PropertyTaxes = po.Property.PropertyTaxes,
-                    IsAvailable = po.Property.IsAvailable,
-                    IsActive = po.Property.IsActive,
+                    PropertyId = po.Properties.PropertyId,
+                    PropertyName = po.Properties.PropertyName,
+                    Address = po.Properties.Address,
+                    Address1 = po.Properties.Address1,
+                    City = po.Properties.City,
+                    State = po.Properties.State,
+                    PostalCode = po.Properties.PostalCode,
+                    Country = po.Properties.Country,
+                    Bedrooms = po.Properties.Bedrooms,
+                    Bathrooms = po.Properties.Bathrooms,
+                    SquareFeet = po.Properties.SquareFeet,
+                    PropertyTaxes = po.Properties.PropertyTaxes,
+                    IsAvailable = po.Properties.IsAvailable,
+                    IsActive = po.Properties.IsActive,
                     OwnerId = po.OwnerId,
                     OwnershipPercentage = po.OwnershipPercentage
                 })

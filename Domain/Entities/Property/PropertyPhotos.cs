@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementAPI.Domain.Entities.Properties
+namespace PropertyManagementAPI.Domain.Entities.Property
 {
     public class PropertyPhotos
     {
@@ -26,7 +26,7 @@ namespace PropertyManagementAPI.Domain.Entities.Properties
         public DateTime? CreatedDate { get; set; }
 
         [ForeignKey(nameof(PropertyId))]
-        public Propertys Property { get; set; }
+        public Properties Properties { get; set; }
     }
 }
 

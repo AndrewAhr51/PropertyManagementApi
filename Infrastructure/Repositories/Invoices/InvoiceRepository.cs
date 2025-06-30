@@ -10,7 +10,7 @@ using PropertyManagementAPI.Domain.DTOs.Property;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Data;
 using System.Linq;
-using PropertyManagementAPI.Domain.Entities.Properties;
+using PropertyManagementAPI.Domain.Entities.Property;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
@@ -110,7 +110,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return null; // Fix for CS8603: Return null explicitly for nullable type.
             }
         }
-        public async Task<Propertys?> GetPropertyInformationAsync(int propertyId)
+        public async Task<Properties?> GetPropertyInformationAsync(int propertyId)
         {
             try
             {

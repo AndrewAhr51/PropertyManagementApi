@@ -1,4 +1,5 @@
 ﻿using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Domain.Entities.Property;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,9 +12,6 @@ namespace PropertyManagementAPI.Domain.Entities.User
 
         [Required]
         public int PropertyId { get; set; }
-
-        [Required]
-        public int UserId { get; set; }
 
         [Required]
         public bool PrimaryTenant { get; set; } = false;
@@ -39,9 +37,9 @@ namespace PropertyManagementAPI.Domain.Entities.User
         public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
      
-        [ForeignKey(nameof(UserId))]
-        public Users Users { get; set; }
-
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        public ICollection<Lease> Leases { get; set; }
     }
+
 }

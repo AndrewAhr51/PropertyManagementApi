@@ -18,8 +18,8 @@ namespace PropertyManagementAPI.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] LeaseDto dto)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateLease([FromBody] LeaseDto dto)
         {
             if (dto == null)
             {
@@ -29,19 +29,19 @@ namespace PropertyManagementAPI.API.Controllers
 
             var created = await _service.CreateLeaseAsync(dto);
             _logger.LogInformation("Create: Lease created with ID {Id}.", created.LeaseId);
-            return CreatedAtAction(nameof(GetById), new { leaseId = created.LeaseId }, created);
+            return CreatedAtAction(nameof(GetLeaseById), new { leaseId = created.LeaseId }, created);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllLeases()
         {
             var leases = await _service.GetAllLeaseAsync();
             _logger.LogInformation("GetAll: Retrieved {Count} leases.", leases.Count());
             return Ok(leases);
         }
 
-        [HttpGet("{leaseId}")]
-        public async Task<IActionResult> GetById(int leaseId)
+        [HttpGet("by-id/{leaseId}")]
+        public async Task<IActionResult> GetLeaseById(int leaseId)
         {
             var lease = await _service.GetLeaseByIdAsync(leaseId);
             if (lease == null)
@@ -53,28 +53,54 @@ namespace PropertyManagementAPI.API.Controllers
             return Ok(lease);
         }
 
-        [HttpPut("{leaseId}")]
-        public async Task<IActionResult> Update(int leaseId, [FromBody] LeaseDto dto)
+        [HttpGet("by-owner/{ownerId}")]
+        public async Task<IActionResult> GetAllLeasesByOwnerIdAsync(int ownerId)
         {
-            if (dto == null)
+            var lease = await _service.GetAllLeasesByOwnerIdAsync(ownerId);
+            if (lease == null)
             {
-                _logger.LogWarning("Update: Received null LeaseDto for ID {Id}.", leaseId);
-                return BadRequest("Invalid lease data.");
-            }
-
-            var updated = await _service.UpdateLeaseAsync(leaseId, dto);
-            if (!updated)
-            {
-                _logger.LogWarning("Update: Lease ID {Id} not found or inactive.", leaseId);
+                _logger.LogWarning("GetLeaseByOwnerIdAsync: owner ID {Id} not found.", ownerId);
                 return NotFound();
             }
 
-            _logger.LogInformation("Update: Lease ID {Id} updated.", leaseId);
+            return Ok(lease);
+        }
+
+        [HttpGet("by-tenant/{tenantId}")]
+        public async Task<IActionResult> GetLeaseByTenantIdAsync(int tenantId)
+        {
+            var lease = await _service.GetLeaseByTenantIdAsync(tenantId);
+            if (lease == null)
+            {
+                _logger.LogWarning("GetLeaseByTenantIdAsync: tenant {Id} not found.", tenantId);
+                return NotFound();
+            }
+
+            return Ok(lease);
+        }
+
+        [HttpPut("updateByLeaseid")]
+        public async Task<IActionResult> UpdateLease([FromBody] LeaseUpdateDto dto)
+        {
+            if (dto == null)
+            {
+                _logger.LogWarning("Update: Received null LeaseDto for ID {Id}.", dto.LeaseId);
+                return BadRequest("Invalid lease data.");
+            }
+
+            var updated = await _service.UpdateLeaseAsync(dto);
+            if (!updated)
+            {
+                _logger.LogWarning("Update: Lease ID {Id} not found or inactive.", dto.LeaseId);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Update: Lease ID {Id} updated.", dto.LeaseId);
             return NoContent();
         }
 
-        [HttpDelete("{leaseId}")]
-        public async Task<IActionResult> Delete(int leaseId)
+        [HttpDelete("delete/{leaseId}")]
+        public async Task<IActionResult> DeleteLease(int leaseId)
         {
             var deleted = await _service.DeleteLeaseAsync(leaseId);
             if (!deleted)

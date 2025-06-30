@@ -2,16 +2,9 @@
 
 namespace PropertyManagementAPI.Domain.DTOs.Property
 {
-    public class LeaseDto
+    public class LeaseUpdateDto
     {
         public int LeaseId { get; set; }
-        public int TenantId { get; set; }
-        public string TenantFirstName { get; set; }
-        public string TenantLastName { get; set; }
-        public string TenantPhoneNumber { get; set; }
-        public int PropertyId { get; set; }
-        public string PropertyName { get; set; }
-
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public decimal MonthlyRent { get; set; }

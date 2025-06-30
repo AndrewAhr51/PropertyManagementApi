@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementAPI.Domain.Entities.Properties
+namespace PropertyManagementAPI.Domain.Entities.Property
 {
-    public class Propertys
+    public class Properties
     {
         [Key]
         public int PropertyId { get; set; }
@@ -11,10 +11,6 @@ namespace PropertyManagementAPI.Domain.Entities.Properties
         [Required]
         [MaxLength(255)]
         public string PropertyName { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string CustomerName { get; set; }
 
         [Required]
         [MaxLength(255)]
@@ -59,5 +55,8 @@ namespace PropertyManagementAPI.Domain.Entities.Properties
 
         // Navigation property (optional)  
         public ICollection<PropertyOwner> PropertyOwners { get; set; }
+
+        public ICollection<Lease> Leases { get; set; }
+
     }
 }
