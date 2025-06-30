@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DocumentFormat.OpenXml.InkML;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Property;
-using PropertyManagementAPI.Domain.Entities.Properties;
+using PropertyManagementAPI.Domain.Entities.Property;
+using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Data;
 
 public class LeaseRepository : ILeaseRepository
@@ -87,10 +89,10 @@ public class LeaseRepository : ILeaseRepository
             CreatedBy = l.CreatedBy
         };
     }
-
-    public async Task<bool> UpdateLeaseByIdAsync(int leaseId, LeaseDto dto)
+    
+    public async Task<bool> UpdateLeaseByIdAsync(LeaseUpdateDto dto)
     {
-        var entity = await _context.Leases.FindAsync(leaseId);
+        var entity = await _context.Leases.FindAsync(dto.LeaseId);
         if (entity == null || !entity.IsActive) return false;
 
         entity.StartDate = dto.StartDate;
@@ -112,5 +114,61 @@ public class LeaseRepository : ILeaseRepository
         entity.IsActive = !entity.IsActive;
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<LeaseDto?> GetLeaseByTenantIdAsync(int tenantId)
+    {
+        var lease = await _context.Leases
+          .Where(l => l.TenantId == tenantId && l.IsActive)
+          .Include(lease => lease.Tenants)
+          .Include(lease => lease.Property)
+          .FirstOrDefaultAsync();
+
+        return lease == null ? null : new LeaseDto
+        {
+            LeaseId = lease.LeaseId,
+            PropertyId = lease.PropertyId,
+            PropertyName = lease.Property.PropertyName,
+            TenantId = lease.TenantId,
+            TenantFirstName = lease.Tenants.FirstName,
+            TenantLastName = lease.Tenants.LastName,
+            TenantPhoneNumber = lease.Tenants.PhoneNumber,
+            StartDate = lease.StartDate,
+            EndDate = lease.EndDate,
+            MonthlyRent = lease.MonthlyRent,
+            DepositPaid = lease.DepositPaid,
+            IsActive = lease.IsActive,
+            SignedDate = lease.SignedDate,
+            CreatedBy = lease.CreatedBy
+        };
+    }
+
+    public async Task<IEnumerable<LeaseDto>> GetAllLeasesByOwnerIdAsync(int ownerId)
+    {
+        var leases = await _context.Leases
+        .Where(lease => lease.Property.PropertyOwners.Any(po => po.OwnerId == ownerId))
+        .Include(lease => lease.Tenants)
+        .Include(lease => lease.Property)
+        .Select(lease => new LeaseDto
+        {
+          LeaseId = lease.LeaseId,
+          TenantId = lease.TenantId,
+          TenantFirstName = lease.Tenants.FirstName,
+          TenantLastName = lease.Tenants.LastName,
+          TenantPhoneNumber = lease.Tenants.PhoneNumber,
+          PropertyId = lease.PropertyId,
+          PropertyName = lease.Property.PropertyName,
+          StartDate = lease.StartDate,
+          EndDate = lease.EndDate,
+          MonthlyRent = lease.MonthlyRent,
+          DepositAmount = lease.DepositAmount,
+          DepositPaid = lease.DepositPaid,
+          IsActive = lease.IsActive,
+          SignedDate = lease.SignedDate,
+          CreatedBy = lease.CreatedBy
+        })
+        .ToListAsync();
+
+        return (IEnumerable<LeaseDto>)leases;
     }
 }

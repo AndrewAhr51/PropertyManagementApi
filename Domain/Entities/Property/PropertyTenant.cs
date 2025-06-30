@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementAPI.Domain.Entities.Properties
+namespace PropertyManagementAPI.Domain.Entities.Property
 {
 
     [PrimaryKey(nameof(PropertyId), nameof(TenantId))]

@@ -40,7 +40,6 @@ public class TenantRepository : ITenantRepository
             {
                 TenantId = t.TenantId,
                 PropertyId = t.PropertyId,
-                UserId = t.UserId,
                 FirstName = t.FirstName,
                 LastName = t.LastName,
                 PhoneNumber = t.PhoneNumber,
@@ -57,7 +56,6 @@ public class TenantRepository : ITenantRepository
         {
             TenantId = t.TenantId,
             PropertyId = t.PropertyId,
-            UserId = t.UserId,
             FirstName = t.FirstName,
             LastName = t.LastName,
             PhoneNumber = t.PhoneNumber,

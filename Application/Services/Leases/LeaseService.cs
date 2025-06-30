@@ -24,13 +24,23 @@ public class LeaseService : ILeaseService
         return await _repository.GetLeaseByIdAsync(leaseId);
     }
 
-    public async Task<bool> UpdateLeaseAsync(int leaseId, LeaseDto dto)
+    public async Task<bool> UpdateLeaseAsync(LeaseUpdateDto dto)
     {
-        return await _repository.UpdateLeaseByIdAsync(leaseId, dto);
+        return await _repository.UpdateLeaseByIdAsync(dto);
     }
 
     public async Task<bool> DeleteLeaseAsync(int leaseId)
     {
         return await _repository.DeleteLeaseByIdAsync(leaseId);
+    }
+
+    public async Task<IEnumerable<LeaseDto>> GetAllLeasesByOwnerIdAsync(int ownerId)
+    {
+        return await _repository.GetAllLeasesByOwnerIdAsync(ownerId);
+    }
+
+    public async Task<LeaseDto> GetLeaseByTenantIdAsync(int tenantId)
+    {
+        return await _repository.GetLeaseByTenantIdAsync(tenantId);
     }
 }

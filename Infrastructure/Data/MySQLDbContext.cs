@@ -4,7 +4,7 @@ using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Maintenance;
 using PropertyManagementAPI.Domain.Entities.Notes;
 using PropertyManagementAPI.Domain.Entities.Payments;
-using PropertyManagementAPI.Domain.Entities.Properties;
+using PropertyManagementAPI.Domain.Entities.Property;
 using PropertyManagementAPI.Domain.Entities.Roles;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Domain.Entities.Vendors;
@@ -31,7 +31,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
         public DbSet<PreferredMethod> PreferredMethods { get; set; }
         public DbSet<Pricing> Pricing { get; set; }
-        public DbSet<Propertys> Properties { get; set; }
+        public DbSet<Properties> Properties { get; set; }
         public DbSet<PropertyOwner> PropertyOwners { get; set; }
         public DbSet<PropertyTenant> PropertyTenants { get; set; }
         public DbSet<PropertyPhotos> PropertyPhotos { get; set; }
@@ -75,7 +75,8 @@ namespace PropertyManagementAPI.Infrastructure.Data
             modelBuilder.Entity<CheckPayment>().ToTable("CheckPayments").HasBaseType<Payment>();
             modelBuilder.Entity<ElectronicTransferPayment>().ToTable("ElectronicTransferPayments").HasBaseType<Payment>();
             modelBuilder.Entity<WireTransfer>().ToTable("WireTransfers").HasBaseType<Payment>();
-            
+
+
             // Payment Relationships
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Invoice)
@@ -136,6 +137,8 @@ namespace PropertyManagementAPI.Infrastructure.Data
                       .HasForeignKey(e => e.PaymentId)
                       .OnDelete(DeleteBehavior.SetNull);
             });
+
+
         }
     }
 }

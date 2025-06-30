@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.Entities.Properties;
+﻿using PropertyManagementAPI.Domain.Entities.Property;
 using PropertyManagementAPI.Domain.Entities.User;
 
 namespace PropertyManagementAPI.Domain.Entities.Invoices
@@ -10,7 +10,7 @@ namespace PropertyManagementAPI.Domain.Entities.Invoices
 
         // Optional override or extension for clarity/context
         public int PropertyId { get; set; }
-        public Propertys Property { get; set; } // Navigation property
+        public Properties Properties { get; set; } // Navigation property
 
         public Tenant Tenant { get; set; } // Navigation property
     }

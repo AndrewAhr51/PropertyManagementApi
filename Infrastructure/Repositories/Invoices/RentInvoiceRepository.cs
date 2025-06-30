@@ -100,7 +100,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         }
         public async Task<RentInvoice?> GetInvoiceRentalByIdAsync(int invoiceId) =>
             await _context.RentInvoices
-                          .Include(r => r.Property) // optional: eager load relationships
+                          .Include(r => r.Properties) // optional: eager load relationships
                           .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
 
         public async Task<IEnumerable<RentInvoice>> GetAllInvoiceRentalsAsync() =>

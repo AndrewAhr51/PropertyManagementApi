@@ -1,7 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PropertyManagementAPI.Domain.Entities.User;
 
-namespace PropertyManagementAPI.Domain.Entities.Properties
+namespace PropertyManagementAPI.Domain.Entities.Property
 {
     public class Lease
     {
@@ -36,5 +38,10 @@ namespace PropertyManagementAPI.Domain.Entities.Properties
 
         public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
+        public Tenant Tenants { get; set; }      // Navigation to Tenant
+        public Properties Property { get; set; } // Navigation to Property
+
+
     }
 }
