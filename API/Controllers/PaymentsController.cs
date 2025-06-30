@@ -7,6 +7,7 @@ using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Payments;
 using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Infrastructure.Payments;
 using System.Diagnostics;
 using static System.Net.WebRequestMethods;
 

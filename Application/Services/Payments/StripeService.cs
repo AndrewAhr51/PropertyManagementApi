@@ -4,10 +4,17 @@ namespace PropertyManagementAPI.Application.Services.Payments
 {
     public class StripeService : IStripeService
     {
-        public StripeService(IConfiguration config)
+        private readonly string _secretKey;
+        private readonly string _publishableKey;
+
+        public StripeService(string secretKey, string publishableKey)
         {
-            StripeConfiguration.ApiKey = config["Stripe:SecretKey"];
+            _secretKey = secretKey;
+            _publishableKey = publishableKey;
+
+            StripeConfiguration.ApiKey = _secretKey;
         }
+
 
         public async Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, string currency)
         {
