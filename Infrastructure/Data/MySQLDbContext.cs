@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PropertyManagementAPI.Domain.Entities.TenantAnnouncements;
+using PropertyManagementAPI.Domain.Entities.OwnerAnnouncements;
 using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Maintenance;
@@ -52,6 +54,8 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<BankAccountInfo> BankAccountInfo { get; set; } = null!;
         public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; } = null!; 
         public DbSet<CardPayment> CardPayments { get; set; } = null!;
+        public DbSet<TenantAnnouncement> TenantAnnouncements { get; set; } = null!;
+        public DbSet<OwnerAnnouncement> OwnerAnnouncements { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

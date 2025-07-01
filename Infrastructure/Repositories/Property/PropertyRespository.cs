@@ -13,7 +13,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
         {
             _context = context;
         }
-
         public async Task<PropertyDto> AddPropertyAsync(PropertyDto dto)
         {
             var property = new Properties
@@ -155,8 +154,8 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
 
             property.IsActive = !property.IsActive;
 
-            await _context.SaveChangesAsync();
-            return true;
+            var save = await _context.SaveChangesAsync();
+            return save > 0;
         }
     }
 }

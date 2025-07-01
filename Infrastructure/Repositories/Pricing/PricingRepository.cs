@@ -93,7 +93,6 @@ public class PricingRepository : IPricingRepository
         await _context.SaveChangesAsync();
         return true;
     }
-
     public async Task<PricingDto?> GetLatestForPropertyAsync(int propertyId)
     {
         var latest = await _context.Pricing

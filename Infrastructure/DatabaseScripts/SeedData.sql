@@ -195,12 +195,12 @@ INSERT INTO PropertyOwners (PropertyId, OwnerId, OwnershipPercentage) VALUES
 -- ✅ Insert Tenants (UserId = TenantId)
 INSERT INTO Tenants (
   TenantId, PropertyId, PrimaryTenant,
-  FirstName, LastName, Email, PhoneNumber, MoveInDate
+  FirstName, LastName, Email, PhoneNumber, isActive, MoveInDate
 ) VALUES
-(6, 1, 1, 'John', 'Doe', 'john.doe@example.com', '555-1234', '2024-01-15'),
-(7, 2, 1, 'Michael', 'Johnson', 'michael.johnson@example.com', '555-9876', '2022-09-20'),
-(8, 2, 0, 'Mary', 'Johnson', 'mary.johnson@example.com', '555-9876', '2022-09-20'),
-(9, 3, 1, 'John', 'Smith', 'john.smith@example.com', '555-5555', '2022-10-01');
+(6, 1, 1, 'John', 'Doe', 'john.doe@example.com', '555-1234', 1,'2024-01-15'),
+(7, 2, 1, 'Michael', 'Johnson', 'michael.johnson@example.com', '555-9876', 1,'2022-09-20'),
+(8, 2, 0, 'Mary', 'Johnson', 'mary.johnson@example.com', '555-9876', 1,'2022-09-20'),
+(9, 3, 1, 'John', 'Smith', 'john.smith@example.com', '555-5555', 1,'2022-10-01');
 
 INSERT INTO PropertyTenants (PropertyId, TenantId) VALUES
 (1, 6),
@@ -261,3 +261,39 @@ INSERT INTO Payments (
 VALUES
 (1200.00, NOW(), 'REF-001', 101, 6, NULL, 'Card', 'Visa', '4242', 'AUTH123', NULL, NULL, NULL, NULL, NULL),
 (500.00, NOW(), 'REF-003', 103, 6, NULL, 'Transfer', NULL, NULL, NULL, NULL, NULL, '****1234', '021000021', 'TXN456');
+
+INSERT INTO TenantAnnouncements (Title, Message, PostedBy)
+VALUES
+-- General Maintenance
+('Planned Water Outage', 'Please be advised that water will be shut off for maintenance on Thursday from 10:00 AM to 2:00 PM.', 'Property Manager'),
+-- Community Event
+('Tenant Appreciation BBQ', 'Join us for a BBQ on Saturday at the central courtyard. Food, drinks, and games provided!', 'Community Team'),
+-- Weather Alert
+('Hurricane Preparedness Notice', 'Please secure outdoor items and review the emergency plan. Updates will be provided via text and email.', 'Management Office'),
+-- Policy Update
+('Updated Parking Policy', 'All vehicles must be registered with the office. Towing enforcement begins next Monday.', 'Leasing Office'),
+-- Routine Reminder
+('Rent Reminder', 'This is a friendly reminder that rent is due by the 5th of each month to avoid late fees.', 'System');
+
+INSERT INTO OwnerAnnouncements (Title, Message, PostedBy)
+VALUES
+-- Financial Notice
+('Q2 Financial Statements Available', 
+ 'You can now access the Q2 financial reports in the owner dashboard. Please review by July 15.', 
+ 'Finance Team'),
+-- Maintenance Update
+('Roofing Contractor Appointment', 
+ 'Roof maintenance for Building C is scheduled next Monday. Please allow roof access from 9am to 4pm.', 
+ 'Operations'),
+-- Community Improvement
+('New Landscaping Vendor Selected', 
+ 'We’ve contracted GreenScape Solutions for monthly landscaping. Improvements will begin next week.', 
+ 'HOA President'),
+-- Security Update
+('Gate Access System Upgrade', 
+ 'The front gate access panel will be replaced this Thursday. Expect a 30-minute outage between 11am–12pm.', 
+ 'Admin'),
+-- Annual Meeting
+('Annual Owner Meeting Reminder', 
+ 'Join us via Zoom on August 10th at 6pm for a review of the year and discussion of upcoming initiatives.', 
+ 'Board Secretary');

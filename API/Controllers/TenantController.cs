@@ -19,7 +19,7 @@ namespace PropertyManagementAPI.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] TenantDto dto)
+        public async Task<IActionResult> CreateTenant([FromBody] TenantDto dto)
         {
             if (dto == null)
             {
@@ -27,23 +27,23 @@ namespace PropertyManagementAPI.API.Controllers
                 return BadRequest("Invalid tenant data.");
             }
 
-            var created = await _service.CreateAsync(dto);
+            var created = await _service.CreateTenantsAsync(dto);
             _logger.LogInformation("Create: Tenant created with ID {Id}.", created.TenantId);
-            return CreatedAtAction(nameof(GetById), new { tenantId = created.TenantId }, created);
+            return CreatedAtAction(nameof(GetTenantById), new { tenantId = created.TenantId }, created);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllTenants()
         {
-            var tenants = await _service.GetAllAsync();
+            var tenants = await _service.GetAllTenantsAsync();
             _logger.LogInformation("GetAll: Retrieved {Count} tenants.", tenants.Count());
             return Ok(tenants);
         }
 
         [HttpGet("{tenantId}")]
-        public async Task<IActionResult> GetById(int tenantId)
+        public async Task<IActionResult> GetTenantById(int tenantId)
         {
-            var tenant = await _service.GetByIdAsync(tenantId);
+            var tenant = await _service.GetTenantByIdAsync(tenantId);
             if (tenant == null)
             {
                 _logger.LogWarning("GetById: Tenant ID {Id} not found.", tenantId);
@@ -54,7 +54,7 @@ namespace PropertyManagementAPI.API.Controllers
         }
 
         [HttpPut("{tenantId}")]
-        public async Task<IActionResult> Update(int tenantId, [FromBody] TenantDto dto)
+        public async Task<IActionResult> UpdateTenant(int tenantId, [FromBody] TenantDto dto)
         {
             if (dto == null)
             {
@@ -62,7 +62,7 @@ namespace PropertyManagementAPI.API.Controllers
                 return BadRequest("Invalid tenant data.");
             }
 
-            var updated = await _service.UpdateAsync(tenantId, dto);
+            var updated = await _service.UpdateTenantAsync(tenantId, dto);
             if (!updated)
             {
                 _logger.LogWarning("Update: Tenant ID {Id} not found.", tenantId);
@@ -74,9 +74,9 @@ namespace PropertyManagementAPI.API.Controllers
         }
 
         [HttpDelete("{tenantId}")]
-        public async Task<IActionResult> Delete(int tenantId)
+        public async Task<IActionResult> SetActivateTenant(int tenantId)
         {
-            var deleted = await _service.DeleteAsync(tenantId);
+            var deleted = await _service.SetActivateTenant(tenantId);
             if (!deleted)
             {
                 _logger.LogWarning("Delete: Tenant ID {Id} not found.", tenantId);

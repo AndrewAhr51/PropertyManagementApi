@@ -9,28 +9,28 @@ public class TenantService : ITenantService
         _repository = repository;
     }
 
-    public async Task<TenantDto> CreateAsync(TenantDto dto)
+    public async Task<TenantDto> CreateTenantsAsync(TenantDto dto)
     {
-        return await _repository.AddAsync(dto);
+        return await _repository.AddTenantAsync(dto);
     }
 
-    public async Task<IEnumerable<TenantDto>> GetAllAsync()
+    public async Task<IEnumerable<TenantDto>> GetAllTenantsAsync()
     {
-        return await _repository.GetAllAsync();
+        return await _repository.GetAllTenantsAsync();
     }
 
-    public async Task<TenantDto?> GetByIdAsync(int tenantId)
+    public async Task<TenantDto?> GetTenantByIdAsync(int tenantId)
     {
-        return await _repository.GetByIdAsync(tenantId);
+        return await _repository.GetTenantByIdAsync(tenantId);
     }
 
-    public async Task<bool> UpdateAsync(int tenantId, TenantDto dto)
+    public async Task<bool> UpdateTenantAsync(int tenantId, TenantDto dto)
     {
-        return await _repository.UpdateAsync(tenantId, dto);
+        return await _repository.UpdateTenantAsync(tenantId, dto);
     }
 
-    public async Task<bool> DeleteAsync(int tenantId)
+    public async Task<bool> SetActivateTenant(int tenantId)
     {
-        return await _repository.DeleteAsync(tenantId);
+        return await _repository.SetActivateTenant(tenantId);
     }
 }

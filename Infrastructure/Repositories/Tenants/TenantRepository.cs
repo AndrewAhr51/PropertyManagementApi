@@ -1,18 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.DTOs.Users;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Infrastructure.Repositories.Users;
 
 public class TenantRepository : ITenantRepository
 {
     private readonly MySqlDbContext _context;
+    private readonly ILogger<TenantRepository> _logger;
 
-    public TenantRepository(MySqlDbContext context)
+    public TenantRepository(MySqlDbContext context, ILogger<TenantRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
-    public async Task<TenantDto> AddAsync(TenantDto dto)
+    public async Task<TenantDto> AddTenantAsync(TenantDto dto)
     {
         var entity = new Tenant
         {
@@ -33,7 +37,7 @@ public class TenantRepository : ITenantRepository
         return dto;
     }
 
-    public async Task<IEnumerable<TenantDto>> GetAllAsync()
+    public async Task<IEnumerable<TenantDto>> GetAllTenantsAsync()
     {
         return await _context.Tenants
             .Select(t => new TenantDto
@@ -49,7 +53,7 @@ public class TenantRepository : ITenantRepository
             .ToListAsync();
     }
 
-    public async Task<TenantDto?> GetByIdAsync(int tenantId)
+    public async Task<TenantDto?> GetTenantByIdAsync(int tenantId)
     {
         var t = await _context.Tenants.FindAsync(tenantId);
         return t == null ? null : new TenantDto
@@ -64,7 +68,7 @@ public class TenantRepository : ITenantRepository
         };
     }
 
-    public async Task<bool> UpdateAsync(int tenantId, TenantDto dto)
+    public async Task<bool> UpdateTenantAsync(int tenantId, TenantDto dto)
     {
         var entity = await _context.Tenants.FindAsync(tenantId);
         if (entity == null) return false;
@@ -78,13 +82,36 @@ public class TenantRepository : ITenantRepository
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int tenantId)
+    public async Task<bool> SetActivateTenant(int tenantId)
     {
-        var entity = await _context.Tenants.FindAsync(tenantId);
-        if (entity == null) return false;
+        try
+        {
+            var tenant = await _context.Tenants.FindAsync(tenantId);
+            if (tenant == null)
+            {
+                _logger.LogWarning("User not found for ID: {Id}", tenantId);
+                return false;
+            }
 
-        _context.Tenants.Remove(entity);
-        await _context.SaveChangesAsync();
-        return true;
+            tenant.IsActive = !tenant.IsActive;
+            var save = await _context.SaveChangesAsync();
+
+            var user = await _context.Users.FindAsync(tenantId);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for ID: {Id}", tenantId);
+                return false;
+            }
+
+            user.IsActive = !user.IsActive;
+            save = await _context.SaveChangesAsync();
+
+            return save > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error inactivating the user with ID: {Id}", tenantId);
+            throw new Exception("An error occurred while deleting the user.", ex);
+        }
     }
 }
