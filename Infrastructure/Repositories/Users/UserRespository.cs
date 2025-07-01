@@ -135,30 +135,38 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
         }
 
         // ✅ Remove a user by ID
-        public async Task<bool> SetActivateUser(int id)
+        public async Task<bool> SetActivateUser(int userId)
         {
             try
             {
-                var user = await _context.Users.FindAsync(id);
+                var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
-                    _logger.LogWarning("User not found for ID: {Id}", id);
+                    _logger.LogWarning("User not found for ID: {Id}", userId);
                     return false;
                 }
 
-                // ✅ Toggle IsActive to the opposite value
                 user.IsActive = !user.IsActive;
 
-                var isActive = user.IsActive;
+                var owner = await _context.Owners.FindAsync(userId);
+                if (owner != null)
+                {
+                    owner.IsActive = !owner.IsActive;
+                }
 
-                var save = await _context.SaveChangesAsync();
+                var tenant = await _context.Tenants.FindAsync(userId);
+                if (tenant != null)
+                {
+                    tenant.IsActive = !tenant.IsActive;
+                }
 
-                return save > 0;
+                var saveCount = await _context.SaveChangesAsync();
+                return saveCount > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error inactivating the user with ID: {Id}", id);
-                throw new Exception("An error occurred while deleting the user.", ex);
+                _logger.LogError(ex, "Error toggling activation for user ID: {Id}", userId);
+                throw;
             }
         }
 
@@ -179,6 +187,18 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
                 user.IsActive = !user.IsActive;
 
                 var isActive = user.IsActive;
+
+                var owner = await _context.Owners.FindAsync(user.UserId);
+                if (owner != null)
+                {
+                    owner.IsActive = !owner.IsActive;
+                }
+
+                var tenant = await _context.Tenants.FindAsync(user.UserId);
+                if (tenant != null)
+                {
+                    tenant.IsActive = !tenant.IsActive;
+                }
 
                 var save = await _context.SaveChangesAsync();
 
@@ -207,6 +227,18 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
                 user.IsActive = !user.IsActive;
 
                 var isActive = user.IsActive;
+
+                var owner = await _context.Owners.FindAsync(user.UserId);
+                if (owner != null)
+                {
+                    owner.IsActive = !owner.IsActive;
+                }
+
+                var tenant = await _context.Tenants.FindAsync(user.UserId);
+                if (tenant != null)
+                {
+                    tenant.IsActive = !tenant.IsActive;
+                }
 
                 var save = await _context.SaveChangesAsync();
 

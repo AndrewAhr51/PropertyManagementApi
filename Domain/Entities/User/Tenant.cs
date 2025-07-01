@@ -28,6 +28,8 @@ namespace PropertyManagementAPI.Domain.Entities.User
         [MaxLength(20)]
         public string PhoneNumber { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
         public DateTime? MoveInDate { get; set; }
 
         [Required]

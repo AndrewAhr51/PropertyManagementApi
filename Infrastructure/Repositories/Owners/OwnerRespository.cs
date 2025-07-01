@@ -8,10 +8,12 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
     public class OwnerRepository : IOwnerRepository
     {
         private readonly MySqlDbContext _context;
+        private readonly ILogger<OwnerRepository> _logger;
 
-        public OwnerRepository(MySqlDbContext context)
+        public OwnerRepository(MySqlDbContext context, ILogger<OwnerRepository> _logger)
         {
             _context = context;
+            this._logger = _logger;
         }
 
         public async Task<Owner> AddOwnerAsync(OwnerDto ownerDto)
@@ -144,7 +146,17 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
 
                 var isActive = owner.IsActive;
 
-                await _context.SaveChangesAsync();
+                var save = await _context.SaveChangesAsync();
+
+                var user = await _context.Users.FindAsync(ownerId);
+                if (user == null)
+                {
+                    _logger.LogWarning("User not found for ID: {Id}", ownerId);
+                    return false;
+                }
+
+                user.IsActive = !user.IsActive;
+                save = await _context.SaveChangesAsync();
 
                 // ✅ Step 2: Get all PropertyIds owned by this owner
                 var propertyIds = await _context.PropertyOwners
@@ -163,7 +175,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Owners
                 }
 
                 await _context.SaveChangesAsync();
-
 
             }
             catch (Exception ex)

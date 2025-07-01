@@ -19,6 +19,8 @@ using PropertyManagementAPI.Application.Services.Owners;
 using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Application.Services.Property;
 using PropertyManagementAPI.Application.Services.Roles;
+using PropertyManagementAPI.Application.Services.TenantAnnouncements;
+using PropertyManagementAPI.Application.Services.OwnerAnnouncements;
 using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Application.Services.Vendors;
 using PropertyManagementAPI.Common.Helpers;
@@ -26,6 +28,7 @@ using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.DTOs.Invoice;
 //
 using PropertyManagementAPI.Infrastructure.Data;
+using PropertyManagementAPI.Infrastructure.Payments;
 using PropertyManagementAPI.Infrastructure.Repositories.Documents;
 using PropertyManagementAPI.Infrastructure.Repositories.Email;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
@@ -34,9 +37,10 @@ using PropertyManagementAPI.Infrastructure.Repositories.Owners;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 using PropertyManagementAPI.Infrastructure.Repositories.Property;
 using PropertyManagementAPI.Infrastructure.Repositories.Roles;
+using PropertyManagementAPI.Infrastructure.Repositories.TenantAnnouncements;
+using PropertyManagementAPI.Infrastructure.Repositories.OwnerAnnouncements;
 using PropertyManagementAPI.Infrastructure.Repositories.Users;
 using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
-using PropertyManagementAPI.Infrastructure.Payments;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -120,6 +124,10 @@ builder.Services.AddScoped<ICardTokenRepository, CardTokenRepository>();
 builder.Services.AddScoped<ICardTokenService, CardTokenService>();
 builder.Services.AddScoped<IPreferredMethodRepository, PreferredMethodRepository>();
 builder.Services.AddScoped<IPreferredMethodService, PreferredMethodService>();
+builder.Services.AddScoped<ITenantAnnouncementRepository, TenantAnnouncementRepository>();
+builder.Services.AddScoped<ITenantAnnouncementService, TenantAnnouncementService>();
+builder.Services.AddScoped<IOwnerAnnouncementRepository, OwnerAnnouncementRepository>();
+builder.Services.AddScoped<IOwnerAnnouncementService, OwnerAnnouncementService>();
 
 builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
 

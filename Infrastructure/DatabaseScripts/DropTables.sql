@@ -54,8 +54,9 @@ DROP TABLE IF EXISTS Emails;
 DROP TABLE IF EXISTS SpecialInstructions;
 DROP TABLE IF EXISTS BillingAddressHistory;
 DROP TABLE IF EXISTS BillingAddress;
-DROP TABLE IF EXISTS CreditCardInfo;
-
+DROP TABLE IF EXISTS CreditCardInfo; 
+DROP TABLE IF EXISTS OwnerAnnouncements;
+DROP TABLE IF EXISTS TenantAnnouncements;
 DROP TABLE IF EXISTS PropertyTenants;
 DROP TABLE IF EXISTS PropertyOwners;
 
@@ -81,3 +82,5 @@ DROP TABLE IF EXISTS lkupServiceTypes;
 DROP TABLE IF EXISTS lkupInvoiceStatus;
 DROP TABLE IF EXISTS LkupUtilities;
 DROP TABLE IF EXISTS LkupCleaningType;
+
+DROP VIEW IF EXISTS InvoiceDetailsView

@@ -2,9 +2,9 @@
 
 public interface ITenantService
 {
-    Task<TenantDto> CreateAsync(TenantDto dto);
-    Task<IEnumerable<TenantDto>> GetAllAsync();
-    Task<TenantDto?> GetByIdAsync(int tenantId);
-    Task<bool> UpdateAsync(int tenantId, TenantDto dto);
-    Task<bool> DeleteAsync(int tenantId);
+    Task<TenantDto> CreateTenantsAsync(TenantDto dto);
+    Task<IEnumerable<TenantDto>> GetAllTenantsAsync();
+    Task<TenantDto?> GetTenantByIdAsync(int tenantId);
+    Task<bool> UpdateTenantAsync(int tenantId, TenantDto dto);
+    Task<bool> SetActivateTenant(int tenantId);
 }

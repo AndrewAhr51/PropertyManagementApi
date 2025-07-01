@@ -206,6 +206,15 @@ CREATE TABLE PropertyOwners (
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
 );
+
+CREATE TABLE OwnerAnnouncements (
+    AnnouncementId INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(255) NOT NULL,
+    Message TEXT NOT NULL,
+    PostedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PostedBy VARCHAR(100) DEFAULT 'Web',
+    IsActive BOOLEAN DEFAULT TRUE
+);
 -- Tenants Table
 CREATE TABLE Tenants (
     TenantId INT PRIMARY KEY,
@@ -214,6 +223,7 @@ CREATE TABLE Tenants (
     FirstName NVARCHAR(100),
     LastName NVARCHAR(100),
     PhoneNumber NVARCHAR(20),
+    IsActive BOOLEAN DEFAULT TRUE,
 	Email NVARCHAR(255) NOT NULL UNIQUE,
     MoveInDate DATE,
     Balance DECIMAL(10,2) DEFAULT 0,
@@ -229,7 +239,14 @@ CREATE TABLE PropertyTenants (
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
-
+CREATE TABLE TenantAnnouncements (
+    AnnouncementId INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(255) NOT NULL,
+    Message TEXT NOT NULL,
+    PostedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PostedBy VARCHAR(100) DEFAULT 'Web',
+    IsActive BOOLEAN DEFAULT TRUE
+);
 -- Emails
 CREATE TABLE Emails (
     EmailId INT PRIMARY KEY AUTO_INCREMENT,
