@@ -29,7 +29,7 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpGet("accounts")]
         public async Task<IActionResult> GetAccounts([FromQuery] string accessToken)
         {
-            var accounts = await _plaidService.GetBankAccountsAsync(accessToken);
+            var accounts = await _plaidService.GetAccountsAsync(accessToken);
             return Ok(accounts);
         }
 

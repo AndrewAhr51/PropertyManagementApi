@@ -58,7 +58,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.Plaid
             return response.AccessToken;
         }
 
-        public async Task<IEnumerable<Going.Plaid.Entity.Account>> GetBankAccountsAsync(string accessToken)
+        public async Task<IEnumerable<Going.Plaid.Entity.Account>> GetAccountsAsync(string accessToken)
         {
             var response = await _plaidClient.AuthGetAsync(new AuthGetRequest
             {

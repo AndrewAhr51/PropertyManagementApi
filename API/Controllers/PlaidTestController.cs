@@ -28,7 +28,7 @@ namespace PropertyManagementAPI.API.Controllers.Test
             _logger = logger;
         }
         [HttpPost("create-link-token")]
-        public async Task<IActionResult> CreateLinkToken()
+        public async Task<IActionResult> CreateLSandboxLinkToken()
         {
             var token = await _plaidLinkService.CreateLinkTokenAsync();
             return Ok(new { link_token = token });
@@ -54,16 +54,16 @@ namespace PropertyManagementAPI.API.Controllers.Test
         }
 
         [HttpPost("exchange-public-token")]
-        public async Task<IActionResult> ExchangePublicToken([FromBody] ExchangeTokenRequest request)
+        public async Task<IActionResult> ExchangeSandboxPublicToken([FromBody] ExchangeTokenRequest request)
         {
             var accessToken = await _plaidService.ExchangePublicTokenAsync(request.PublicToken);
             return Ok(new { access_token = accessToken });
         }
 
         [HttpGet("accounts")]
-        public async Task<IActionResult> GetBankAccounts([FromQuery] string accessToken)
+        public async Task<IActionResult> GetSandboxAccounts([FromQuery] string accessToken)
         {
-            var accounts = await _plaidService.GetBankAccountsAsync(accessToken);
+            var accounts = await _plaidService.GetAccountsAsync(accessToken);
             return Ok(accounts);
         }
     }
