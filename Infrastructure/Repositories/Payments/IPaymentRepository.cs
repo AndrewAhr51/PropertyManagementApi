@@ -1,5 +1,7 @@
 ﻿using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Domain.DTOs.Payments;
+using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
+using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.Entities.Payments;
 using Stripe;
 using System.Threading.Tasks;

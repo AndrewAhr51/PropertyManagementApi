@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs.Property;
+﻿using PropertyManagementAPI.Domain.DTOs.Property.Leases;
 using PropertyManagementAPI.Domain.Entities.User;
 
 public interface ILeaseService

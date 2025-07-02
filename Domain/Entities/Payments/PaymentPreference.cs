@@ -1,4 +1,6 @@
-﻿using PropertyManagementAPI.Domain.Entities.User;
+﻿using PropertyManagementAPI.Domain.Entities.Payments.Banking;
+using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
+using PropertyManagementAPI.Domain.Entities.User;
 
 namespace PropertyManagementAPI.Domain.Entities.Payments
 {

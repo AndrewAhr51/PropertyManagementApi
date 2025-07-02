@@ -297,3 +297,22 @@ VALUES
 ('Annual Owner Meeting Reminder', 
  'Join us via Zoom on August 10th at 6pm for a review of the year and discussion of upcoming initiatives.', 
  'Board Secretary');
+ 
+ -- Seed bank accounts
+INSERT INTO BankAccounts (TenantId, StripeBankAccountId, BankName, Last4, AccountType, IsVerified)
+VALUES 
+(6, 'ba_test_001', 'Chase', '1234', 'checking', TRUE),
+(7, 'ba_test_002', 'Wells Fargo', '5678', 'checking', FALSE);
+
+-- Seed ACH authorizations
+INSERT INTO ACHAuthorizations (TenantId, IPAddress, Signature)
+VALUES 
+(6, '192.168.1.10', 'Signed digitally by tenant'),
+(7, '192.168.1.11', 'Signed digitally by tenant');
+
+-- Seed payment transactions
+INSERT INTO PaymentTransactions (TenantId, Amount, StripePaymentIntentId, Status)
+VALUES 
+(6, 1200.00, 'pi_test_001', 'succeeded'),
+(6, 1200.00, 'pi_test_002', 'pending'),
+(7, 950.00, 'pi_test_003', 'failed');

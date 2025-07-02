@@ -6,6 +6,11 @@ using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Payments;
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
+using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
+using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
+using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
+using PropertyManagementAPI.Domain.Entities.Payments.Banking;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 {
@@ -17,8 +22,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
         private readonly IPaymentProcessor _paymentProcessor;
         private readonly PaymentAuditLogger _auditLogger;
         private readonly IStripeService _stripeService;
-
-
 
         public PaymentRepository(MySqlDbContext context, IInvoiceRepository invoiceRepository, ILogger<PaymentService> logger,
                 IPaymentProcessor paymentProcessor, PaymentAuditLogger auditLogger, IStripeService stripeService )

@@ -609,14 +609,34 @@ CREATE TABLE PaymentReminders (
 );
 
 -- Notes
-CREATE TABLE Notes (
-    NoteId INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE BankAccounts (
+    BankAccountId INT AUTO_INCREMENT PRIMARY KEY,
     TenantId INT NOT NULL,
-    PropertyId INT NOT NULL,
-    NoteText TEXT NOT NULL,
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
+    StripeBankAccountId VARCHAR(255) NOT NULL,
+    BankName VARCHAR(100),
+    Last4 VARCHAR(4),
+    AccountType ENUM('checking', 'savings') DEFAULT 'checking',
+    IsVerified BOOLEAN DEFAULT FALSE,
+    AddedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
+);
+CREATE TABLE ACHAuthorizations (
+    ACHAuthorizationId INT AUTO_INCREMENT PRIMARY KEY,
+    TenantId INT NOT NULL,
+    AuthorizedOn DATETIME DEFAULT CURRENT_TIMESTAMP,
+    IPAddress VARCHAR(45),
+    Signature TEXT,
+    IsRevoked BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
+);
+CREATE TABLE PaymentTransactions (
+    PaymentTransactionId INT AUTO_INCREMENT PRIMARY KEY,
+    TenantId INT NOT NULL,
+    Amount DECIMAL(10,2) NOT NULL,
+    StripePaymentIntentId VARCHAR(255) NOT NULL,
+    Status ENUM('pending', 'succeeded', 'failed', 'canceled') DEFAULT 'pending',
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 
 CREATE TABLE InvoiceAuditLog (

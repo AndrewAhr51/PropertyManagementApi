@@ -1,9 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using PayPalCheckoutSdk.Orders;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Payments;
+using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
+using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 

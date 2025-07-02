@@ -1,6 +1,6 @@
 ﻿using DocumentFormat.OpenXml.InkML;
 using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.DTOs.Property;
+using PropertyManagementAPI.Domain.DTOs.Property.Leases;
 using PropertyManagementAPI.Domain.Entities.Property;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Data;

@@ -10,6 +10,9 @@ using PropertyManagementAPI.Domain.Entities.Property;
 using PropertyManagementAPI.Domain.Entities.Roles;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Domain.Entities.Vendors;
+using PropertyManagementAPI.Domain.Entities.Payments.Banking;
+using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
+using PropertyManagementAPI.Domain.Entities.Payments.PreferredMethods;
 
 namespace PropertyManagementAPI.Infrastructure.Data
 {
@@ -56,6 +59,9 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<CardPayment> CardPayments { get; set; } = null!;
         public DbSet<TenantAnnouncement> TenantAnnouncements { get; set; } = null!;
         public DbSet<OwnerAnnouncement> OwnerAnnouncements { get; set; } = null!;
+        public DbSet<BankAccount> BankAccounts { get; set; } = null!;
+        public DbSet<ACHAuthorization> ACHAuthorizations { get; set; } = null!;
+        public DbSet<PaymentTransactions> PaymentTransactions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
