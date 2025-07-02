@@ -1,6 +1,9 @@
 ﻿using PropertyManagementAPI.Domain.DTOs.Payments;
+using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
+using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 
 namespace PropertyManagementAPI.Application.Services.Payments
 {

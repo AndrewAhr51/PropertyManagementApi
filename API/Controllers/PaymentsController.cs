@@ -6,7 +6,10 @@ using PayPalHttp;
 using PropertyManagementAPI.Application.Services.Payments;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Payments;
-using PropertyManagementAPI.Domain.Entities.Payments;
+using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
+using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
+using PropertyManagementAPI.Domain.Entities.Payments.Banking;
+using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 using PropertyManagementAPI.Infrastructure.Payments;
 using System.Diagnostics;
 using static System.Net.WebRequestMethods;
@@ -20,8 +23,7 @@ namespace PropertyManagementAPI.API.Controllers
         private readonly IPaymentService _paymentService;
         private readonly PayPalHttpClient _payPalClient;
         private readonly PaymentAuditLogger _auditLogger;
-        private readonly ILogger<PaymentsController> _logger;
-
+        private readonly ILogger<PaymentsController> _logger; 
 
         public PaymentsController(IPaymentService paymentService, PayPalClient payPalClient, PaymentAuditLogger auditLogger, ILogger<PaymentsController> logger)
         {

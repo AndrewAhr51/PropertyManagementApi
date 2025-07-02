@@ -1,4 +1,4 @@
-﻿using PropertyManagementAPI.Domain.DTOs.Property;
+﻿using PropertyManagementAPI.Domain.DTOs.Property.Pricing;
 
 public class PricingService : IPricingService
 {

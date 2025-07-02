@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Going.Plaid;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PdfSharp.Fonts;
@@ -15,12 +17,18 @@ using PropertyManagementAPI.Application.Services.Email;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Application.Services.Notes;
+using PropertyManagementAPI.Application.Services.OwnerAnnouncements;
 using PropertyManagementAPI.Application.Services.Owners;
 using PropertyManagementAPI.Application.Services.Payments;
+using PropertyManagementAPI.Application.Services.Payments.Banking;
+using PropertyManagementAPI.Application.Services.Payments.CardTokens;
+using PropertyManagementAPI.Application.Services.Payments.PayPal;
+using PropertyManagementAPI.Application.Services.Payments.Plaid;
+using PropertyManagementAPI.Application.Services.Payments.PreferredMethods;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Application.Services.Property;
 using PropertyManagementAPI.Application.Services.Roles;
 using PropertyManagementAPI.Application.Services.TenantAnnouncements;
-using PropertyManagementAPI.Application.Services.OwnerAnnouncements;
 using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Application.Services.Vendors;
 using PropertyManagementAPI.Common.Helpers;
@@ -33,16 +41,20 @@ using PropertyManagementAPI.Infrastructure.Repositories.Documents;
 using PropertyManagementAPI.Infrastructure.Repositories.Email;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Notes;
+using PropertyManagementAPI.Infrastructure.Repositories.OwnerAnnouncements;
 using PropertyManagementAPI.Infrastructure.Repositories.Owners;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
+using PropertyManagementAPI.Infrastructure.Repositories.Payments.Banking;
+using PropertyManagementAPI.Infrastructure.Repositories.Payments.CardTokens;
+using PropertyManagementAPI.Infrastructure.Repositories.Payments.PreferredMethods;
 using PropertyManagementAPI.Infrastructure.Repositories.Property;
 using PropertyManagementAPI.Infrastructure.Repositories.Roles;
 using PropertyManagementAPI.Infrastructure.Repositories.TenantAnnouncements;
-using PropertyManagementAPI.Infrastructure.Repositories.OwnerAnnouncements;
 using PropertyManagementAPI.Infrastructure.Repositories.Users;
 using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
 using System.Security.Cryptography;
 using System.Text;
+using PlaidOptions = PropertyManagementAPI.Infrastructure.Payments.PlaidOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +74,34 @@ var paypalSecret = builder.Configuration["PayPal:Secret"];
 
 var encryptionKey = builder.Configuration["EncryptionSettings:Key"];
 var encryptionIV = builder.Configuration["EncryptionSettings:IV"];
+
+// ✅ Configure PlaidOptions with DI (based on appsettings/env vars)
+builder.Services
+    .AddOptions<PlaidOptions>()
+    .Bind(builder.Configuration.GetSection("Plaid"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services
+    .AddOptions<StripeOptions>()
+    .Bind(builder.Configuration.GetSection("Stripe"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services
+    .AddOptions<PayPalOptions>()
+    .Bind(builder.Configuration.GetSection("PayPal"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+
+// Optional: also inject PlaidOptions directly
+builder.Services.AddSingleton(res =>
+    res.GetRequiredService<IOptions<PlaidOptions>>().Value);
+
+// 🧠 If needed elsewhere, register PlaidClient
+builder.Services.AddPlaid(builder.Configuration.GetSection("Plaid"));
+builder.Services.AddScoped<IPlaidSandboxTestService, PlaidSandboxTestService>();
 
 // ✅ Register Repositories & Services 
 builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
@@ -105,7 +145,6 @@ builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
-builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<ICleaningFeeInvoiceService, CleaningFeeInvoiceService>(); 
 builder.Services.AddScoped<ICleaningFeeInvoiceRepository, CleaningFeeInvoiceRepository>();
 builder.Services.AddScoped<IPropertyTaxInvoiceService, PropertyTaxInvoiceService>();
@@ -128,29 +167,25 @@ builder.Services.AddScoped<ITenantAnnouncementRepository, TenantAnnouncementRepo
 builder.Services.AddScoped<ITenantAnnouncementService, TenantAnnouncementService>();
 builder.Services.AddScoped<IOwnerAnnouncementRepository, OwnerAnnouncementRepository>();
 builder.Services.AddScoped<IOwnerAnnouncementService, OwnerAnnouncementService>();
-
 builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
-
+builder.Services.AddScoped<IPlaidService, PlaidService>();
+builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
 builder.Services.AddScoped<PaymentAuditLogger>();
 
 builder.Services.AddSingleton<PayPalClient>(provider =>
 {
-    var config = provider.GetRequiredService<IConfiguration>();
-    var clientId = config["PayPal:ClientId"];
-    var secret = config["PayPal:Secret"];
-
-    return new PayPalClient(clientId, secret);
+    var opts = provider.GetRequiredService<IOptions<PayPalOptions>>().Value;
+    return new PayPalClient(opts.ClientId, opts.Secret);
 });
-
 
 builder.Services.AddScoped<IStripeService, StripeService>(provider =>
 {
-    var config = provider.GetRequiredService<IConfiguration>();
-    var secretKey = config["Stripe:SecretKey"];
-    var publishableKey = config["Stripe:PublishableKey"];
-
-    return new StripeService(secretKey, publishableKey);
+    var opts = provider.GetRequiredService<IOptions<StripeOptions>>().Value;
+    return new StripeService(opts.SecretKey, opts.PublishableKey);
 });
+
+builder.Services.AddSingleton(res =>
+    res.GetRequiredService<IOptions<PlaidOptions>>().Value);
 
 builder.Services.AddControllers();
 
@@ -208,7 +243,19 @@ foreach (var section in builder.Configuration.GetChildren())
 // ✅ Add Controllers & API Documentation (Swagger)
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "Main API", Version = "v1" });
+    options.SwaggerDoc("PlaidTest", new() { Title = "Plaid Test API", Version = "v1" });
+
+    // Optional: show controller group names in Swagger UI
+    options.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        var groupName = apiDesc.GroupName ?? "v1";
+        return docName == groupName;
+    });
+});
+
 
 var app = builder.Build();
 
@@ -216,7 +263,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Main API");
+        options.SwaggerEndpoint("/swagger/PlaidTest/swagger.json", "Plaid Test API");
+    });
+
 }
 
 // ✅ Enable Authentication Middleware
