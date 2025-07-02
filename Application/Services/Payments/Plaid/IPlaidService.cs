@@ -4,7 +4,7 @@
     {
         Task<string> CreateLinkTokenAsync();
         Task<string> ExchangePublicTokenAsync(string publicToken);
-        Task<IEnumerable<Going.Plaid.Entity.Account>>  GetBankAccountsAsync(string accessToken);
+        Task<IEnumerable<Going.Plaid.Entity.Account>>  GetAccountsAsync(string accessToken);
     }
 
 }
