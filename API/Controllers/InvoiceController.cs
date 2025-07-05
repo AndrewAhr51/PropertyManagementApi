@@ -1,106 +1,247 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using PropertyManagementAPI.Application.Services.Email;
-using PropertyManagementAPI.Application.Services.InvoiceExport;
+﻿using Microsoft.AspNetCore.Mvc;
+using PropertyManagementAPI.Domain.DTOs.Invoices;
+using PropertyManagementAPI.Domain.DTOs.Invoices.Mappers;
 using PropertyManagementAPI.Application.Services.Invoices;
-using PropertyManagementAPI.Domain.DTOs.Invoice;
-using PropertyManagementAPI.Domain.Entities.Invoices;
-using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
-using System.Collections.Generic;
 
 namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/invoices")]
     public class InvoiceController : ControllerBase
     {
-
         private readonly IInvoiceService _invoiceService;
-        private readonly IExportService<CumulativeInvoiceDto> _exportService;
-        private readonly IEmailService _emailService;
+        private readonly ILogger<InvoiceController> _logger;
 
-        public InvoiceController(IInvoiceService invoiceService, ICumulativeInvoicesRepository cummulativeInvoiceRepository, IExportService<CumulativeInvoiceDto> exportService, IEmailService emailService)
+        public InvoiceController(IInvoiceService invoiceService, ILogger<InvoiceController> logger)
         {
             _invoiceService = invoiceService;
-            _exportService = exportService;
-            _emailService = emailService;
-
+            _logger = logger;
         }
 
-        [HttpGet("property/{propertyId:int}")]
-        public async Task<IActionResult> GetByProperty(int propertyId, [FromQuery] string? type = null, [FromQuery] string? status = null, [FromQuery] DateTime? dueBefore = null)
+        // 🔹 Get all invoices
+        [HttpGet("get-all-invoices")]
+        public async Task<ActionResult<List<InvoiceDto>>> GetAllInvoices()
         {
-            var invoices = await _invoiceService.GetFilteredAsync(propertyId, type, status, dueBefore);
-            return Ok(invoices);
-        }
-
-        [HttpGet("property/{propertyId:int}/summary")]
-        public async Task<SummaryDto> GetSummaryAsync(int propertyId)
-        {
-            SummaryDto summaryDto = (SummaryDto)await _invoiceService.GetSummaryAsync(propertyId);
-            return summaryDto;
-        }
-
-        [HttpGet("property/{propertyId:int}/balance-forward")]
-        public async Task<ActionResult<decimal>> GetBalanceForward(int propertyId, [FromQuery] DateTime asOfDate)
-        {
-            var balance = await _invoiceService.GetBalanceForwardAsync(propertyId, asOfDate);
-            return Ok(balance);
-        }
-
-        [HttpGet("property/{propertyId:int}/export/pdf")]
-        public async Task<IActionResult> ExportPdf(int propertyId)
-        {
-            var dto = await _invoiceService.ExportInvoicesByPropertyIdAsync(propertyId);
-            if (dto == null || !dto.Any())
+            try
             {
-                return NotFound("No invoices found for the specified property.");
+                _logger.LogInformation("API Request: Retrieving all invoices");
+                var invoices = await _invoiceService.GetAllInvoicesAsync();
+                _logger.LogInformation("Audit: Retrieved {InvoiceCount} invoice(s)", invoices.Count);
+                return Ok(invoices);
             }
-
-            var pdfBytes = await _exportService.ExportToPdfAsync(dto);
-            return File(pdfBytes, "application/pdf", $"invoices_{propertyId}.pdf");
-        }
-
-        [HttpGet("property/{propertyId:int}/export/excel")]
-        public async Task<IActionResult> ExportExcel(int propertyId)
-        {
-            var dto = await _invoiceService.ExportInvoicesByPropertyIdAsync(propertyId);
-            if (dto == null || !dto.Any())
+            catch (Exception ex)
             {
-                return NotFound("No invoices found for the specified property.");
+                _logger.LogError(ex, "Error retrieving invoices");
+                return StatusCode(500, "Failed to retrieve invoices");
             }
-
-            var excelBytes = await _exportService.ExportToExcelAsync(dto);
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"invoices_{propertyId}.xlsx");
         }
 
-        [HttpGet("property/{propertyId:int}/export/quickbooks")]
-        public async Task<IActionResult> ExportQuickBooksCsv(int propertyId)
+        // 🔹 Get invoice by ID
+        [HttpGet("get-invoice-by-invoiceid/{invoiceId}")]
+        public async Task<ActionResult<InvoiceDto>> GetInvoice(int invoiceId)
         {
-            var dto = await _invoiceService.ExportInvoicesByPropertyIdAsync(propertyId);
-            if (dto == null || !dto.Any())
+            try
             {
-                return NotFound("No invoices found for the specified property.");
+                var invoice = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
+                if (invoice == null)
+                {
+                    _logger.LogWarning("Audit: InvoiceId {InvoiceId} not found", invoiceId);
+                    return NotFound();
+                }
+
+                _logger.LogInformation("Audit: Retrieved invoice for InvoiceId {InvoiceId}", invoiceId);
+                return Ok(invoice);
             }
-
-            var csvBytes = await _exportService.ExportToCsvAsync(dto); // Call the correct method
-            return File(csvBytes, "text/csv", $"quickbooks_invoices_{propertyId}.csv");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving invoice for InvoiceId {InvoiceId}", invoiceId);
+                return StatusCode(500, "Failed to retrieve invoice");
+            }
         }
 
-        [HttpPost("send-invoice/{invoiceId:int}")]
-        public async Task<IActionResult> SendInvoice(int invoiceId, [FromQuery] string recipientEmail)
+        // 🔹 Create invoice
+        [HttpPost("create-invoice")]
+        public async Task<IActionResult> CreateInvoice([FromBody] CreateInvoiceDto dto)
         {
-            var invoices = await _invoiceService.SendInvoiceAsync(invoiceId, recipientEmail);
-            return Ok("Invoice email sent successfully.");
+            try
+            {
+                _logger.LogInformation("API Request: Creating invoice for PropertyId {PropertyId}", dto.PropertyId);
+                var success = await _invoiceService.CreateInvoiceAsync(dto);
+
+                if (success)
+                {
+                    _logger.LogInformation("Audit: Invoice created successfully for PropertyId {PropertyId}", dto.PropertyId);
+                    return Ok();
+                }
+
+                _logger.LogWarning("Audit: Invoice creation failed for PropertyId {PropertyId}", dto.PropertyId);
+                return BadRequest("Invoice creation failed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating invoice for PropertyId {PropertyId}", dto.PropertyId);
+                return StatusCode(500, "Failed to create invoice");
+            }
         }
 
-        [HttpPost("send-cumultive-invoice/{propertyId:int}")]
-        public async Task<IActionResult> SendCummulativeInvoice(int propertyId, [FromQuery] string recipientEmail)
+        // 🔹 Update invoice
+        [HttpPut("update-invoice-by-invoiceid/{invoiceId}")]
+        public async Task<IActionResult> UpdateInvoice([FromBody] InvoiceDto dto)
         {
-            var invoices = await _invoiceService.SendCumulativeInvoiceAsync(propertyId, recipientEmail);
+            try
+            {
+                var success = await _invoiceService.UpdateInvoiceAsync(dto);
 
-            return Ok("Invoice email sent successfully.");
+                if (success)
+                {
+                    _logger.LogInformation("Audit: Invoice updated successfully for InvoiceId {InvoiceId}", dto.InvoiceId);
+                    return NoContent();
+                }
+
+                _logger.LogWarning("Audit: Invoice update failed or InvoiceId not found: {InvoiceId}", dto.InvoiceId);
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating invoice for InvoiceId {InvoiceId}", dto.InvoiceId);
+                return StatusCode(500, "Failed to update invoice");
+            }
+        }
+
+        // 🔹 Delete invoice
+        [HttpDelete("delete-invoice/{invoiceId}")]
+        public async Task<IActionResult> DeleteInvoice(int invoiceId)
+        {
+            _logger.LogInformation("API Request: Deleting InvoiceId {InvoiceId}", invoiceId);
+
+            try
+            {
+                var success = await _invoiceService.DeleteInvoiceAsync(invoiceId);
+
+                if (success)
+                {
+                    _logger.LogInformation("Audit: InvoiceId {InvoiceId} deleted successfully", invoiceId);
+                    return NoContent();
+                }
+
+                _logger.LogWarning("Audit: InvoiceId {InvoiceId} deletion failed or not found", invoiceId);
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting InvoiceId {InvoiceId}", invoiceId);
+                return StatusCode(500, "Failed to delete invoice");
+            }
+        }
+
+        // 🔹 Create line item
+        [HttpPost("create-line-items/line-items")]
+        public async Task<IActionResult> CreateLineItem([FromBody] CreateInvoiceLineItemDto dto)
+        {
+           
+            _logger.LogInformation("API Request: Creating line item for InvoiceId {InvoiceId}", dto.InvoiceId);
+
+            try
+            {
+                var lineItemId = await _invoiceService.CreateLineItemAsync(dto);
+                _logger.LogInformation("Audit: Line item created successfully with LineItemId {LineItemId}", lineItemId);
+                return CreatedAtAction(nameof(GetLineItem), new { lineItemId }, lineItemId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating line item for InvoiceId {InvoiceId}", dto.InvoiceId);
+                return StatusCode(500, "Failed to create line item");
+            }
+        }
+
+        // 🔹 Get line item
+        [HttpGet("get-lineitem-by-lineitemid/{lineItemId}")]
+        public async Task<ActionResult<InvoiceLineItemDto>> GetLineItem(int lineItemId)
+        {
+            try
+            {
+                var item = await _invoiceService.GetLineItemAsync(lineItemId);
+                if (item == null)
+                {
+                    _logger.LogWarning("Audit: Line item not found for LineItemId {LineItemId}", lineItemId);
+                    return NotFound();
+                }
+
+                _logger.LogInformation("Audit: Retrieved line item LineItemId {LineItemId}", lineItemId);
+                return Ok(item);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving LineItemId {LineItemId}", lineItemId);
+                return StatusCode(500, "Failed to retrieve line item");
+            }
+        }
+
+        // 🔹 Get all line items for invoice
+        [HttpGet("get-all-lineitems-for-invoice/{invoiceId}/line-items")]
+        public async Task<ActionResult<List<InvoiceLineItemDto>>> GetLineItemsForInvoice(int invoiceId)
+        {
+            try
+            {
+                var items = await _invoiceService.GetLineItemsForInvoiceAsync(invoiceId);
+                _logger.LogInformation("Audit: Retrieved {Count} line items for InvoiceId {InvoiceId}", items.Count, invoiceId);
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving line items for InvoiceId {InvoiceId}", invoiceId);
+                return StatusCode(500, "Failed to retrieve line items");
+            }
+        }
+
+        // 🔹 Update line item
+        [HttpPut("update-line-item/{lineItemId}")]
+        public async Task<IActionResult> UpdateLineItem(int lineItemId, [FromBody] CreateInvoiceLineItemDto dto)
+        {
+            try
+            {
+                var success = await _invoiceService.UpdateLineItemAsync(lineItemId, dto);
+
+                if (success)
+                {
+                    _logger.LogInformation("Audit: LineItemId {LineItemId} updated successfully", lineItemId);
+                    return NoContent();
+                }
+
+                _logger.LogWarning("Audit: LineItemId {LineItemId} update failed or not found", lineItemId);
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating LineItemId {LineItemId}", lineItemId);
+                return StatusCode(500, "Failed to update line item");
+            }
+        }
+
+        // 🔹 Delete line item
+        [HttpDelete("delete-line-item/{lineItemId}")]
+        public async Task<IActionResult> DeleteLineItem(int lineItemId)
+        {
+            _logger.LogInformation("API Request: Deleting LineItemId {LineItemId}", lineItemId);
+
+            try
+            {
+                var success = await _invoiceService.DeleteLineItemAsync(lineItemId);
+
+                if (success)
+                {
+                    _logger.LogInformation("Audit: LineItemId {LineItemId} deleted successfully", lineItemId);
+                    return NoContent();
+                }
+
+                _logger.LogWarning("Audit: LineItemId {LineItemId} deletion failed or not found", lineItemId);
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting LineItemId {LineItemId}", lineItemId);
+                return StatusCode(500, "Failed to delete line item");
+            }
         }
     }
 }

@@ -1,10 +1,14 @@
 ﻿using PropertyManagementAPI.Domain.DTOs.Users;
 
-public interface ITenantRepository
+namespace PropertyManagementAPI.Infrastructure.Repositories.Tenants
 {
-    Task<TenantDto> AddTenantAsync(TenantDto dto);
-    Task<IEnumerable<TenantDto>> GetAllTenantsAsync();
-    Task<TenantDto?> GetTenantByIdAsync(int tenantId);
-    Task<bool> UpdateTenantAsync(int tenantId, TenantDto dto);
-    Task<bool> SetActivateTenant(int tenantId);
+    public interface ITenantRepository
+    {
+        Task<TenantDto> AddTenantAsync(TenantDto dto);
+        Task<IEnumerable<TenantDto>> GetAllTenantsAsync();
+        Task<TenantDto?> GetTenantByIdAsync(int tenantId);
+        Task<bool> UpdateTenantAsync(TenantDto dto);
+        Task<bool> SetActivateTenant(int tenantId);
+        Task<bool> LinkQuickBooksAccountAsync(int tenantId, string AccessToken, string RefreshToken, string realmId);
+    }
 }

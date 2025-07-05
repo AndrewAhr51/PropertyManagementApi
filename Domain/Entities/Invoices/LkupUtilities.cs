@@ -2,7 +2,7 @@
 
 namespace PropertyManagementAPI.Domain.Entities.Invoices
 {
-    public class LkupUtilities
+    public class lkupUtilities
     {
         [Key]
         public int UtilityId { get; set; }

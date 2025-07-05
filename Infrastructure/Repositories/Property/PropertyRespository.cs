@@ -75,26 +75,29 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
                 .ToListAsync();
         }
 
-        public async Task<PropertyDto?> GetPropertyByIdAsync(int propertyId)
+        public async Task<PropertyAddressDto?> GetPropertyByIdAsync(int propertyId)
         {
-            var p = await _context.Properties.FindAsync(propertyId);
-            return p == null ? null : new PropertyDto
-            {
-                PropertyId = p.PropertyId,
-                PropertyName = p.PropertyName,
-                Address = p.Address,
-                Address1 = p.Address1,
-                City = p.City,
-                State = p.State,
-                PostalCode = p.PostalCode,
-                Country = p.Country,
-                Bedrooms = p.Bedrooms,
-                Bathrooms = p.Bathrooms,
-                SquareFeet = p.SquareFeet,
-                PropertyTaxes = p.PropertyTaxes,
-                IsAvailable = p.IsAvailable,
-                IsActive = p.IsActive
-            };
+            var result = await _context.Properties
+                .Where(p => p.PropertyId == propertyId)
+                .Select(p => new PropertyAddressDto // Change PropertyAddressDto to PropertyDto
+                {
+                    PropertyId = p.PropertyId, // Add PropertyId mapping
+                    PropertyName = p.PropertyName,
+                    Address = p.Address,
+                    Address1 = p.Address1,
+                    City = p.City,
+                    State = p.State,
+                    PostalCode = p.PostalCode,
+                    Country = p.Country,
+                    Amount = _context.Pricing
+                        .Where(pr => pr.PropertyId == p.PropertyId)
+                        .OrderByDescending(pr => pr.EffectiveDate)
+                        .Select(pr => pr.RentalAmount)
+                        .FirstOrDefault()
+                })
+                .FirstOrDefaultAsync();
+
+            return result;
         }
 
         public async Task<IEnumerable<PropertyDto>> GetPropertiesByOwnerIdAsync(int ownerId)

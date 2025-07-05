@@ -9,6 +9,7 @@ namespace PropertyManagementAPI.Domain.Entities.Payments.Banking
     {
         [Key]
         public int BankAccountInfoId { get; set; }
+        public int TenantId { get; set; } // Foreign key to Tenant
 
         [MaxLength(50)]
         public string BankName { get; set; }

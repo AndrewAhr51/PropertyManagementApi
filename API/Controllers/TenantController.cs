@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PropertyManagementAPI.Application.Services;
 using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Application.Services.Tenants;
 
 namespace PropertyManagementAPI.API.Controllers
 {
@@ -18,73 +19,125 @@ namespace PropertyManagementAPI.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateTenant([FromBody] TenantDto dto)
         {
-            if (dto == null)
-            {
-                _logger.LogWarning("Create: Received null TenantDto.");
-                return BadRequest("Invalid tenant data.");
-            }
+            _logger.LogInformation("CreateTenant: Received request.");
 
-            var created = await _service.CreateTenantsAsync(dto);
-            _logger.LogInformation("Create: Tenant created with ID {Id}.", created.TenantId);
-            return CreatedAtAction(nameof(GetTenantById), new { tenantId = created.TenantId }, created);
+            try
+            {
+                if (dto == null)
+                {
+                    _logger.LogWarning("CreateTenant: Received null TenantDto.");
+                    return BadRequest("Invalid tenant data.");
+                }
+
+                var created = await _service.CreateTenantsAsync(dto);
+                _logger.LogInformation("CreateTenant: Tenant created with ID {Id}.", created.TenantId);
+
+                return CreatedAtAction(nameof(GetTenantById), new { tenantId = created.TenantId }, created);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CreateTenant: Error creating tenant.");
+                return StatusCode(500, "An error occurred while creating the tenant.");
+            }
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<IActionResult> GetAllTenants()
         {
-            var tenants = await _service.GetAllTenantsAsync();
-            _logger.LogInformation("GetAll: Retrieved {Count} tenants.", tenants.Count());
-            return Ok(tenants);
+            _logger.LogInformation("GetAllTenants: Fetching all tenants.");
+
+            try
+            {
+                var tenants = await _service.GetAllTenantsAsync();
+                _logger.LogInformation("GetAllTenants: Retrieved {Count} tenants.", tenants.Count());
+
+                return Ok(tenants);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetAllTenants: Failed to retrieve tenants.");
+                return StatusCode(500, "An error occurred while retrieving tenant records.");
+            }
         }
 
-        [HttpGet("{tenantId}")]
+        [HttpGet("by-id/{tenantId}")]
         public async Task<IActionResult> GetTenantById(int tenantId)
         {
-            var tenant = await _service.GetTenantByIdAsync(tenantId);
-            if (tenant == null)
-            {
-                _logger.LogWarning("GetById: Tenant ID {Id} not found.", tenantId);
-                return NotFound();
-            }
+            _logger.LogInformation("GetTenantById: Fetching tenant ID {Id}.", tenantId);
 
-            return Ok(tenant);
+            try
+            {
+                var tenant = await _service.GetTenantByIdAsync(tenantId);
+                if (tenant == null)
+                {
+                    _logger.LogWarning("GetTenantById: Tenant ID {Id} not found.", tenantId);
+                    return NotFound();
+                }
+
+                return Ok(tenant);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetTenantById: Failed to retrieve tenant ID {Id}.", tenantId);
+                return StatusCode(500, "An error occurred while retrieving the tenant.");
+            }
         }
 
-        [HttpPut("{tenantId}")]
+        [HttpPut("update/{tenantId}")]
         public async Task<IActionResult> UpdateTenant(int tenantId, [FromBody] TenantDto dto)
         {
-            if (dto == null)
-            {
-                _logger.LogWarning("Update: Received null TenantDto for ID {Id}.", tenantId);
-                return BadRequest("Invalid tenant data.");
-            }
+            _logger.LogInformation("UpdateTenant: Attempting to update tenant ID {Id}.", tenantId);
 
-            var updated = await _service.UpdateTenantAsync(tenantId, dto);
-            if (!updated)
+            try
             {
-                _logger.LogWarning("Update: Tenant ID {Id} not found.", tenantId);
-                return NotFound();
-            }
+                if (dto == null)
+                {
+                    _logger.LogWarning("UpdateTenant: Received null TenantDto.");
+                    return BadRequest("Invalid tenant data.");
+                }
 
-            _logger.LogInformation("Update: Tenant ID {Id} updated.", tenantId);
-            return NoContent();
+                var updated = await _service.UpdateTenantAsync(tenantId, dto);
+                if (!updated)
+                {
+                    _logger.LogWarning("UpdateTenant: Tenant ID {Id} not found.", tenantId);
+                    return NotFound();
+                }
+
+                _logger.LogInformation("UpdateTenant: Tenant ID {Id} updated successfully.", tenantId);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UpdateTenant: Error updating tenant ID {Id}.", tenantId);
+                return StatusCode(500, "An error occurred while updating the tenant.");
+            }
         }
 
-        [HttpDelete("{tenantId}")]
+        [HttpDelete("deactivate/{tenantId}")]
         public async Task<IActionResult> SetActivateTenant(int tenantId)
         {
-            var deleted = await _service.SetActivateTenant(tenantId);
-            if (!deleted)
-            {
-                _logger.LogWarning("Delete: Tenant ID {Id} not found.", tenantId);
-                return NotFound();
-            }
+            _logger.LogInformation("DeactivateTenant: Attempting to deactivate tenant ID {Id}.", tenantId);
 
-            _logger.LogInformation("Delete: Tenant ID {Id} deleted.", tenantId);
-            return NoContent();
+            try
+            {
+                var deleted = await _service.SetActivateTenant(tenantId);
+                if (!deleted)
+                {
+                    _logger.LogWarning("DeactivateTenant: Tenant ID {Id} not found.", tenantId);
+                    return NotFound();
+                }
+
+                _logger.LogInformation("DeactivateTenant: Tenant ID {Id} deactivated successfully.", tenantId);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DeactivateTenant: Error deactivating tenant ID {Id}.", tenantId);
+                return StatusCode(500, "An error occurred while deactivating the tenant.");
+            }
         }
     }
 }

@@ -1,14 +1,16 @@
-﻿using PropertyManagementAPI.Domain.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class LkupCleaningType
+namespace PropertyManagementAPI.Domain.Entities.Invoices
 {
-    [Key]
-    public int CleaningTypeId { get; set; }
+    public class lkupCleaningType
+    {
+        [Key]
+        public int CleaningTypeId { get; set; }
 
-    [Required]
-    public string CleaningTypeName { get; set; } = string.Empty;
+        [Required]
+        public string CleaningTypeName { get; set; } = string.Empty;
 
-    public string Description { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
 
+    }
 }

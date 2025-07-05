@@ -1,5 +1,6 @@
 ﻿using Stripe;
 
+
 namespace PropertyManagementAPI.Application.Services.Payments.Stripe
 {
     public class StripeService : IStripeService

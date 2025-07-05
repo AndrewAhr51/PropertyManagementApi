@@ -6,7 +6,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Property
     {
         Task<PropertyDto> AddPropertyAsync(PropertyDto propertyDto);
         Task<IEnumerable<PropertyDto>> GetAllPropertiesAsync();
-        Task<PropertyDto?> GetPropertyByIdAsync(int propertyId);
+        Task<PropertyAddressDto?> GetPropertyByIdAsync(int propertyId);
         Task<IEnumerable<PropertyDto>> GetPropertiesByOwnerIdAsync(int ownerId);
         Task<PropertyDto?> UpdatePropertyAsync(PropertyDto propertyDto);
         Task<bool> SetActivatePropertyAsync(int propertyId);

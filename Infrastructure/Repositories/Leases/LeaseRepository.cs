@@ -34,7 +34,7 @@ public class LeaseRepository : ILeaseRepository
             PropertyId = dto.PropertyId,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
-            MonthlyRent = dto.MonthlyRent,
+            Amount = dto.Amount,
             DepositAmount = dto.DepositAmount,
             DepositPaid = dto.DepositPaid,
             IsActive = true,
@@ -60,7 +60,7 @@ public class LeaseRepository : ILeaseRepository
                 PropertyId = l.PropertyId,
                 StartDate = l.StartDate,
                 EndDate = l.EndDate,
-                MonthlyRent = l.MonthlyRent,
+                Amount = l.Amount,
                 DepositPaid = l.DepositPaid,
                 IsActive = l.IsActive,
                 SignedDate = l.SignedDate,
@@ -82,7 +82,7 @@ public class LeaseRepository : ILeaseRepository
             PropertyId = l.PropertyId,
             StartDate = l.StartDate,
             EndDate = l.EndDate,
-            MonthlyRent = l.MonthlyRent,
+            Amount = l.Amount,
             DepositPaid = l.DepositPaid,
             IsActive = l.IsActive,
             SignedDate = l.SignedDate,
@@ -98,7 +98,7 @@ public class LeaseRepository : ILeaseRepository
         entity.StartDate = dto.StartDate;
         entity.EndDate = dto.EndDate;
         entity.DepositAmount = dto.DepositAmount;
-        entity.MonthlyRent = dto.MonthlyRent;
+        entity.Amount = dto.Amount;
         entity.DepositPaid = dto.DepositPaid;
         entity.SignedDate = dto.SignedDate;
 
@@ -135,7 +135,7 @@ public class LeaseRepository : ILeaseRepository
             TenantPhoneNumber = lease.Tenants.PhoneNumber,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
-            MonthlyRent = lease.MonthlyRent,
+            Amount = lease.Amount,
             DepositPaid = lease.DepositPaid,
             IsActive = lease.IsActive,
             SignedDate = lease.SignedDate,
@@ -160,7 +160,7 @@ public class LeaseRepository : ILeaseRepository
           PropertyName = lease.Property.PropertyName,
           StartDate = lease.StartDate,
           EndDate = lease.EndDate,
-          MonthlyRent = lease.MonthlyRent,
+          Amount = lease.Amount,
           DepositAmount = lease.DepositAmount,
           DepositPaid = lease.DepositPaid,
           IsActive = lease.IsActive,

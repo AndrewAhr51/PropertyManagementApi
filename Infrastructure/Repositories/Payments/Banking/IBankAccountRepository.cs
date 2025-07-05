@@ -7,10 +7,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments.Banking
 {
     public interface IBankAccountRepository
     {
-        Task<int> AddBankAccountAsync(BankAccountInfo account);
-        Task<BankAccountInfo> GetBankAccountByIdAsync(int bankAccountInfoId);
-        Task<IEnumerable<BankAccountInfo>> GetBankAccountByOwnerAsync(int ownerId);
+        Task<bool> AddBankAccountAsync(BankAccount account);
+        Task<BankAccount> GetBankAccountByIdAsync(int bankAccountId);
+        Task<IEnumerable<BankAccount>> GetBankAccountByOwnerAsync(int ownerId);
         Task<IEnumerable<BankAccount>> GetByTenantIdAsync(int tenantId);
-        Task<BankAccount> AddAsync(BankAccount account);
     }
 }

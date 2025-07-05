@@ -7,22 +7,55 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="API\Controllers\OLD\**" />
     <Compile Remove="Application\Services\CreditCards\**" />
+    <Compile Remove="Application\Services\InvoiceOLD\**" />
+    <Compile Remove="Domain\DTOs\InvoiceOLD\**" />
+    <Compile Remove="Domain\Entities\InvoiceOLD\**" />
     <Compile Remove="Infrastructure\Repositories\CreditCards\**" />
+    <Compile Remove="Infrastructure\Repositories\InvoiceOLD\**" />
     <Compile Remove="Infrastructure\SQL Server\**" />
+    <Content Remove="API\Controllers\OLD\**" />
     <Content Remove="Application\Services\CreditCards\**" />
+    <Content Remove="Application\Services\InvoiceOLD\**" />
+    <Content Remove="Domain\DTOs\InvoiceOLD\**" />
+    <Content Remove="Domain\Entities\InvoiceOLD\**" />
     <Content Remove="Infrastructure\Repositories\CreditCards\**" />
+    <Content Remove="Infrastructure\Repositories\InvoiceOLD\**" />
     <Content Remove="Infrastructure\SQL Server\**" />
+    <EmbeddedResource Remove="API\Controllers\OLD\**" />
     <EmbeddedResource Remove="Application\Services\CreditCards\**" />
+    <EmbeddedResource Remove="Application\Services\InvoiceOLD\**" />
+    <EmbeddedResource Remove="Domain\DTOs\InvoiceOLD\**" />
+    <EmbeddedResource Remove="Domain\Entities\InvoiceOLD\**" />
     <EmbeddedResource Remove="Infrastructure\Repositories\CreditCards\**" />
+    <EmbeddedResource Remove="Infrastructure\Repositories\InvoiceOLD\**" />
     <EmbeddedResource Remove="Infrastructure\SQL Server\**" />
+    <None Remove="API\Controllers\OLD\**" />
     <None Remove="Application\Services\CreditCards\**" />
+    <None Remove="Application\Services\InvoiceOLD\**" />
+    <None Remove="Domain\DTOs\InvoiceOLD\**" />
+    <None Remove="Domain\Entities\InvoiceOLD\**" />
     <None Remove="Infrastructure\Repositories\CreditCards\**" />
+    <None Remove="Infrastructure\Repositories\InvoiceOLD\**" />
     <None Remove="Infrastructure\SQL Server\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="API\Controllers\CleaningFeeInvoiceController.cs" />
     <Compile Remove="API\Controllers\CreditCardInfoController.cs" />
+    <Compile Remove="API\Controllers\LeaseTerminationInvoiceController.cs" />
+    <Compile Remove="API\Controllers\LegalFeeInvoiceController.cs" />
+    <Compile Remove="API\Controllers\PropertyTaxInvoiceController.cs" />
+    <Compile Remove="API\Controllers\SecurityDepositInvoiceController.cs" />
+    <Compile Remove="API\InvoiceController.cs" />
+    <Compile Remove="API\InvoiceRentalController.cs" />
+    <Compile Remove="API\InvoiceUtilitiesController.cs" />
+    <Compile Remove="Application\Services\Payments\Banking\BankAccountService.cs" />
+    <Compile Remove="Application\Services\Payments\Banking\IBankAccountService.cs" />
+    <Compile Remove="Domain\DTOs\Invoices\Mappers\InvoiceMapper.cs" />
+    <Compile Remove="Domain\Entities\Invoices\InvoiceTypeMapping.cs" />
+    <Compile Remove="Domain\Entities\Invoices\LineItemType.cs" />
     <Compile Remove="Infrastructure\Data\SQLServerDbContext.cs" />
     <Compile Remove="Infrastructure\Repositories\IInvoiceRepository.cs" />
     <Compile Remove="Infrastructure\Repositories\InvoiceRepository.cs" />
@@ -32,6 +65,7 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="Going.Plaid" Version="6.45.0" />
+    <PackageReference Include="IppDotNetSdkForQuickBooksApiV3" Version="14.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.17" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
@@ -46,7 +80,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.12.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

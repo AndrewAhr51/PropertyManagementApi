@@ -20,14 +20,14 @@ namespace PropertyManagementAPI.Domain.Entities.Payments.PreferredMethods
         public string MethodType { get; set; } // e.g., "Card", "Bank"
 
         public int? CardTokenId { get; set; }
-        public int? BankAccountInfoId { get; set; }
+        public int? BankAccountId { get; set; }
 
         public bool IsDefault { get; set; } = false;
         public DateTime UpdatedOn { get; set; } = DateTime.UtcNow;
 
         // 🔗 Navigation properties
         public CardToken CardToken { get; set; }
-        public BankAccountInfo BankAccountInfo { get; set; }
+        public BankAccount BankAccount { get; set; }
 
         public Tenant Tenant { get; set; }
         public Owner Owner { get; set; }

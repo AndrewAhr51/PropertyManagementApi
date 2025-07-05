@@ -5,7 +5,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.Banking
 {
     public interface IBankAccountService
     {
-        Task<int> AddBankAccountAsync(BankAccountDto dto);
+        Task<bool> AddBankAccountAsync(BankAccountDto dto);
         Task<IEnumerable<BankAccountInfo>> GetAccountsByOwnerAsync(int ownerId);
         Task<BankAccountInfo> GetByIdAsync(int bankAccountInfoId);
     }

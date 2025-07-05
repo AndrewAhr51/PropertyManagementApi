@@ -36,7 +36,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.PreferredMethods
                 OwnerId = dto.OwnerId,
                 MethodType = dto.MethodType,
                 CardTokenId = dto.CardTokenId,
-                BankAccountInfoId = dto.BankAccountInfoId,
+                BankAccountId = dto.BankAccountId,
                 IsDefault = dto.IsDefault,
                 UpdatedOn = DateTime.UtcNow
             };
@@ -77,9 +77,9 @@ namespace PropertyManagementAPI.Application.Services.Payments.PreferredMethods
                 dto.CardBrand = card?.CardBrand;
             }
 
-            if (method.BankAccountInfoId.HasValue)
+            if (method.BankAccountId.HasValue)
             {
-                var bank = await _bankAccountRepository.GetBankAccountByIdAsync(method.BankAccountInfoId.Value);
+                var bank = await _bankAccountRepository.GetBankAccountByIdAsync(method.BankAccountId.Value);
                 dto.BankName = bank?.BankName;
                 dto.AccountType = bank?.AccountType;
             }

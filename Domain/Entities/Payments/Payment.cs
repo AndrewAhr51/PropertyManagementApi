@@ -1,48 +1,35 @@
-﻿using PropertyManagementAPI.Domain.Entities.Invoices;
-using PropertyManagementAPI.Domain.Entities.User;
+﻿using PropertyManagementAPI.Domain.Entities.User;
+using PropertyManagementAPI.Domain.Entities.Invoices;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementAPI.Domain.Entities.Payments
 {
-    public abstract class Payment
+    public class Payment
     {
-        [Key]
         public int PaymentId { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
-
-        [Required]
-        public string PaymentType { get; set; } = null!; // e.g., "Card", "Check", "Transfer"
-
-        public string CardType { get; set; } = null!; // e.g., "Visa", "MasterCard", etc. (only for Card payments)
-
-        public string CheckNumber { get; set; } = null!; // Check number (only for Check payments)
-
-        public string CheckBankName { get; set; } = null!; // Check number (only for Check payments)
-
-        public string BankAccountNumber { get; set; } = null!; // Bank account number (only for Transfer payments)
-
-        public string RoutingNumber { get; set; } = null!; // Routing number (only for Transfer payments)
-
-        public string TransactionId { get; set; } = null!; // Transaction ID (only for Transfer payments)
         public DateTime PaidOn { get; set; }
-
-        [Required]
-        [MaxLength(50)]
-        public string ReferenceNumber { get; set; } = null!;
-
-        [ForeignKey(nameof(Invoice))]
+        public string ReferenceNumber { get; set; } = default!;
         public int InvoiceId { get; set; }
         public int? TenantId { get; set; }
         public int? OwnerId { get; set; }
+        public string PaymentType { get; set; } = default!;
+        public string? CardType { get; set; }
+        public string? Last4Digits { get; set; }
+        public string? AuthorizationCode { get; set; }
+        public string? CheckNumber { get; set; }
+        public string? CheckBankName { get; set; }
+        public string? BankAccountNumber { get; set; }
+        public string? RoutingNumber { get; set; }
+        public string? TransactionId { get; set; }
 
-        // 🔗 Navigation properties
-        public Invoice Invoice { get; set; } = null!;
-        public Tenant Tenant { get; set; } = null!;
-        public Owner Owner { get; set; } = null!;
+        public Invoice Invoice { get; set; } = default!;
+
+        public Tenant Tenant { get; set; } = default!;
+
+        public Owner Owner { get; set; } = default!;
     }
 }
 
