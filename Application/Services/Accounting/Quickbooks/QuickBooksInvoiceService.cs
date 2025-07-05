@@ -4,7 +4,6 @@ using Intuit.Ipp.Data;
 using Intuit.Ipp.DataService;
 using Intuit.Ipp.Security;
 using Microsoft.OpenApi.Models;
-using PropertyManagementAPI.Application.Services.Auth;
 using PropertyManagementAPI.Domain.DTOs.Invoices;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using Stripe = Stripe.Invoice;
