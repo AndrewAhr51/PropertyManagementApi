@@ -1,9 +1,12 @@
-﻿using PropertyManagementAPI.Domain.Entities.User;
+﻿
+using PropertyManagementAPI.Domain.Entities.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementAPI.Domain.Entities.Payments.Banking
 {
     public class PaymentTransactions
     {
+        [Key]
         public int PaymentTransactionId { get; set; }
         public int TenantId { get; set; }
         public decimal Amount { get; set; }

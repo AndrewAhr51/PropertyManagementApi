@@ -17,7 +17,7 @@ namespace PropertyManagementAPI.Application.Services.Property
         /// <summary>
         /// Retrieves a property by its unique ID.
         /// </summary>
-        Task<PropertyDto?> GetPropertyByIdAsync(int propertyId);
+        Task<PropertyAddressDto?> GetPropertyByIdAsync(int propertyId);
 
         /// <summary>
         /// Retrieves all properties owned by a specific owner.

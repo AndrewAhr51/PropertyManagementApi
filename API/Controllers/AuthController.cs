@@ -79,6 +79,6 @@ namespace PropertyManagementAPI.Controllers
             if (!success) return BadRequest("Password reset failed.");
 
             return Ok("Password reset successfully.");
-        }   
-    }
+        }
+    }       
 }   

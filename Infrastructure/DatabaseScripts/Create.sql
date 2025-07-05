@@ -62,9 +62,9 @@ CREATE TABLE lkupServiceTypes (
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE lkupInvoiceType (
-    InvoiceTypeId INT PRIMARY KEY AUTO_INCREMENT,
-    InvoiceType NVARCHAR(50) NOT NULL UNIQUE,
+CREATE TABLE lkupLineItemType (
+    LineItemTypeId INT PRIMARY KEY AUTO_INCREMENT,
+    LineItemTypeName NVARCHAR(50) NOT NULL UNIQUE,
     Description NVARCHAR(255) NULL,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -106,10 +106,10 @@ CREATE TABLE RolePermissions (
 
 -- Property Table
 CREATE TABLE Properties (
-    PropertyId INT PRIMARY KEY AUTO_INCREMENT,
+    PropertyId INT AUTO_INCREMENT PRIMARY KEY,
     PropertyName NVARCHAR(255) NOT NULL,
     Address NVARCHAR(255) NOT NULL,
-    Address1 NVARCHAR(255) NULL,
+    Address1 NVARCHAR(255),
     City NVARCHAR(100) NOT NULL,
     State NVARCHAR(100) NOT NULL,
     PostalCode NVARCHAR(20) NOT NULL,
@@ -117,13 +117,13 @@ CREATE TABLE Properties (
     Bedrooms INT NOT NULL,
     Bathrooms INT NOT NULL,
     SquareFeet INT NOT NULL,
-    PropertyTaxes DECIMAL(10,2) default 0,
-    Insurance DECIMAL(10,2) default 0,
+    PropertyTaxes DECIMAL(10,2) DEFAULT 0.00,
+    Insurance DECIMAL(10,2) DEFAULT 0.00,
     IsAvailable BOOLEAN DEFAULT TRUE,
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedBy CHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- PropertyPhotos Table
 CREATE TABLE PropertyPhotos (
@@ -219,12 +219,15 @@ CREATE TABLE OwnerAnnouncements (
 CREATE TABLE Tenants (
     TenantId INT PRIMARY KEY,
     PropertyId INT NOT NULL,
+    QuickBooksAccessToken NVARCHAR(100) DEFAULT '',
+    QuickBooksRefreshToken NVARCHAR(100) DEFAULT '',
+    RealmId NVARCHAR(100) DEFAULT '',
     PrimaryTenant BOOLEAN DEFAULT FALSE,
     FirstName NVARCHAR(100),
     LastName NVARCHAR(100),
     PhoneNumber NVARCHAR(20),
     IsActive BOOLEAN DEFAULT TRUE,
-	Email NVARCHAR(255) NOT NULL UNIQUE,
+    Email NVARCHAR(255) NOT NULL UNIQUE,
     MoveInDate DATE,
     Balance DECIMAL(10,2) DEFAULT 0,
     CreatedBy CHAR(50) DEFAULT 'Web',
@@ -339,86 +342,92 @@ CREATE TABLE Leases (
     FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId)
 );
 
-CREATE TABLE Invoices (
-    invoiceId INT PRIMARY KEY AUTO_INCREMENT,
-    CustomerName VARCHAR(100) DEFAULT 'unknown',
-    Email VARCHAR(255) NOT NULL ,
-    ReferenceNumber VARCHAR(50) NOT NULL, 
-    amount DECIMAL(18,2) NOT NULL,
-    duedate DATETIME NOT NULL,
-    propertyid int NOT NULL,
+CREATE TABLE InvoiceDocuments (
+    InvoiceId INT PRIMARY KEY AUTO_INCREMENT,
     tenantid int NULL,
-    ownerid int NULL,
+    TenantName VARCHAR(100) DEFAULT 'unknown',
+    Email VARCHAR(255) NOT NULL ,
+    ReferenceNumber VARCHAR(50) NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL,
+    DueDate DATETIME NOT NULL,
     IsPaid BOOLEAN DEFAULT FALSE,
-    status VARCHAR(50) DEFAULT 'Pending',
-    notes TEXT,
-    invoicetypeid INT NOT NULL,
+    Status VARCHAR(50) DEFAULT 'Pending',
     CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ModifiedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Subtype Tables with ON DELETE CASCADE
-CREATE TABLE RentInvoices (
-    invoiceId INT PRIMARY KEY,
-    rentmonth INT,
-    rentyear INT,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+CREATE TABLE Invoices (
+    InvoiceId INT PRIMARY KEY AUTO_INCREMENT,
+    LastMonthDue DECIMAL(18,2) NOT NULL,
+    LastMonthPaid DECIMAL(18,2) NOT NULL,
+    PropertyId INT NOT NULL,
+    PropertyName VARCHAR(50),
+    RentMonth INT NOT NULL,
+    RentYear INT NOT NULL,
+    OwnerId INT NULL,
+    Notes TEXT,
+    CreatedBy VARCHAR(50) DEFAULT 'Web',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ModifiedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (InvoiceId) REFERENCES InvoiceDocuments(InvoiceId) ON DELETE CASCADE
 );
 
-CREATE TABLE UtilityInvoices (
-    invoiceId INT PRIMARY KEY,
-    utilitytypeid INT,
-    usageamount DECIMAL(10,2),
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+CREATE TABLE InvoiceType (
+    InvoiceTypeId INT AUTO_INCREMENT PRIMARY KEY,
+    LineItemTypeName VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE SecurityDepositInvoices (
-    invoiceId INT PRIMARY KEY,
-    isrefundable BOOLEAN,
-	depositamount DECIMAL(18,2) NOT NULL,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+CREATE TABLE InvoiceLineItems (
+    LineItemId INT AUTO_INCREMENT PRIMARY KEY,
+    InvoiceId INT NOT NULL,
+    LineItemTypeId INT NOT NULL,
+    Description TEXT,
+    Amount DECIMAL(18,2) NOT NULL,
+    SortOrder INT DEFAULT 0,
+    IsDeleted BOOLEAN DEFAULT FALSE,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ModifiedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId) ON DELETE CASCADE,
+    FOREIGN KEY (LineItemTypeId) REFERENCES lkupLineItemType(LineItemTypeId),
+    INDEX (InvoiceId),
+    INDEX (LineItemTypeId)
 );
 
-CREATE TABLE CleaningFeeInvoices (
-    invoiceId INT PRIMARY KEY,
-    cleaningtypeid INT,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+CREATE TABLE InvoiceLineItemMetadata (
+    MetadataId INT AUTO_INCREMENT PRIMARY KEY,
+    LineItemId INT NOT NULL,
+    MetaKey VARCHAR(100) NOT NULL,
+    MetaValue TEXT,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (LineItemId) REFERENCES InvoiceLineItems(LineItemId) ON DELETE CASCADE,
+    INDEX (LineItemId)
 );
 
-CREATE TABLE LeaseTerminationInvoices (
-    invoiceId INT PRIMARY KEY,
-    terminationreason TEXT,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+CREATE TABLE InvoiceAuditLog (
+    AuditId INT AUTO_INCREMENT PRIMARY KEY,
+    InvoiceId INT NULL,
+    ActionType ENUM('Created', 'Updated', 'Deleted') NOT NULL,
+    ChangedBy VARCHAR(50) NOT NULL,
+    ChangeTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    OldValues JSON NULL,
+    NewValues JSON NULL,
+    ChangeReason VARCHAR(255) NULL,
+    FOREIGN KEY (InvoiceId) REFERENCES invoices(InvoiceId) ON DELETE SET NULL,
+    INDEX (InvoiceId)
 );
 
-CREATE TABLE ParkingFeeInvoices (
-    invoiceId INT PRIMARY KEY,
-    spotidentifier VARCHAR(50),
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+CREATE TABLE BankAccounts (
+    BankAccountId INT AUTO_INCREMENT PRIMARY KEY,
+    TenantId INT NOT NULL,
+    StripeBankAccountId VARCHAR(255) NOT NULL,
+    BankName VARCHAR(100),
+    Last4 VARCHAR(4),
+    AccountType ENUM('checking', 'savings') DEFAULT 'checking',
+    IsVerified BOOLEAN DEFAULT FALSE,
+    AddedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
-
-CREATE TABLE PropertyTaxInvoices (
-    invoiceId INT PRIMARY KEY,
-    taxperiodstart DATE,
-    taxperiodend DATE,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
-);
-
-CREATE TABLE InsuranceInvoices (
-    invoiceId INT PRIMARY KEY,
-    policynumber VARCHAR(100),
-    coverageperiodstart DATE,
-    coverageperiodend DATE,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
-);
-
-CREATE TABLE LegalFeeInvoices (
-    invoiceId INT PRIMARY KEY,
-    casereference VARCHAR(100),
-    LawFirm VARCHAR(100),
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
-);
-
 -- Payment Table
 CREATE TABLE Payments (
     PaymentId INT AUTO_INCREMENT PRIMARY KEY,
@@ -513,15 +522,6 @@ CREATE TABLE BillingAddressHistory (
     FOREIGN KEY (BillingAddressId) REFERENCES BillingAddress(BillingAddressId)
 );
 
-CREATE TABLE BankAccountInfo (
-    BankAccountInfoId INT AUTO_INCREMENT PRIMARY KEY,
-    BankName VARCHAR(50),
-    AccountNumberMasked VARCHAR(20),
-    RoutingNumber VARCHAR(20),
-    AccountType VARCHAR(20),
-    CreatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE CardToken (
     CardTokenId INT AUTO_INCREMENT PRIMARY KEY,
     TokenValue VARCHAR(100) NOT NULL,
@@ -543,14 +543,14 @@ CREATE TABLE PreferredMethod (
     OwnerId INT,
     MethodType VARCHAR(20) NOT NULL, -- "Card", "Bank", etc.
     CardTokenId INT,
-    BankAccountInfoId INT,
+    BankAccountId INT,
     IsDefault BOOLEAN DEFAULT FALSE,
     UpdatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId),
     FOREIGN KEY (CardTokenId) REFERENCES CardToken(CardTokenId),
-    FOREIGN KEY (BankAccountInfoId) REFERENCES BankAccountInfo(BankAccountInfoId)
+    FOREIGN KEY (BankAccountId) REFERENCES BankAccounts(BankAccountId)
 );
 
 -- Special Instructions
@@ -609,17 +609,7 @@ CREATE TABLE PaymentReminders (
 );
 
 -- Notes
-CREATE TABLE BankAccounts (
-    BankAccountId INT AUTO_INCREMENT PRIMARY KEY,
-    TenantId INT NOT NULL,
-    StripeBankAccountId VARCHAR(255) NOT NULL,
-    BankName VARCHAR(100),
-    Last4 VARCHAR(4),
-    AccountType ENUM('checking', 'savings') DEFAULT 'checking',
-    IsVerified BOOLEAN DEFAULT FALSE,
-    AddedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
-);
+
 CREATE TABLE ACHAuthorizations (
     ACHAuthorizationId INT AUTO_INCREMENT PRIMARY KEY,
     TenantId INT NOT NULL,
@@ -639,18 +629,7 @@ CREATE TABLE PaymentTransactions (
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 
-CREATE TABLE InvoiceAuditLog (
-    AuditId INT AUTO_INCREMENT PRIMARY KEY,
-    InvoiceId INT NOT NULL,
-    ActionType ENUM('Created', 'Updated', 'Deleted') NOT NULL,
-    ChangedBy CHAR(50) NOT NULL,
-    ChangeTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    OldValues JSON NULL,
-    NewValues JSON NULL,
-    ChangeReason VARCHAR(255) NULL,
 
-    FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId)
-);
 
 CREATE TABLE TriggerLog (
     Id INT AUTO_INCREMENT PRIMARY KEY,
@@ -661,9 +640,12 @@ CREATE TABLE TriggerLog (
 -- 📘 Start custom delimiter for compound statements
 DELIMITER $$
 
--- 🔸 1. Update Tenant Balance When Invoice Is Inserted
-CREATE TRIGGER after_invoice_insert
-AFTER INSERT ON Invoices
+-- 🔄 Balance Adjustment After Invoice INSERT (base table)
+DELIMITER $$
+
+-- 🔄 After INSERT on InvoiceDocuments — Adjust balance
+CREATE TRIGGER trg_after_invoice_insert
+AFTER INSERT ON InvoiceDocuments
 FOR EACH ROW
 BEGIN
     IF NEW.IsPaid = FALSE THEN
@@ -671,15 +653,15 @@ BEGIN
         SET Balance = Balance + NEW.Amount
         WHERE TenantId = NEW.TenantId;
     END IF;
-END;
+END$$
 
--- 🔸 2. Adjust Tenant Balance on Invoice Update
-CREATE TRIGGER after_invoice_update
-AFTER UPDATE ON Invoices
+-- ✏️ After UPDATE on InvoiceDocuments — Adjust balance delta or reverse
+CREATE TRIGGER trg_after_invoice_update
+AFTER UPDATE ON InvoiceDocuments
 FOR EACH ROW
 BEGIN
-    DECLARE delta DECIMAL(10,2);
-    -- Amount changed while unpaid
+    DECLARE delta DECIMAL(18,2);
+
     IF OLD.IsPaid = FALSE AND NEW.IsPaid = FALSE AND OLD.Amount != NEW.Amount THEN
         SET delta = NEW.Amount - OLD.Amount;
         UPDATE Tenants
@@ -687,24 +669,22 @@ BEGIN
         WHERE TenantId = NEW.TenantId;
     END IF;
 
-    -- Invoice marked as paid
     IF OLD.IsPaid = FALSE AND NEW.IsPaid = TRUE THEN
         UPDATE Tenants
         SET Balance = Balance - OLD.Amount
         WHERE TenantId = NEW.TenantId;
     END IF;
 
-    -- Invoice marked as unpaid again
     IF OLD.IsPaid = TRUE AND NEW.IsPaid = FALSE THEN
         UPDATE Tenants
         SET Balance = Balance + NEW.Amount
         WHERE TenantId = NEW.TenantId;
     END IF;
-END;
+END$$
 
--- 🔸 3. Subtract Balance if Unpaid Invoice Is Deleted
-CREATE TRIGGER before_invoice_delete
-BEFORE DELETE ON Invoices
+-- 🗑️ Before DELETE on InvoiceDocuments — Reverse unpaid balance
+CREATE TRIGGER trg_before_invoice_delete
+BEFORE DELETE ON InvoiceDocuments
 FOR EACH ROW
 BEGIN
     IF OLD.IsPaid = FALSE THEN
@@ -712,70 +692,81 @@ BEGIN
         SET Balance = Balance - OLD.Amount
         WHERE TenantId = OLD.TenantId;
     END IF;
-END;
+END$$
 
--- 🔸 4. Log Invoice Creation in Audit Table
-CREATE TRIGGER audit_invoice_insert
-AFTER INSERT ON Invoices
+-- 🧾 Audit After INSERT on invoices — Only use fields that exist in the derived table
+CREATE TRIGGER trg_audit_invoice_insert
+AFTER INSERT ON invoices
 FOR EACH ROW
 BEGIN
-    INSERT INTO InvoiceAuditLog (InvoiceId, ActionType, ChangedBy, NewValues)
-    VALUES (
+    INSERT INTO InvoiceAuditLog (
+        InvoiceId, ActionType, ChangedBy, NewValues
+    ) VALUES (
         NEW.InvoiceId,
         'Created',
         NEW.CreatedBy,
         JSON_OBJECT(
-            'Amount', NEW.Amount,
-            'DueDate', NEW.DueDate,
-            'Status', NEW.Status,
-            'IsPaid', NEW.IsPaid
+            'PropertyId', NEW.PropertyId,
+            'OwnerId', NEW.OwnerId,
+            'Notes', NEW.Notes,
+            'RentMonth', NEW.RentMonth,
+            'RentYear', NEW.RentYear,
+            'PropertyName', NEW.PropertyName
         )
     );
-END;
+END$$
 
--- 🔸 5. Log Invoice Updates
-CREATE TRIGGER audit_invoice_update
-AFTER UPDATE ON Invoices
+-- 📘 Audit After UPDATE on invoices
+CREATE TRIGGER trg_audit_invoice_update
+AFTER UPDATE ON invoices
 FOR EACH ROW
 BEGIN
-    INSERT INTO InvoiceAuditLog (InvoiceId, ActionType, ChangedBy, OldValues, NewValues)
-    VALUES (
+    INSERT INTO InvoiceAuditLog (
+        InvoiceId, ActionType, ChangedBy, OldValues, NewValues
+    ) VALUES (
         NEW.InvoiceId,
         'Updated',
         NEW.CreatedBy,
         JSON_OBJECT(
-            'Amount', OLD.Amount,
-            'DueDate', OLD.DueDate,
-            'Status', OLD.Status,
-            'IsPaid', OLD.IsPaid
+            'PropertyId', OLD.PropertyId,
+            'OwnerId', OLD.OwnerId,
+            'Notes', OLD.Notes,
+            'RentMonth', OLD.RentMonth,
+            'RentYear', OLD.RentYear,
+            'PropertyName', OLD.PropertyName
         ),
         JSON_OBJECT(
-            'Amount', NEW.Amount,
-            'DueDate', NEW.DueDate,
-            'Status', NEW.Status,
-            'IsPaid', NEW.IsPaid
+            'PropertyId', NEW.PropertyId,
+            'OwnerId', NEW.OwnerId,
+            'Notes', NEW.Notes,
+            'RentMonth', NEW.RentMonth,
+            'RentYear', NEW.RentYear,
+            'PropertyName', NEW.PropertyName
         )
     );
-END;
+END$$
 
--- 🔸 6. Log Invoice Deletion
-CREATE TRIGGER audit_invoice_delete
-BEFORE DELETE ON Invoices
+-- 🧹 Audit Before DELETE on invoices
+CREATE TRIGGER trg_audit_invoice_delete
+BEFORE DELETE ON invoices
 FOR EACH ROW
 BEGIN
-    INSERT INTO InvoiceAuditLog (InvoiceId, ActionType, ChangedBy, OldValues)
-    VALUES (
+    INSERT INTO InvoiceAuditLog (
+        InvoiceId, ActionType, ChangedBy, OldValues
+    ) VALUES (
         OLD.InvoiceId,
         'Deleted',
         OLD.CreatedBy,
         JSON_OBJECT(
-            'Amount', OLD.Amount,
-            'DueDate', OLD.DueDate,
-            'Status', OLD.Status,
-            'IsPaid', OLD.IsPaid
+            'PropertyId', OLD.PropertyId,
+            'OwnerId', OLD.OwnerId,
+            'Notes', OLD.Notes,
+            'RentMonth', OLD.RentMonth,
+            'RentYear', OLD.RentYear,
+            'PropertyName', OLD.PropertyName
         )
     );
-END;
+END$$
 
 CREATE TRIGGER LogBillingAddressUpdate
 AFTER UPDATE ON BillingAddress
@@ -937,19 +928,10 @@ CREATE INDEX IX_Owners_Email ON Owners(Email);
 CREATE INDEX IX_PropertyOwners_PropertyId ON PropertyOwners(PropertyId);
 CREATE INDEX IX_PropertyOwners_OwnerId ON PropertyOwners(OwnerId);
 -- Indexes on Invoices
-CREATE INDEX idx_invoices_due_date ON Invoices(duedate);
+CREATE INDEX idx_invoices_due_date ON InvoiceDocuments(duedate);
 CREATE INDEX idx_invoices_property_id ON Invoices(propertyid);
-CREATE INDEX idx_invoices_invoice_type ON Invoices(invoicetypeid);
 
 -- Subtype indexes
-CREATE INDEX idx_rent_period ON RentInvoices(rentyear, rentmonth);
-CREATE INDEX idx_utility_type ON UtilityInvoices(utilitytypeid);
-CREATE INDEX idx_security_refundable ON SecurityDepositInvoices(isrefundable);
-CREATE INDEX idx_cleaning_type ON CleaningFeeInvoices(cleaningtypeid);
-CREATE INDEX idx_parking_spot ON ParkingFeeInvoices(spotidentifier);
-CREATE INDEX idx_property_tax_period ON PropertyTaxInvoices(taxperiodstart, taxperiodend);
-CREATE INDEX idx_insurance_policy ON InsuranceInvoices(policynumber);
-CREATE INDEX idx_legal_case ON LegalFeeInvoices(casereference);
 CREATE INDEX idx_utilityname ON LkupUtilities (UtilityName);
 CREATE UNIQUE INDEX idx_utilityname_unique ON LkupUtilities (UtilityName);
 CREATE UNIQUE INDEX idx_cleaning_type_name_unique ON LkupCleaningType (CleaningTypeName);

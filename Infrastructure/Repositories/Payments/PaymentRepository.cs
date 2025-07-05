@@ -5,12 +5,12 @@ using PropertyManagementAPI.Domain.DTOs.Payments;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Payments;
 using PropertyManagementAPI.Infrastructure.Data;
-using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
 using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 using PropertyManagementAPI.Domain.Entities.Payments.Banking;
+using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 {
@@ -241,7 +241,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
                 throw;
             }
         }
-
         public async Task<bool> CreateStripePaymentAsync(CreateStripeDto dto)
         {
             try

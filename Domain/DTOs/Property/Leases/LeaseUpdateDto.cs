@@ -7,7 +7,7 @@ namespace PropertyManagementAPI.Domain.DTOs.Property.Leases
         public int LeaseId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public decimal MonthlyRent { get; set; }
+        public decimal Amount { get; set; }
         public decimal DepositAmount { get; set; }
         public bool DepositPaid { get; set; }
         public bool IsActive { get; set; }

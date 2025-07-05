@@ -10,8 +10,8 @@ using PropertyManagementAPI.Application.Services.Payments.Plaid;
 namespace PropertyManagementAPI.API.Controllers.Test
 {
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("api/test/plaid")]
-    //[ApiExplorerSettings(GroupName = "PlaidTest")]
     public class PlaidTestController : ControllerBase
     {
         private readonly IPlaidService _plaidService;
@@ -20,15 +20,20 @@ namespace PropertyManagementAPI.API.Controllers.Test
         private readonly ILogger<PlaidTestController> _logger;
         private const string SandboxInstitutionId = "ins_109508";
 
-        public PlaidTestController(IPlaidService plaidService, IPlaidSandboxTestService sandboxTestService, IPlaidLinkService plaidLinkService, ILogger<PlaidTestController> logger)
+        public PlaidTestController(
+            IPlaidService plaidService,
+            IPlaidSandboxTestService sandboxTestService,
+            IPlaidLinkService plaidLinkService,
+            ILogger<PlaidTestController> logger)
         {
             _plaidService = plaidService;
             _sandboxTestService = sandboxTestService;
             _plaidLinkService = plaidLinkService;
             _logger = logger;
         }
+
         [HttpPost("create-link-token")]
-        public async Task<IActionResult> CreateLSandboxLinkToken()
+        public async Task<IActionResult> CreateSandboxLinkToken()
         {
             var token = await _plaidLinkService.CreateLinkTokenAsync();
             return Ok(new { link_token = token });
@@ -48,13 +53,13 @@ namespace PropertyManagementAPI.API.Controllers.Test
             return Ok(new { public_token = token });
         }
 
-        public class ExchangeTokenRequest
+        public class PlaidExchangeTokenRequest
         {
-            public string PublicToken { get; set; }
+            public string PublicToken { get; set; } = null!;
         }
 
         [HttpPost("exchange-public-token")]
-        public async Task<IActionResult> ExchangeSandboxPublicToken([FromBody] ExchangeTokenRequest request)
+        public async Task<IActionResult> ExchangeSandboxPublicToken([FromBody] PlaidExchangeTokenRequest request)
         {
             var accessToken = await _plaidService.ExchangePublicTokenAsync(request.PublicToken);
             return Ok(new { access_token = accessToken });

@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PdfSharp.Fonts;
 using PropertyManagementAPI.Application.Configuration;
+using PropertyManagementAPI.Application.Services.Accounting.Quickbooks;
 using PropertyManagementAPI.Application.Services.Auth;
 using PropertyManagementAPI.Application.Services.Documents;
 using PropertyManagementAPI.Application.Services.Email;
@@ -27,13 +28,15 @@ using PropertyManagementAPI.Application.Services.Payments.Plaid;
 using PropertyManagementAPI.Application.Services.Payments.PreferredMethods;
 using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Application.Services.Property;
+using PropertyManagementAPI.Application.Services.Quickbooks;
 using PropertyManagementAPI.Application.Services.Roles;
 using PropertyManagementAPI.Application.Services.TenantAnnouncements;
+using PropertyManagementAPI.Application.Services.Tenants;
 using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Application.Services.Vendors;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Common.Utilities;
-using PropertyManagementAPI.Domain.DTOs.Invoice;
+using PropertyManagementAPI.Domain.DTOs.Invoices;
 //
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Payments;
@@ -50,10 +53,12 @@ using PropertyManagementAPI.Infrastructure.Repositories.Payments.PreferredMethod
 using PropertyManagementAPI.Infrastructure.Repositories.Property;
 using PropertyManagementAPI.Infrastructure.Repositories.Roles;
 using PropertyManagementAPI.Infrastructure.Repositories.TenantAnnouncements;
+using PropertyManagementAPI.Infrastructure.Repositories.Tenants;
 using PropertyManagementAPI.Infrastructure.Repositories.Users;
 using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Serialization;
 using PlaidOptions = PropertyManagementAPI.Infrastructure.Payments.PlaidOptions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,12 +73,32 @@ builder.Services.AddDbContext<MySqlDbContext>(options =>
 
 var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
 var stripePublishableKey = builder.Configuration["Stripe:PublishableKey"];
+if (string.IsNullOrWhiteSpace(stripeSecretKey) || string.IsNullOrWhiteSpace(stripePublishableKey))
+{
+    throw new InvalidOperationException("Missing Stripe credentials from environment.");
+}
 
 var paypalClientId = builder.Configuration["PayPal:ClientId"];
 var paypalSecret = builder.Configuration["PayPal:Secret"];
+if (string.IsNullOrWhiteSpace(paypalClientId) || string.IsNullOrWhiteSpace(paypalSecret))
+{
+    throw new InvalidOperationException("Missing PayPal credentials from environment.");
+}
 
 var encryptionKey = builder.Configuration["EncryptionSettings:Key"];
 var encryptionIV = builder.Configuration["EncryptionSettings:IV"];
+if (string.IsNullOrWhiteSpace(encryptionKey) || string.IsNullOrWhiteSpace(encryptionIV))
+{
+    throw new InvalidOperationException("Missing Encryption credentials from environment.");
+}
+
+var qbClientId = builder.Configuration["QB:ClientId"];
+var qbClientSecret = builder.Configuration["QB:Secret"];
+
+if (string.IsNullOrWhiteSpace(qbClientId) || string.IsNullOrWhiteSpace(qbClientSecret))
+{
+    throw new InvalidOperationException("Missing QuickBooks credentials from environment.");
+}
 
 // ✅ Configure PlaidOptions with DI (based on appsettings/env vars)
 builder.Services
@@ -115,14 +140,8 @@ builder.Services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository
 builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
-builder.Services.AddScoped<IRentInvoiceRepository, RentInvoiceRepository>();
-builder.Services.AddScoped<IRentalInvoiceService, RentalInvoiceService>();
-builder.Services.AddScoped<IUtilityInvoiceRepository, UtilityInvoiceRepository>();
-builder.Services.AddScoped<IUtilityInvoiceService, UtilityInvoiceService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
 builder.Services.AddScoped<ILeaseService, LeaseService>();
-builder.Services.AddScoped<ILeaseTerminationInvoiceRepository, LeaseTerminationInvoiceRepository>();
-builder.Services.AddScoped<ILeaseTerminationInvoiceService, LeaseTerminationInvoiceService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
@@ -139,26 +158,15 @@ builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IMaintenanceRequestRepository, MaintenanceRequestRepository>();
 builder.Services.AddScoped<IMaintenanceRequestService, MaintenanceRequestService>();
-builder.Services.AddScoped<ISecurityDepositInvoiceRepository, SecurityDepositInvoiceRepository>();
-builder.Services.AddScoped<ISecurityDepositInvoiceService, SecurityDepositInvoiceService>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
-builder.Services.AddScoped<ICleaningFeeInvoiceService, CleaningFeeInvoiceService>(); 
-builder.Services.AddScoped<ICleaningFeeInvoiceRepository, CleaningFeeInvoiceRepository>();
-builder.Services.AddScoped<IPropertyTaxInvoiceService, PropertyTaxInvoiceService>();
-builder.Services.AddScoped<IPropertyTaxInvoiceRepository, PropertyTaxInvoiceRepository>();
-builder.Services.AddScoped<ILegalFeeInvoiceRepository, LegalFeeInvoiceRepository>();
-builder.Services.AddScoped<ILegalFeeInvoiceService, LegalFeeInvoiceService>();
 builder.Services.AddScoped<IInvoiceExportService, InvoiceExportService>();
-builder.Services.AddScoped<IExportService<CumulativeInvoiceDto>, InvoiceExportService>();
-builder.Services.AddScoped<ICumulativeInvoicesRepository, CumulativeInvoicesRepository>();
-builder.Services.AddScoped<ICummulativeInvoicesService, CummulativeInvoicesService>();
+builder.Services.AddScoped<IExportService<InvoiceDto>, InvoiceExportService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
-builder.Services.AddScoped<IBankAccountService, BankAccountService>();
 builder.Services.AddScoped<ICardTokenRepository, CardTokenRepository>();
 builder.Services.AddScoped<ICardTokenService, CardTokenService>();
 builder.Services.AddScoped<IPreferredMethodRepository, PreferredMethodRepository>();
@@ -171,12 +179,9 @@ builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
 builder.Services.AddScoped<PaymentAuditLogger>();
-
-builder.Services.AddSingleton<PayPalClient>(provider =>
-{
-    var opts = provider.GetRequiredService<IOptions<PayPalOptions>>().Value;
-    return new PayPalClient(opts.ClientId, opts.Secret);
-});
+builder.Services.AddHttpClient<QuickBooksTokenClient>();
+builder.Services.AddScoped<QuickBooksPaymentService>();
+builder.Services.AddScoped<IStateManager, StateManager>();
 
 builder.Services.AddScoped<IStripeService, StripeService>(provider =>
 {
@@ -184,10 +189,32 @@ builder.Services.AddScoped<IStripeService, StripeService>(provider =>
     return new StripeService(opts.SecretKey, opts.PublishableKey);
 });
 
+builder.Services.AddSingleton<QuickBooksTokenClient>();
+builder.Services.AddSingleton<QuickBooksTokenManager>();
+builder.Services.AddTransient<QuickBooksInvoiceService>();
+
+builder.Services.AddSingleton<QuickBooksTokenManager>();
+
+builder.Services.AddSingleton<PayPalClient>(provider =>
+{
+    var opts = provider.GetRequiredService<IOptions<PayPalOptions>>().Value;
+    return new PayPalClient(opts.ClientId, opts.Secret);
+});
+
+builder.Services.AddSingleton(new QuickBooksAuthSettings
+{
+    ClientId = qbClientId,
+    ClientSecret = qbClientSecret
+});
+
 builder.Services.AddSingleton(res =>
     res.GetRequiredService<IOptions<PlaidOptions>>().Value);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    });
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
@@ -243,17 +270,18 @@ foreach (var section in builder.Configuration.GetChildren())
 // ✅ Add Controllers & API Documentation (Swagger)
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.SwaggerDoc("v1", new() { Title = "Main API", Version = "v1" });
-    options.SwaggerDoc("PlaidTest", new() { Title = "Plaid Test API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "Property Management API", Version = "v1" });
 
-    // Optional: show controller group names in Swagger UI
-    options.DocInclusionPredicate((docName, apiDesc) =>
+    c.DocInclusionPredicate((_, apiDesc) =>
     {
-        var groupName = apiDesc.GroupName ?? "v1";
-        return docName == groupName;
+        var controllerNamespace = apiDesc.ActionDescriptor?.RouteValues["controller"];
+        return !apiDesc.ActionDescriptor?.DisplayName?.Contains(".Test.") ?? true;
     });
+
+    // Optional: Use full type names for schema IDs to avoid duplicates
+    c.CustomSchemaIds(type => type.FullName);
 });
 
 
@@ -266,7 +294,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Main API");
-        options.SwaggerEndpoint("/swagger/PlaidTest/swagger.json", "Plaid Test API");
     });
 
 }

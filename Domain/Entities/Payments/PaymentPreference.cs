@@ -2,7 +2,7 @@
 using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 using PropertyManagementAPI.Domain.Entities.User;
 
-namespace PropertyManagementAPI.Domain.Entities.Payments
+namespace PropertyManagementAPI.Domain.Entities.Payments.Banking.PreferredMethods
 {
     public class PaymentPreference
     {

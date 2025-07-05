@@ -6,7 +6,7 @@
         public int? OwnerId { get; set; }
         public string MethodType { get; set; }
         public int? CardTokenId { get; set; }
-        public int? BankAccountInfoId { get; set; }
+        public int? BankAccountId { get; set; }
         public bool IsDefault { get; set; }
     }
 

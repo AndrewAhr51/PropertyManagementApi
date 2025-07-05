@@ -78,8 +78,8 @@ INSERT INTO lkupServiceTypes (TypeName) VALUES
 ('Manufacturing'),
 ('Handy Man');
 
--- ✅ Insert seed data into lkupInvoiceType table (alternative format)
-INSERT INTO lkupInvoiceType (InvoiceType, Description) VALUES
+-- ✅ Insert seed data into lkupLineItemeType table (alternative format)
+INSERT INTO lkupLineItemType (LineItemTypeName, Description) VALUES
 ('Rent', 'Monthly rent payment from tenants'),
 ('Maintenance', 'Charges for maintenance and repairs'),
 ('Utilities', 'Utility bills such as water, gas, or electricity'),
@@ -99,7 +99,7 @@ INSERT INTO lkupInvoiceStatus (Id, Name) VALUES
     (3, 'Overdue'),
     (4, 'Cancelled');
     
-INSERT INTO LkupUtilities (UtilityName, Description) VALUES
+INSERT INTO lkupUtilities (UtilityName, Description) VALUES
 ('Electricity', 'Electric power usage and billing'),
 ('Water', 'Water supply and consumption'),
 ('Gas', 'Natural gas usage'),
@@ -109,7 +109,7 @@ INSERT INTO LkupUtilities (UtilityName, Description) VALUES
 ('Recycling', 'Recyclable waste collection'),
 ('Cable TV', 'Television cable service');
 
-INSERT INTO LkupCleaningType (CleaningTypeName, Description) VALUES
+INSERT INTO lkupCleaningType (CleaningTypeName, Description) VALUES
 ('Move-In Cleaning', 'Deep cleaning before a new tenant moves in'),
 ('Move-Out Cleaning', 'Thorough cleaning after a tenant vacates'),
 ('Routine Cleaning', 'Scheduled maintenance cleaning'),
@@ -216,12 +216,6 @@ INSERT INTO CardToken (
 ('tok_visa_123', 'Visa', '4242', '2026-12-31', 6, NULL, TRUE, NOW()),   -- John Doe
 ('tok_mc_456', 'MasterCard', '5454', '2025-10-31', 7, NULL, FALSE, NOW()); -- Michael Johnson
 
--- 🔹 BANK ACCOUNTS
-INSERT INTO BankAccountInfo (BankName, AccountNumberMasked, RoutingNumber, AccountType, CreatedOn)
-VALUES 
-('Chase', '****1234', '021000021', 'Checking', NOW()),
-('Bank of America', '****5678', '026009593', 'Savings', NOW());
-
 -- 🔹 BILLING ADDRESSES
 INSERT INTO BillingAddress (StreetLine1, StreetLine2, City, State, PostalCode, Country, AvsResult, IsVerified, CreatedOn)
 VALUES 
@@ -234,34 +228,133 @@ VALUES
 (1, '123 Main St', '', 'Orlando', 'FL', '32801', 'USA', 'Y', TRUE, NOW()),
 (2, '456 Elm St', 'Apt 2B', 'Tampa', 'FL', '33602', 'USA', 'N', FALSE, NOW());
 
--- ✅ Preferred payment methods
-INSERT INTO PreferredMethod (
-    TenantId, OwnerId, MethodType, CardTokenId, BankAccountInfoId, IsDefault, UpdatedOn
+-- 🌟 Insert Invoices and capture IDs
+-- 📄 Invoice #1 – John Doe
+-- 🗂️ 1. Insert InvoiceDocuments
+-- 🗂️ 1. Insert base InvoiceDocuments
+-- 🌐 1. Seed InvoiceDocuments
+-- 1️⃣ Seed Invoice Types
+
+INSERT INTO InvoiceType (LineItemTypeName) VALUES
+    ('Rent'),
+    ('Maintenance'),
+    ('Pet Fee'),
+    ('Late Fee'),
+    ('Utility'),
+    ('Security Deposit');
+
+-- 2️⃣ Seed InvoiceDocuments (base table)
+INSERT INTO InvoiceDocuments (
+    TenantId, TenantName, Email, ReferenceNumber,
+    Amount, DueDate, IsPaid, Status, CreatedBy,
+    CreatedDate, ModifiedDate
 ) VALUES
-(6, NULL, 'Card', 1, NULL, TRUE, NOW()),    -- John Doe
-(NULL, 4, 'Bank', NULL, 2, TRUE, NOW());    -- Bob Williams
+(6, 'John Doe', 'john.doe@example.com', 'INV-101', 2200.00, '2025-07-15', FALSE, 'Pending', 'Web', NOW(), NOW());
+SET @InvoiceId1 = LAST_INSERT_ID();
 
--- 🔹 Invoices (linked to seeded TenantId values: 3, 5, etc.)
+INSERT INTO InvoiceDocuments (
+    TenantId, TenantName, Email, ReferenceNumber,
+    Amount, DueDate, IsPaid, Status, CreatedBy,
+    CreatedDate, ModifiedDate
+) VALUES
+(7, 'Michael Johnson', 'michael.johnson@example.com', 'INV-102', 500.00, '2025-07-10', TRUE, 'Paid', 'Web', NOW(), NOW());
+SET @InvoiceId2 = LAST_INSERT_ID();
+
+INSERT INTO InvoiceDocuments (
+    TenantId, TenantName, Email, ReferenceNumber,
+    Amount, DueDate, IsPaid, Status, CreatedBy,
+    CreatedDate, ModifiedDate
+) VALUES
+(8, 'Mary Johnson', 'mary.johnson@example.com', 'INV-103', 250.00, '2025-07-20', FALSE, 'Pending', 'Web', NOW(), NOW());
+SET @InvoiceId3 = LAST_INSERT_ID();
+
+-- 3️⃣ Seed Invoices (derived TPT table)
 INSERT INTO Invoices (
-    invoiceId, CustomerName, Email, ReferenceNumber, amount, duedate,
-    propertyid, tenantid, IsPaid, status, notes, invoicetypeid, CreatedBy
-)
-VALUES
-(101, 'John Doe', 'john.doe@example.com', 'REF-101', 1200.00, '2024-12-01', 1, 6, FALSE, 'Pending', 'First rent invoice', 1, 'Web'),
-(102, 'Michael Johnson', 'michael.johnson@example.com', 'REF-102', 950.00, '2024-12-15', 2, 7, FALSE, 'Pending', 'Lease renewal', 1, 'Web'),
-(103, 'John Doe', 'john.doe@example.com', 'REF-103', 500.00, '2025-01-01', 1, 6, FALSE, 'Pending', 'Late fee notice', 2, 'Web');
+    InvoiceId, LastMonthDue, LastMonthPaid, PropertyId, PropertyName,
+    RentMonth, RentYear, OwnerId, Notes, CreatedBy
+) VALUES
+(@InvoiceId1, 2200.00, 2200.00, 1, 'Sunset Villa', 7, 2025, 3, 'Rent and utilities for July', 'Web');
 
--- Adjusting to TenantId = 3 and 5 from your seed
+INSERT INTO Invoices (
+    InvoiceId, LastMonthDue, LastMonthPaid, PropertyId, PropertyName,
+    RentMonth, RentYear, OwnerId, Notes, CreatedBy
+) VALUES
+(@InvoiceId2, 500.00, 500.00, 2, 'Ocean Breeze Condo', 7, 2025, 4, 'Late fee resolution', 'Web');
+
+INSERT INTO Invoices (
+    InvoiceId, LastMonthDue, LastMonthPaid, PropertyId, PropertyName,
+    RentMonth, RentYear, OwnerId, Notes, CreatedBy
+) VALUES
+(@InvoiceId3, 125.00, 0.00, 2, 'Ocean Breeze Condo', 7, 2025, 4, 'Cleaning after guest stay', 'Web');
+
+-- 4️⃣ Seed InvoiceLineItems + Metadata
+-- John Doe
+INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
+VALUES (@InvoiceId1, 1, 'Monthly rent for July', 2000.00);
+SET @LineItemId1 = LAST_INSERT_ID();
+
+INSERT INTO InvoiceLineItemMetadata (LineItemId, MetaKey, MetaValue) VALUES
+(@LineItemId1, 'rentmonth', '7'),
+(@LineItemId1, 'rentyear', '2025');
+
+INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
+VALUES (@InvoiceId1, 5, 'Water and electricity usage', 200.00);
+SET @LineItemId2 = LAST_INSERT_ID();
+
+INSERT INTO InvoiceLineItemMetadata (LineItemId, MetaKey, MetaValue) VALUES
+(@LineItemId2, 'usageamount', '150'),
+(@LineItemId2, 'utilitytype', 'Electricity');
+
+-- Michael Johnson
+INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
+VALUES (@InvoiceId2, 4, 'Late payment fee', 500.00);
+
+-- Mary Johnson
+INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
+VALUES (@InvoiceId3, 2, 'Post-guest cleaning charge', 125.00);
+SET @LineItemId3 = LAST_INSERT_ID();
+
+INSERT INTO InvoiceLineItemMetadata (LineItemId, MetaKey, MetaValue) VALUES
+(@LineItemId3, 'cleaningtype', 'Post-guest'),
+(@LineItemId3, 'serviceprovider', 'CleanCo Inc');
+
+-- 5️⃣ Seed Audit Log
+INSERT INTO InvoiceAuditLog (
+    InvoiceId, ActionType, ChangedBy, ChangeReason
+) VALUES
+(@InvoiceId1, 'Created', 'admin', 'Issued initial invoice'),
+(@InvoiceId2, 'Created', 'admin', 'Applied late fee'),
+(@InvoiceId3, 'Created', 'admin', 'Cleaning fee added');
+
 INSERT INTO Payments (
     Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
     CardType, Last4Digits, AuthorizationCode,
     CheckNumber, CheckBankName,
     BankAccountNumber, RoutingNumber, TransactionId
-)
-VALUES
-(1200.00, NOW(), 'REF-001', 101, 6, NULL, 'Card', 'Visa', '4242', 'AUTH123', NULL, NULL, NULL, NULL, NULL),
-(500.00, NOW(), 'REF-003', 103, 6, NULL, 'Transfer', NULL, NULL, NULL, NULL, NULL, '****1234', '021000021', 'TXN456');
+) VALUES
+(2200.00, '2025-07-10', 'PAY-001', @InvoiceDocId1, 6, 3, 'Card', 'Visa', '4242', 'AUTH1001',
+ NULL, NULL, NULL, NULL, 'TXN1001');
 
+-- 👇 Payment 2 – Michael Johnson pays late fee via bank transfer
+INSERT INTO Payments (
+    Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
+    CardType, Last4Digits, AuthorizationCode,
+    CheckNumber, CheckBankName,
+    BankAccountNumber, RoutingNumber, TransactionId
+) VALUES
+(500.00, '2025-07-09', 'PAY-002', @InvoiceDocId2, 7, 4, 'Transfer', NULL, NULL, NULL,
+ NULL, NULL, '****5678', '026009593', 'TXN1002');
+
+-- 👇 Payment 3 – Mary Johnson pays cleaning fee via check
+INSERT INTO Payments (
+    Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
+    CardType, Last4Digits, AuthorizationCode,
+    CheckNumber, CheckBankName,
+    BankAccountNumber, RoutingNumber, TransactionId
+) VALUES
+(125.00, '2025-07-18', 'PAY-003', @InvoiceDocId3, 8, 4, 'Check', NULL, NULL, NULL,
+ 'CHK001', 'Wells Fargo', NULL, NULL, 'TXN1003');
+ 
 INSERT INTO TenantAnnouncements (Title, Message, PostedBy)
 VALUES
 -- General Maintenance
@@ -316,3 +409,25 @@ VALUES
 (6, 1200.00, 'pi_test_001', 'succeeded'),
 (6, 1200.00, 'pi_test_002', 'pending'),
 (7, 950.00, 'pi_test_003', 'failed');
+
+INSERT INTO PreferredMethod (
+    TenantId, OwnerId, MethodType, CardTokenId, BankAccountId, IsDefault, UpdatedOn
+) VALUES
+(6, NULL, 'Card', 1, NULL, TRUE, NOW()),    -- John Doe
+(NULL, 4, 'Bank', NULL, 2, TRUE, NOW());    -- Bob Williams
+
+INSERT INTO Leases (
+    TenantId, PropertyId, Discount, StartDate, EndDate,
+    MonthlyRent, DepositAmount, DepositPaid, IsActive, CreatedBy
+) VALUES
+-- John Doe @ Property 1
+(6, 1, 0, '2024-01-15', NULL, 2500.00, 2500.00, TRUE, TRUE, 'Web'),
+
+-- Michael Johnson @ Property 2
+(7, 2, 50, '2022-09-20', NULL, 1800.00, 1800.00, TRUE, TRUE, 'Web'),
+
+-- Mary Johnson @ Property 2 (secondary tenant, same lease window)
+(8, 2, 0, '2022-09-20', NULL, 1800.00, 0.00, FALSE, TRUE, 'Web'),
+
+-- John Smith @ Property 3
+(9, 3, 100, '2022-10-01', NULL, 3200.00, 3200.00, TRUE, TRUE, 'Web');

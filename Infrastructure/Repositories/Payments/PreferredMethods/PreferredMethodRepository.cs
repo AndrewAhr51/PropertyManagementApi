@@ -55,7 +55,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments.PreferredMe
             if (existing != null)
             {
                 existing.CardTokenId = method.CardTokenId;
-                existing.BankAccountInfoId = method.BankAccountInfoId;
+                existing.BankAccountId = method.BankAccountId;
                 existing.IsDefault = method.IsDefault;
                 existing.UpdatedOn = DateTime.UtcNow;
             }

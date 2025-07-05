@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.Banking
             _txnRepo = txnRepo;
         }
 
-        public async Task<BankAccount> AddBankAccountAsync(int tenantId, string bankName, string last4, string stripeBankAccountId)
+        public async Task<bool> AddBankAccountAsync(int tenantId, string bankName, string last4, string stripeBankAccountId)
         {
             var account = new BankAccount
             {
@@ -28,7 +28,9 @@ namespace PropertyManagementAPI.Application.Services.Payments.Banking
                 IsVerified = true
             };
 
-            return await _bankRepo.AddAsync(account);
+            var save =  await _bankRepo.AddBankAccountAsync(account);
+
+            return save;
         }
 
         public async Task<PaymentTransactions> SubmitPaymentAsync(int tenantId, decimal amount, string stripePaymentIntentId)

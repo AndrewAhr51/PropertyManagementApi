@@ -33,7 +33,7 @@ namespace PropertyManagementAPI.Application.Services.Property
             return await _propertyRepository.GetAllPropertiesAsync();
         }
 
-        public async Task<PropertyDto?> GetPropertyByIdAsync(int propertyId)
+        public async Task<PropertyAddressDto?> GetPropertyByIdAsync(int propertyId)
         {
             return await _propertyRepository.GetPropertyByIdAsync(propertyId);
         }

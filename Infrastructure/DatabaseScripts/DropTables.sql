@@ -1,10 +1,13 @@
 USE PropertyManagement;
-DROP TRIGGER IF EXISTS after_invoice_insert;
-DROP TRIGGER IF EXISTS after_invoice_update;
-DROP TRIGGER IF EXISTS before_invoice_delete;
-DROP TRIGGER IF EXISTS audit_invoice_insert;
-DROP TRIGGER IF EXISTS audit_invoice_update;
-DROP TRIGGER IF EXISTS audit_invoice_delete;
+
+DROP TRIGGER IF EXISTS trg_after_invoice_insert;
+DROP TRIGGER IF EXISTS trg_after_invoice_update;
+DROP TRIGGER IF EXISTS trg_before_invoice_delete;
+
+DROP TRIGGER IF EXISTS trg_audit_invoice_insert;
+DROP TRIGGER IF EXISTS trg_audit_invoice_update;
+DROP TRIGGER IF EXISTS trg_audit_invoice_delete;
+
 DROP TRIGGER IF EXISTS LogBillingAddressInsert;
 DROP TRIGGER IF EXISTS LogBillingAddressUpdate;
 DROP TRIGGER IF EXISTS LogBillingAddressDelete;
@@ -19,25 +22,22 @@ DROP TABLE IF EXISTS Documents;
 DROP TABLE IF EXISTS Notes;
 DROP TABLE IF EXISTS triggerlog;
 DROP TABLE IF EXISTS PaymentAuditLog;
-DROP TABLE IF EXISTS BankAccounts;
-DROP TABLE IF EXISTS ACHAuthorizations;
 DROP TABLE IF EXISTS PaymentTransactions;
 
 -- ✅ Drop invoice subtype tables before Invoices
-DROP TABLE IF EXISTS LegalFeeInvoices;
-DROP TABLE IF EXISTS InsuranceInvoices;
-DROP TABLE IF EXISTS PropertyTaxInvoices;
-DROP TABLE IF EXISTS ParkingFeeInvoices;
-DROP TABLE IF EXISTS LeaseTerminationInvoices;
-DROP TABLE IF EXISTS CleaningFeeInvoices;
-DROP TABLE IF EXISTS SecurityDepositInvoices;
-DROP TABLE IF EXISTS UtilityInvoices;
-DROP TABLE IF EXISTS RentInvoices;
+
+
+DROP TABLE IF EXISTS InvoiceTypeMappings;
+DROP TABLE IF EXISTS InvoiceLineItemMetadata;
+DROP TABLE IF EXISTS InvoiceLineItems;
+DROP TABLE IF EXISTS InvoiceType;
+
 DROP TABLE IF EXISTS TenantBankAccount;
 DROP TABLE IF EXISTS OwnerBankAccount; 
 DROP TABLE IF EXISTS PreferredMethod;
+DROP TABLE IF EXISTS ACHAuthorizations;
+DROP TABLE IF EXISTS BankAccounts;
 DROP TABLE IF EXISTS CardToken; 
-DROP TABLE IF EXISTS BankAccountInfo;
 DROP TABLE IF EXISTS SpecialInstructions;
 DROP TABLE IF EXISTS CheckPayments;
 DROP TABLE IF EXISTS WireTransfers;
@@ -46,6 +46,8 @@ DROP TABLE IF EXISTS Payments;
 
 -- ✅ Drop base invoice table
 DROP TABLE IF EXISTS Invoices;
+DROP TABLE IF EXISTS InvoiceDocuments;
+
 
 -- ✅ Continue with remaining dependent tables
 DROP TABLE IF EXISTS Leases;
@@ -79,7 +81,7 @@ DROP TABLE IF EXISTS lkupPaymentMethods;
 DROP TABLE IF EXISTS lkupCreditCards;
 DROP TABLE IF EXISTS lkupMaintenanceRequestTypes;
 DROP TABLE IF EXISTS lkupPropertyRooms;
-DROP TABLE IF EXISTS lkupInvoiceType;
+DROP TABLE IF EXISTS lkupLineItemType;
 DROP TABLE IF EXISTS lkupServiceTypes;
 DROP TABLE IF EXISTS lkupInvoiceStatus;
 DROP TABLE IF EXISTS LkupUtilities;

@@ -25,7 +25,7 @@ namespace PropertyManagementAPI.Domain.Entities.Property
         public DateTime? EndDate { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal MonthlyRent { get; set; }
+        public decimal Amount { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal DepositAmount { get; set; }

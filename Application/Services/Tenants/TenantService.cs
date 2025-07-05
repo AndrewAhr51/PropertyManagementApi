@@ -1,36 +1,47 @@
-﻿using PropertyManagementAPI.Domain.DTOs.Users;
+﻿using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Domain.Entities.User;
+using PropertyManagementAPI.Infrastructure.Repositories.Tenants;
 
-public class TenantService : ITenantService
+namespace PropertyManagementAPI.Application.Services.Tenants
 {
-    private readonly ITenantRepository _repository;
-
-    public TenantService(ITenantRepository repository)
+    public class TenantService : ITenantService
     {
-        _repository = repository;
-    }
+        private readonly ITenantRepository _repository;
 
-    public async Task<TenantDto> CreateTenantsAsync(TenantDto dto)
-    {
-        return await _repository.AddTenantAsync(dto);
-    }
+        public TenantService(ITenantRepository repository)
+        {
+            _repository = repository;
+        }
 
-    public async Task<IEnumerable<TenantDto>> GetAllTenantsAsync()
-    {
-        return await _repository.GetAllTenantsAsync();
-    }
+        public async Task<TenantDto> CreateTenantsAsync(TenantDto dto)
+        {
+            return await _repository.AddTenantAsync(dto);
+        }
 
-    public async Task<TenantDto?> GetTenantByIdAsync(int tenantId)
-    {
-        return await _repository.GetTenantByIdAsync(tenantId);
-    }
+        public async Task<IEnumerable<TenantDto>> GetAllTenantsAsync()
+        {
+            return await _repository.GetAllTenantsAsync();
+        }
 
-    public async Task<bool> UpdateTenantAsync(int tenantId, TenantDto dto)
-    {
-        return await _repository.UpdateTenantAsync(tenantId, dto);
-    }
+        public async Task<TenantDto?> GetTenantByIdAsync(int tenantId)
+        {
+            return await _repository.GetTenantByIdAsync(tenantId);
+        }
 
-    public async Task<bool> SetActivateTenant(int tenantId)
-    {
-        return await _repository.SetActivateTenant(tenantId);
+        public async Task<bool> UpdateTenantAsync(int tenantId, TenantDto dto)
+        {
+            return await _repository.UpdateTenantAsync(dto);
+        }
+
+        public async Task<bool> SetActivateTenant(int tenantId)
+        {
+            return await _repository.SetActivateTenant(tenantId);
+        }
+
+        public async Task<bool> LinkQuickBooksAccountAsync(int tenantId, string AccessToken, string RefreshToken, string realmId)
+        {
+            return await _repository.LinkQuickBooksAccountAsync(tenantId, AccessToken, RefreshToken, realmId);
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.Banking
             _bankAccountRepository = repo;
         }
 
-        public async Task<int> AddBankAccountAsync(BankAccountDto dto)
+        public async Task<bool> AddBankAccountAsync(BankAccountDto dto)
         {
             var account = new BankAccountInfo
             {
@@ -24,7 +24,10 @@ namespace PropertyManagementAPI.Application.Services.Payments.Banking
                 CreatedOn = DateTime.UtcNow
             };
 
-            return await _bankAccountRepository.AddBankAccountAsync(account);
+            var save =  await _bankAccountRepository.AddBankAccountAsync(account);
+
+            return save;
+
         }
 
         public async Task<IEnumerable<BankAccountInfo>> GetAccountsByOwnerAsync(int ownerId)

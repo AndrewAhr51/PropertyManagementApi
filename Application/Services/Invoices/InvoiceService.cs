@@ -1,68 +1,178 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementAPI.Application.Services.Email;
-using PropertyManagementAPI.Application.Services.InvoiceExport;
-using PropertyManagementAPI.Domain.DTOs.Invoice;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Intuit.Ipp.Data;
+using Intuit.Ipp.WebhooksService;
+using PropertyManagementAPI.Domain.DTOs.Invoices;
+using PropertyManagementAPI.Domain.DTOs.Invoices.Mappers;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
+using Stripe;
+using InvoiceLineItem = PropertyManagementAPI.Domain.Entities.Invoices.InvoiceLineItem;
 
 namespace PropertyManagementAPI.Application.Services.Invoices
 {
-    public class InvoiceService: IInvoiceService // Extend ControllerBase to use File method
+    public class InvoiceService : IInvoiceService
     {
-        private readonly IInvoiceRepository _invoiceRepository;
-        private readonly IExportService<CumulativeInvoiceDto> _exportService;
-       
-        public InvoiceService(IInvoiceRepository invoiceRepository, IExportService<CumulativeInvoiceDto> exportService, IEmailService emailService)
+        private readonly IInvoiceRepository _inventoryRepository;
+
+        public InvoiceService(IInvoiceRepository repo) => _inventoryRepository = repo;
+
+        public async Task<InvoiceDto?> GetInvoiceByIdAsync(int id)
         {
-            _invoiceRepository = invoiceRepository;
-            _exportService = exportService;
+            var invoice = await _inventoryRepository.GetInvoiceByIdAsync(id);
+            if (invoice == null)
+                return null;
+
+            var lineItems = await _inventoryRepository.GetLineItemsForInvoiceAsync(id);
+
+            var dto = new InvoiceDto
+            {
+                InvoiceId = invoice.InvoiceId,
+                TenantName = invoice.TenantName,
+                Email = invoice.Email,
+                Amount = invoice.Amount,
+                LastMonthDue = invoice.LastMonthDue,
+                LastMonthPaid = invoice.LastMonthPaid,
+                RentMonth = invoice.RentMonth,
+                RentYear = invoice.RentYear,
+                PropertyId = invoice.PropertyId,
+                PropertyName = invoice.PropertyName,
+                TenantId = invoice.TenantId,
+                OwnerId = invoice.OwnerId,
+                DueDate = invoice.DueDate,
+                IsPaid = invoice.IsPaid,
+                Status = invoice.Status,
+                Notes = invoice.Notes,
+                CreatedBy = invoice.CreatedBy,
+                CreatedDate = invoice.CreatedDate,
+                ModifiedDate = invoice.ModifiedDate,
+                LineItems = lineItems ?? new List<InvoiceLineItemDto>()
+            };
+
+            return dto;
         }
 
-        public async Task<List<CumulativeInvoiceDto>> ExportInvoicesByPropertyIdAsync(int propertyId)
+        public async Task<List<InvoiceDto>> GetAllInvoicesAsync()
         {
-           return await _invoiceRepository.ExportInvoicesByPropertyIdAsync(propertyId);
+            var invoices = await _inventoryRepository.GetAllInvoicesAsync();
+
+            return invoices.Select(invoice => new InvoiceDto
+            {
+                InvoiceId = invoice.InvoiceId,
+                TenantName = invoice.TenantName,
+                Email = invoice.Email,
+                Amount = invoice.Amount,
+                LastMonthDue = invoice.LastMonthDue,
+                LastMonthPaid = invoice.LastMonthPaid,
+                RentMonth = invoice.RentMonth,
+                RentYear = invoice.RentYear,
+                PropertyId = invoice.PropertyId,
+                PropertyName = invoice.PropertyName,
+                TenantId = invoice.TenantId,
+                OwnerId = invoice.OwnerId,
+                DueDate = invoice.DueDate,
+                IsPaid = invoice.IsPaid,
+                Status = invoice.Status,
+                Notes = invoice.Notes,
+                CreatedBy = invoice.CreatedBy,
+                CreatedDate = invoice.CreatedDate,
+                ModifiedDate = invoice.ModifiedDate,
+
+                LineItems = invoice.LineItems?.Select(li => new InvoiceLineItemDto
+                {
+                    LineItemId = li.LineItemId,
+                    InvoiceId = li.InvoiceId,
+                    LineItemTypeId = li.LineItemTypeId,
+                    Description = li.Description,
+                    Amount = li.Amount,
+                    Metadata = (li.Metadata ?? new List<InvoiceLineItemMetadata>())
+                        .Select(m => new InvoiceLineItemMetadataDto
+                        {
+                            MetaKey = m.MetaKey,
+                            MetaValue = m.MetaValue
+                        }).ToList()
+                }).ToList() ?? new List<InvoiceLineItemDto>()
+            }).ToList();
         }
 
-        public async Task<List<CumulativeInvoiceDto>> ExportInvoicesByInvoiceIdAsync(int invoiceId)
+        public async Task<bool> CreateInvoiceAsync(CreateInvoiceDto dto)
         {
-            return await _invoiceRepository.ExportInvoicesByInvoiceIdAsync(invoiceId);
+            var save = await _inventoryRepository.CreateInvoiceAsync(dto);
+            return save;
         }
 
-        public async Task<decimal> GetBalanceForwardAsync(int propertyId, DateTime asOfDate)
+        public async Task<bool> UpdateInvoiceAsync(InvoiceDto dto)
         {
-            return await _invoiceRepository.GetBalanceForwardAsync(propertyId, asOfDate);
+            var save = await _inventoryRepository.UpdateInvoiceAsync(dto);
+            return save;
         }
 
-        public async Task<List<CumulativeInvoiceDto>> GetByPropertyAsync(int propertyId, string type, string? status = null, DateTime? dueBefore = null)
+        public async Task<bool> DeleteInvoiceAsync(int invoiceId)
         {
-            return await _invoiceRepository.GetByPropertyAsync(propertyId, type, status, dueBefore);
+            var save = await _inventoryRepository.DeleteInvoiceAsync(invoiceId);
+            return save;
         }
 
-        public Task<SummaryDto> GetSummaryAsync(int propertyId)
+        public async Task<List<InvoiceLineItemDto>> GetLineItemsForInvoiceAsync(int invoiceId)
         {
-            throw new NotImplementedException();
+            var items = await _inventoryRepository.GetLineItemsForInvoiceAsync(invoiceId);
+            return items; 
         }
 
-        public async Task<List<CumulativeInvoiceDto>> SendCumulativeInvoiceAsync(int propertyId, string recipientEmail)
+        // Mapping helpers...
+        private async Task<InvoiceDto> MapInvoiceToDto(Domain.Entities.Invoices.Invoice invoice)
         {
-            return await _invoiceRepository.SendCumulativeInvoiceAsync(propertyId, recipientEmail);
+            var items = await _inventoryRepository.MapInvoiceToDto(invoice);
+            if (items is null)
+            {
+                return new InvoiceDto();
+            }
+
+            return items;
+        }
+        //private static InvoiceLineItemDto MapLineItemToDto(LineItemType item)
+        //{
+        //    if (item is null)
+        //        throw new ArgumentNullException(nameof(item));
+
+        //    return new InvoiceLineItemDto
+        //    {
+        //        LineItemId = item.LineItemTypeId,
+        //        InvoiceId = item.InvoiceId,
+        //        LineItemTypeId = item.LineItemTypeId,
+        //        LineItemTypeName = item.InvoiceType?.Name ?? string.Empty,
+        //        Description = item.Description ?? string.Empty,
+        //        Amount = item.Amount,
+        //        Metadata = item.Metadata?.Select(m => new InvoiceLineItemMetadataDto
+        //        {
+        //            MetaKey = m.MetaKey,
+        //            MetaValue = m.MetaValue
+        //        }).ToList() ?? new List<InvoiceLineItemMetadataDto>()
+        //    };
+        //}
+
+        public async Task<int> CreateLineItemAsync(CreateInvoiceLineItemDto dto) =>
+            await _inventoryRepository.CreateLineItemAsync(dto);
+
+        public async Task<InvoiceLineItem?> GetLineItemAsync(int lineItemId)
+        {
+            var entity = await _inventoryRepository.GetLineItemAsync(lineItemId);
+            if (entity is null)
+                return null;
+
+            return entity;
+            
         }
 
-        public async Task<List<CumulativeInvoiceDto>> SendInvoiceAsync(int invoiceId, [FromQuery] string recipientEmail)
+        public async Task<List<InvoiceLineItem>> GetLineItemsByInvoiceIdAsync(int invoiceId)
         {
-            return await _invoiceRepository.SendInvoiceAsync(invoiceId, recipientEmail);
+            var entities = await _inventoryRepository.GetLineItemsByInvoiceIdAsync(invoiceId);
+            return entities;
         }
 
-        public Task<List<CumulativeInvoiceDto>> GetAllInvoicesForPropertyAsync(int propertyId)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<bool> UpdateLineItemAsync(int lineItemId, CreateInvoiceLineItemDto dto) =>
+            await _inventoryRepository.UpdateLineItemAsync(lineItemId, dto);
 
-        public async Task<IEnumerable<Invoice>> GetFilteredAsync(int propertyId, string? type, string? status, DateTime? dueBefore)
-        {
-            List<Invoice> invoice = (List<Invoice>)await _invoiceRepository.GetFilteredAsync(propertyId, type, status, dueBefore);   
-
-            return invoice;
-        }
+        public async Task<bool> DeleteLineItemAsync(int lineItemId) =>
+            await _inventoryRepository.DeleteLineItemAsync(lineItemId);
     }
 }

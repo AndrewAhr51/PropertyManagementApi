@@ -1,18 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Domain.Entities.TenantAnnouncements;
-using PropertyManagementAPI.Domain.Entities.OwnerAnnouncements;
 using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Domain.Entities.Maintenance;
 using PropertyManagementAPI.Domain.Entities.Notes;
+using PropertyManagementAPI.Domain.Entities.OwnerAnnouncements;
 using PropertyManagementAPI.Domain.Entities.Payments;
-using PropertyManagementAPI.Domain.Entities.Property;
-using PropertyManagementAPI.Domain.Entities.Roles;
-using PropertyManagementAPI.Domain.Entities.User;
-using PropertyManagementAPI.Domain.Entities.Vendors;
 using PropertyManagementAPI.Domain.Entities.Payments.Banking;
 using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 using PropertyManagementAPI.Domain.Entities.Payments.PreferredMethods;
+using PropertyManagementAPI.Domain.Entities.Property;
+using PropertyManagementAPI.Domain.Entities.Roles;
+using PropertyManagementAPI.Domain.Entities.TenantAnnouncements;
+using PropertyManagementAPI.Domain.Entities.User;
+using PropertyManagementAPI.Domain.Entities.Vendors;
+using BankAccount = PropertyManagementAPI.Domain.Entities.Payments.Banking.BankAccount;
+using Invoice = PropertyManagementAPI.Domain.Entities.Invoices.Invoice;
+using InvoiceLineItem = PropertyManagementAPI.Domain.Entities.Invoices.InvoiceLineItem;
+using PropertyManagementAPI.Domain.Entities.Invoices.Base;
 
 namespace PropertyManagementAPI.Infrastructure.Data
 {
@@ -25,6 +29,9 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<InvoiceType> InvoiceTypes { get; set; }
+        public DbSet<InvoiceLineItem> InvoiceLineItems { get; set; }
+        public DbSet<InvoiceLineItemMetadata> InvoiceLineItemMetadata { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Owner> Owners { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
@@ -41,25 +48,14 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<PropertyTenant> PropertyTenants { get; set; }
         public DbSet<PropertyPhotos> PropertyPhotos { get; set; }
         public DbSet<MaintenanceRequests> MaintenanceRequests { get; set; }
-        public DbSet<LkupInvoiceType> LkupInvoiceType { get; set; }
-        public DbSet<LkupUtilities> LkupUtilities { get; set; }
-        public DbSet<LkupCleaningType> LkupCleaningType { get; set; }
+        public DbSet<lkupUtilities> LkupUtilities { get; set; }
+        public DbSet<lkupCleaningType> LkupCleaningType { get; set; }
         public DbSet<PaymentAuditLog> PaymentAuditLogs { get; set; } = null!;
-        public DbSet<CleaningFeeInvoice> CleaningFeeInvoices { get; set; } = null!;
-        public DbSet<InsuranceInvoice> InsuranceInvoices { get; set; } = null!;
-        public DbSet<RentInvoice> RentInvoices { get; set; } = null!;
-        public DbSet<UtilityInvoice> UtilityInvoices { get; set; } = null!;
-        public DbSet<SecurityDepositInvoice> SecurityDepositInvoices { get; set; } = null!;
-        public DbSet<PropertyTaxInvoice> PropertyTaxInvoices { get; set; } = null!;
-        public DbSet<LeaseTerminationInvoice> LeaseTerminationInvoices { get; set; } = null!;
-        public DbSet<LegalFeeInvoice> LegalFeeInvoices { get; set; } = null!;
         public DbSet<CardToken> CardTokens { get; set; } = null!;
-        public DbSet<BankAccountInfo> BankAccountInfo { get; set; } = null!;
-        public DbSet<ParkingFeeInvoice> ParkingFeeInvoices { get; set; } = null!; 
+        public DbSet<BankAccount> BankAccount { get; set; } = null!;
         public DbSet<CardPayment> CardPayments { get; set; } = null!;
         public DbSet<TenantAnnouncement> TenantAnnouncements { get; set; } = null!;
         public DbSet<OwnerAnnouncement> OwnerAnnouncements { get; set; } = null!;
-        public DbSet<BankAccount> BankAccounts { get; set; } = null!;
         public DbSet<ACHAuthorization> ACHAuthorizations { get; set; } = null!;
         public DbSet<PaymentTransactions> PaymentTransactions { get; set; } = null!;
 
@@ -67,44 +63,12 @@ namespace PropertyManagementAPI.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Invoice TPT Inheritance
-            modelBuilder.Entity<Invoice>().ToTable("Invoices");
-            modelBuilder.Entity<RentInvoice>().ToTable("RentInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<UtilityInvoice>().ToTable("UtilityInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<SecurityDepositInvoice>().ToTable("SecurityDepositInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<CleaningFeeInvoice>().ToTable("CleaningFeeInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<LeaseTerminationInvoice>().ToTable("LeaseTerminationInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<ParkingFeeInvoice>().ToTable("ParkingFeeInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<PropertyTaxInvoice>().ToTable("PropertyTaxInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<InsuranceInvoice>().ToTable("InsuranceInvoices").HasBaseType<Invoice>();
-            modelBuilder.Entity<LegalFeeInvoice>().ToTable("LegalFeeInvoices").HasBaseType<Invoice>();
-
             // Payment TPT Inheritance
             modelBuilder.Entity<Payment>().ToTable("Payments");
             modelBuilder.Entity<CardPayment>().ToTable("CardPayments").HasBaseType<Payment>();
             modelBuilder.Entity<CheckPayment>().ToTable("CheckPayments").HasBaseType<Payment>();
             modelBuilder.Entity<ElectronicTransferPayment>().ToTable("ElectronicTransferPayments").HasBaseType<Payment>();
             modelBuilder.Entity<WireTransfer>().ToTable("WireTransfers").HasBaseType<Payment>();
-
-
-            // Payment Relationships
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Invoice)
-                .WithMany(i => i.Payments)
-                .HasForeignKey(p => p.InvoiceId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Tenant)
-                .WithMany(t => t.Payments)
-                .HasForeignKey(p => p.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Owner)
-                .WithMany(o => o.Payments)
-                .HasForeignKey(p => p.OwnerId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             // PreferredMethod Relationships
             modelBuilder.Entity<PreferredMethod>()
@@ -114,9 +78,9 @@ namespace PropertyManagementAPI.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PreferredMethod>()
-                .HasOne(pm => pm.BankAccountInfo)
+                .HasOne(pm => pm.BankAccount)
                 .WithMany(b => b.PreferredMethods)
-                .HasForeignKey(pm => pm.BankAccountInfoId)
+                .HasForeignKey(pm => pm.BankAccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PreferredMethod>()
@@ -130,6 +94,38 @@ namespace PropertyManagementAPI.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(pm => pm.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>().ToTable("invoices");
+            modelBuilder.Entity<InvoiceDocuments>().ToTable("InvoiceDocuments");
+            modelBuilder.Entity<InvoiceLineItemMetadata>()
+                .HasKey(m => new { m.LineItemId, m.MetaKey });
+
+            modelBuilder.Entity<InvoiceLineItemMetadata>()
+                .HasOne(m => m.LineItem)
+                .WithMany(li => li.Metadata)
+                .HasForeignKey(m => m.LineItemId);
+
+            modelBuilder.Entity<InvoiceLineItem>(entity =>
+            {
+                entity.ToTable("InvoiceLineItems");
+
+                entity.HasKey(e => e.LineItemId);
+
+                entity.HasOne(e => e.Invoice)
+                    .WithMany(i => i.LineItems)
+                    .HasForeignKey(e => e.InvoiceId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.InvoiceType)
+                    .WithMany(t => t.LineItems)
+                    .HasForeignKey(e => e.LineItemTypeId) // ✅ Correct FK column name
+                    .OnDelete(DeleteBehavior.Restrict);    // Or Cascade, based on business rules
+
+                entity.HasMany(e => e.Metadata)
+                    .WithOne(m => m.LineItem)
+                    .HasForeignKey(m => m.LineItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // PaymentAuditLog
             modelBuilder.Entity<PaymentAuditLog>(entity =>
@@ -147,6 +143,9 @@ namespace PropertyManagementAPI.Infrastructure.Data
                       .HasForeignKey(e => e.PaymentId)
                       .OnDelete(DeleteBehavior.SetNull);
             });
+
+            modelBuilder.Entity<InvoiceDocuments>().ToTable("InvoiceDocuments"); // Base entity
+            modelBuilder.Entity<Invoice>().ToTable("Invoices"); // Derived TPT entity
 
 
         }
