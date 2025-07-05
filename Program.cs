@@ -59,6 +59,7 @@ using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
+using Environment = System.Environment;
 using PlaidOptions = PropertyManagementAPI.Infrastructure.Payments.PlaidOptions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -94,11 +95,13 @@ if (string.IsNullOrWhiteSpace(encryptionKey) || string.IsNullOrWhiteSpace(encryp
 
 var qbClientId = builder.Configuration["QB:ClientId"];
 var qbClientSecret = builder.Configuration["QB:Secret"];
+var qbRedirectUri = builder.Configuration["QB:RedirectUri"];
 
 if (string.IsNullOrWhiteSpace(qbClientId) || string.IsNullOrWhiteSpace(qbClientSecret))
 {
     throw new InvalidOperationException("Missing QuickBooks credentials from environment.");
 }
+
 
 // ✅ Configure PlaidOptions with DI (based on appsettings/env vars)
 builder.Services
@@ -116,6 +119,12 @@ builder.Services
 builder.Services
     .AddOptions<PayPalOptions>()
     .Bind(builder.Configuration.GetSection("PayPal"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services
+    .AddOptions<QuickBooksOptions>()
+    .Bind(builder.Configuration.GetSection("QB"))
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
@@ -204,7 +213,8 @@ builder.Services.AddSingleton<PayPalClient>(provider =>
 builder.Services.AddSingleton(new QuickBooksAuthSettings
 {
     ClientId = qbClientId,
-    ClientSecret = qbClientSecret
+    ClientSecret = qbClientSecret,
+    RedirectUri = qbRedirectUri
 });
 
 builder.Services.AddSingleton(res =>

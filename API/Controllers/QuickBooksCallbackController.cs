@@ -1,61 +1,80 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PropertyManagementAPI.Application.Services.Auth;
+using Microsoft.Extensions.Options;
+using PropertyManagementAPI.Application.Configuration;
+using PropertyManagementAPI.Application.Services.Accounting.Quickbooks;
 using PropertyManagementAPI.Application.Services.Tenants;
-using PropertyManagementAPI.Application.Services.Quickbooks;
+using PropertyManagementAPI.Domain.DTOs.Quickbooks;
 
 namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
-    [Route("api/auth/quickbooks")]
+    [Route("api/accounting/quickbooks")]
     public class QuickBooksCallbackController : ControllerBase
     {
+        private readonly QuickBooksTokenManager _tokenManager;
         private readonly ITenantService _tenantService;
-        private readonly IQuickBooksAuthService _quickBooksAuthService;
-        private readonly IStateManager _stateManager;
+        private readonly QuickBooksOptions _qbOptions;
         private readonly ILogger<QuickBooksCallbackController> _logger;
 
-        public QuickBooksCallbackController(ITenantService tenantService,IQuickBooksAuthService quickBooksAuthService,IStateManager stateManager,ILogger<QuickBooksCallbackController> logger)
+        public QuickBooksCallbackController(
+            QuickBooksTokenManager tokenManager,
+            ITenantService tenantService,
+            IOptions<QuickBooksOptions> qbOptions,
+            ILogger<QuickBooksCallbackController> logger)
         {
+            _tokenManager = tokenManager;
             _tenantService = tenantService;
-            _quickBooksAuthService = quickBooksAuthService;
-            _stateManager = stateManager;
+            _qbOptions = qbOptions.Value;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Handles the QuickBooks OAuth callback, exchanges code for token, and stores RealmId.
+        /// </summary>
         [HttpGet("callback")]
-        public async Task<IActionResult> QuickBooksCallback(
+        public async Task<IActionResult> Callback(
             [FromQuery] string code,
             [FromQuery] string realmId,
             [FromQuery] string state)
         {
-            if (string.IsNullOrWhiteSpace(code) ||
-                string.IsNullOrWhiteSpace(realmId) ||
-                string.IsNullOrWhiteSpace(state))
-            {
-                return BadRequest("Missing required QuickBooks parameters.");
-            }
+            _logger.LogInformation("QuickBooks OAuth Callback: code={Code}, realmId={RealmId}, state={State}", code, realmId, state);
 
             try
             {
-                var tokenResponse = await _quickBooksAuthService.ExchangeAuthCodeForTokenAsync(code);
-                var tenantId = _stateManager.ResolveTenantIdFromState(state);
+                var tokenSet = await _tokenManager.ExchangeAuthCodeForTokenAsync(code);
+                if (tokenSet == null)
+                {
+                    _logger.LogError("Token exchange failed — no token set returned.");
+                    return StatusCode(500, "Failed to exchange QuickBooks authorization code.");
+                }
 
-                await _tenantService.LinkQuickBooksAccountAsync(
+                if (!int.TryParse(state, out var tenantId))
+                {
+                    _logger.LogWarning("Invalid state parameter: {State}", state);
+                    return BadRequest("Invalid or missing tenant reference.");
+                }
+
+                var success = await _tenantService.LinkQuickBooksAccountAsync(
                     tenantId,
-                    tokenResponse.AccessToken,
-                    tokenResponse.RefreshToken,
-                    realmId);
+                    tokenSet.AccessToken,
+                    tokenSet.RefreshToken,
+                    realmId
+                );
 
-                _logger.LogInformation("Tenant {TenantId} successfully linked to QuickBooks realm {RealmId}.",
-                    tenantId, realmId);
+                if (!success)
+                {
+                    _logger.LogError("Failed to persist QuickBooks credentials for tenant {TenantId}", tenantId);
+                    return StatusCode(500, "Failed to link QuickBooks account.");
+                }
 
-                return Redirect("/quickbooks/connected");
+                _logger.LogInformation("Tenant {TenantId} successfully linked to realm {RealmId}", tenantId, realmId);
+                return Ok("QuickBooks account linked successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "QuickBooks OAuth callback failed.");
-                return StatusCode(500, "An error occurred while linking QuickBooks.");
+                _logger.LogError(ex, "OAuth callback processing failed.");
+                return StatusCode(500, "Error linking QuickBooks account.");
             }
         }
     }

@@ -12,11 +12,14 @@ namespace PropertyManagementAPI.API.Controllers
     {
         private readonly ITenantService _service;
         private readonly ILogger<TenantController> _logger;
+        private readonly IConfiguration _config;
 
-        public TenantController(ITenantService service, ILogger<TenantController> logger)
+
+        public TenantController(ITenantService service, ILogger<TenantController> logger, IConfiguration config)
         {
             _service = service;
             _logger = logger;
+            _config = config;
         }
 
         [HttpPost("create")]
