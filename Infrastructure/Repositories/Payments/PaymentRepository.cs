@@ -1,16 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementAPI.Common.Helpers;
+﻿using Intuit.Ipp.Data;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Application.Services.Payments;
-using PropertyManagementAPI.Domain.DTOs.Payments;
-using PropertyManagementAPI.Domain.Entities.Invoices;
-using PropertyManagementAPI.Domain.Entities.Payments;
-using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Application.Services.Payments.Stripe;
+using PropertyManagementAPI.Common.Helpers;
+using PropertyManagementAPI.Domain.DTOs.Payments;
 using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
 using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
-using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
+using PropertyManagementAPI.Domain.Entities.Invoices;
+using PropertyManagementAPI.Domain.Entities.Invoices.Base;
+using PropertyManagementAPI.Domain.Entities.Payments;
 using PropertyManagementAPI.Domain.Entities.Payments.Banking;
+using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
+using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
+using CheckPayment = PropertyManagementAPI.Domain.Entities.Payments.Banking.CheckPayment;
+using Invoice = PropertyManagementAPI.Domain.Entities.Invoices.Invoice;
+using Payment = PropertyManagementAPI.Domain.Entities.Payments.Payment;
+using Task = System.Threading.Tasks.Task;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 {
@@ -24,7 +30,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
         private readonly IStripeService _stripeService;
 
         public PaymentRepository(MySqlDbContext context, IInvoiceRepository invoiceRepository, ILogger<PaymentService> logger,
-                IPaymentProcessor paymentProcessor, PaymentAuditLogger auditLogger, IStripeService stripeService )
+                IPaymentProcessor paymentProcessor, PaymentAuditLogger auditLogger, IStripeService stripeService)
         {
             _context = context;
             _invoiceRepository = invoiceRepository;
@@ -36,11 +42,16 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 
         public async Task<Payment> CreatePaymentAsync(CreatePaymentDto dto)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
-                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
+                var invoice = await _context.InvoiceDocuments.FirstOrDefaultAsync(i => i.InvoiceId == dto.InvoiceId);
                 if (invoice == null || invoice.TenantId != dto.TenantId)
                     throw new InvalidOperationException("Invalid invoice or tenant mismatch.");
+
+                if (invoice.IsPaid)
+                    throw new InvalidOperationException("Cannot create payment for an already paid invoice.");
 
                 Payment payment = dto.PaymentMethod switch
                 {
@@ -76,7 +87,45 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
                 payment.ReferenceNumber = ReferenceNumberHelper.Generate("REF", invoice.PropertyId);
 
                 await AddPaymentAsync(payment);
+
+                // ⬇️ Persist metadata records, if needed
+                if (dto.Metadata?.Any() == true)
+                {
+                    foreach (var kvp in dto.Metadata)
+                    {
+                        var metadata = new PaymentMetadata
+                        {
+                            Payment = payment,
+                            Key = kvp.Key,
+                            Value = kvp.Value
+                        };
+                        _context.PaymentMetadata.Add(metadata);
+                    }
+                }
+
+                // ✅ Update invoice status
+                var paidTotal = await _context.Payments
+                    .Where(p => p.InvoiceId == dto.InvoiceId)
+                    .SumAsync(p => (decimal?)p.Amount) ?? 0;
+
+                
+
+                // 💰 Adjust tenant balance
+                var tenant = await _context.Tenants.FindAsync(dto.TenantId);
+                if (tenant != null)
+                {
+                    tenant.Balance += payment.Amount < 0 ? payment.Amount : -payment.Amount;
+                    _context.Tenants.Update(tenant);
+                }
+
+                if (tenant.Balance == 0)
+                {
+                    _context.InvoiceDocuments.Attach(invoice);
+                    invoice.IsPaid = true;
+                }
+
                 await SavePaymentChangesAsync();
+                await transaction.CommitAsync();
 
                 _logger.LogInformation("Payment created successfully: {ReferenceNumber}", payment.ReferenceNumber);
 
@@ -84,6 +133,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error creating payment for InvoiceId {InvoiceId}, TenantId {TenantId}", dto.InvoiceId, dto.TenantId);
                 throw;
             }
@@ -128,10 +178,10 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
                     TenantId = dto.TenantId,
                     OwnerId = dto.OwnerId,
                     PaymentType = "PayPal",
-                    
+
                     ReferenceNumber = ReferenceNumberHelper.Generate("REF", invoice.PropertyId)
                 };
-               
+
                 await AddPaymentAsync(payment);
                 await SavePaymentChangesAsync();
 
@@ -211,9 +261,8 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 
         public async Task AddPaymentAsync(Payment payment)
         {
-            await _context.Payments.AddAsync(payment);
+           await _context.Payments.AddAsync(payment);
         }
-   
 
         public async Task<StripePaymentResponseDto> CreateStripePaymentIntentAsync(CreateStripeDto dto)
         {
@@ -241,6 +290,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
                 throw;
             }
         }
+
         public async Task<bool> CreateStripePaymentAsync(CreateStripeDto dto)
         {
             try
@@ -274,8 +324,71 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
         }
 
         public async Task SavePaymentChangesAsync()
-{
-    await _context.SaveChangesAsync();
-}
+        {
+            await _context.SaveChangesAsync();
+        }
+        public async Task<bool> ReversePaymentAsync(int paymentId)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var original = await _context.Payments.FindAsync(paymentId);
+                if (original == null || original.Amount <= 0)
+                    return false;
+
+                var invoice = await _context.InvoiceDocuments.FirstOrDefaultAsync(i => i.InvoiceId == original.InvoiceId);
+                if (invoice == null || invoice.TenantId != original.TenantId)
+                    throw new InvalidOperationException("Invalid invoice or tenant mismatch.");
+
+                var paymentAmount = -original.Amount;
+
+                var reversal = new Payment
+                {
+                    Amount = paymentAmount,
+                    ReferenceNumber = $"REV-{original.ReferenceNumber}",
+                    InvoiceId = original.InvoiceId,
+                    TenantId = original.TenantId,
+                    OwnerId = original.OwnerId,
+                    PaymentType = original.PaymentType,
+                    CardType = original.CardType,
+                    Last4Digits = original.Last4Digits,
+                    AuthorizationCode = original.AuthorizationCode,
+                    CheckNumber = original.CheckNumber,
+                    CheckBankName = original.CheckBankName,
+                    TransactionId = original.TransactionId
+                };
+
+                _context.Payments.Add(reversal);
+
+                // ⬇️ Mark invoice as unpaid
+                _context.InvoiceDocuments.Attach(invoice);
+                invoice.IsPaid = false;
+                _context.Entry(invoice).Property(x => x.IsPaid).IsModified = true;
+
+                // 💰 Adjust tenant balance
+                var tenant = await _context.Tenants.FindAsync(original.TenantId);
+                if (tenant != null)
+                {
+                    if (tenant.Balance + (paymentAmount * -1) < 0)
+                        throw new InvalidOperationException("Insufficient tenant balance to reverse payment.");
+                    
+                    //Multiply the payment by negarive one becasue we will always ADD back to balance.
+                    tenant.Balance += paymentAmount * -1;
+                    _context.Tenants.Update(tenant);
+                }
+
+                var save = await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return save > 0;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error reversing payment with PaymentId {PaymentId}", paymentId);
+                return false;
+            }
+        }
     }
 }

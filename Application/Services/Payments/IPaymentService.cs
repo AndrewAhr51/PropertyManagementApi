@@ -11,6 +11,9 @@ namespace PropertyManagementAPI.Application.Services.Payments
     {
         // Standard payments
         Task<Payment> CreatePaymentAsync(CreatePaymentDto dto);
+
+        Task<bool> ReversePaymentAsync(int paymentId);
+
         Task<Payment> GetPaymentByIdAsync(int paymentId);
         Task<IEnumerable<Payment>> GetPaymentsByInvoiceIdAsync(int invoiceId);
 

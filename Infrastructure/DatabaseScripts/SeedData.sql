@@ -198,9 +198,9 @@ INSERT INTO Tenants (
   FirstName, LastName, Email, PhoneNumber, isActive, MoveInDate
 ) VALUES
 (6, 1, 1, 'John', 'Doe', 'john.doe@example.com', '555-1234', 1,'2024-01-15'),
-(7, 2, 1, 'Michael', 'Johnson', 'michael.johnson@example.com', '555-9876', 1,'2022-09-20'),
-(8, 2, 0, 'Mary', 'Johnson', 'mary.johnson@example.com', '555-9876', 1,'2022-09-20'),
-(9, 3, 1, 'John', 'Smith', 'john.smith@example.com', '555-5555', 1,'2022-10-01');
+(7, 2, 1, 'Michael', 'Johnson', 'michael.johnson@example.com', '555-9876', 1, '2022-09-20'),
+(8, 2, 0, 'Mary', 'Johnson', 'mary.johnson@example.com', '555-9876', 1, '2022-09-20'),
+(9, 3, 1, 'John', 'Smith', 'john.smith@example.com', '555-5555', 1, '2022-10-01');
 
 INSERT INTO PropertyTenants (PropertyId, TenantId) VALUES
 (1, 6),
@@ -242,119 +242,51 @@ INSERT INTO InvoiceType (LineItemTypeName) VALUES
     ('Late Fee'),
     ('Utility'),
     ('Security Deposit');
+-- 0️⃣ Optional: Reset tenant balances for a clean start
+UPDATE Tenants SET Balance = 0 WHERE TenantId IN (6, 7);
 
--- 2️⃣ Seed InvoiceDocuments (base table)
+-- 1️⃣ Seed InvoiceDocuments
 INSERT INTO InvoiceDocuments (
-    TenantId, TenantName, Email, ReferenceNumber,
+    TenantId, OwnerId,  PropertyId, PropertyName,TenantName, Email, ReferenceNumber,
     Amount, DueDate, IsPaid, Status, CreatedBy,
     CreatedDate, ModifiedDate
 ) VALUES
-(6, 'John Doe', 'john.doe@example.com', 'INV-101', 2200.00, '2025-07-15', FALSE, 'Pending', 'Web', NOW(), NOW());
+(6, 3, 1, 'Sunset Villa', 'John Doe', 'john.doe@example.com', 'INV-101', 2200.00, '2025-07-15', FALSE, 'Pending', 'Web', NOW(), NOW());
 SET @InvoiceId1 = LAST_INSERT_ID();
 
-INSERT INTO InvoiceDocuments (
-    TenantId, TenantName, Email, ReferenceNumber,
-    Amount, DueDate, IsPaid, Status, CreatedBy,
-    CreatedDate, ModifiedDate
-) VALUES
-(7, 'Michael Johnson', 'michael.johnson@example.com', 'INV-102', 500.00, '2025-07-10', TRUE, 'Paid', 'Web', NOW(), NOW());
-SET @InvoiceId2 = LAST_INSERT_ID();
-
-INSERT INTO InvoiceDocuments (
-    TenantId, TenantName, Email, ReferenceNumber,
-    Amount, DueDate, IsPaid, Status, CreatedBy,
-    CreatedDate, ModifiedDate
-) VALUES
-(8, 'Mary Johnson', 'mary.johnson@example.com', 'INV-103', 250.00, '2025-07-20', FALSE, 'Pending', 'Web', NOW(), NOW());
-SET @InvoiceId3 = LAST_INSERT_ID();
-
--- 3️⃣ Seed Invoices (derived TPT table)
+-- 2️⃣ Seed Invoices (TPT derived table)
 INSERT INTO Invoices (
-    InvoiceId, LastMonthDue, LastMonthPaid, PropertyId, PropertyName,
-    RentMonth, RentYear, OwnerId, Notes, CreatedBy
+    InvoiceId, LastMonthDue, LastMonthPaid, 
+    RentMonth, RentYear, Notes, CreatedBy
 ) VALUES
-(@InvoiceId1, 2200.00, 2200.00, 1, 'Sunset Villa', 7, 2025, 3, 'Rent and utilities for July', 'Web');
+(@InvoiceId1, 2200.00, 2200.00, 7, 2025, 'Rent and utilities for July', 'Web');
 
-INSERT INTO Invoices (
-    InvoiceId, LastMonthDue, LastMonthPaid, PropertyId, PropertyName,
-    RentMonth, RentYear, OwnerId, Notes, CreatedBy
-) VALUES
-(@InvoiceId2, 500.00, 500.00, 2, 'Ocean Breeze Condo', 7, 2025, 4, 'Late fee resolution', 'Web');
-
-INSERT INTO Invoices (
-    InvoiceId, LastMonthDue, LastMonthPaid, PropertyId, PropertyName,
-    RentMonth, RentYear, OwnerId, Notes, CreatedBy
-) VALUES
-(@InvoiceId3, 125.00, 0.00, 2, 'Ocean Breeze Condo', 7, 2025, 4, 'Cleaning after guest stay', 'Web');
-
--- 4️⃣ Seed InvoiceLineItems + Metadata
+-- 3️⃣ Seed InvoiceLineItems + Metadata
 -- John Doe
 INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
-VALUES (@InvoiceId1, 1, 'Monthly rent for July', 2000.00);
+VALUES (@InvoiceId1, 1, 'Monthly rent for July', 2200.00);
 SET @LineItemId1 = LAST_INSERT_ID();
 
-INSERT INTO InvoiceLineItemMetadata (LineItemId, MetaKey, MetaValue) VALUES
-(@LineItemId1, 'rentmonth', '7'),
-(@LineItemId1, 'rentyear', '2025');
+INSERT INTO InvoiceLineItemMetadata (LineItemId, MetaKey, MetaValue)
+VALUES (@LineItemId1, 'rentmonth', '7'), (@LineItemId1, 'rentyear', '2025');
 
-INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
-VALUES (@InvoiceId1, 5, 'Water and electricity usage', 200.00);
-SET @LineItemId2 = LAST_INSERT_ID();
+-- 4️⃣ Seed Audit Log
+INSERT INTO InvoiceAuditLog (InvoiceId, ActionType, ChangedBy, ChangeReason)
+VALUES
+(@InvoiceId1, 'Created', 'admin', 'Issued initial invoice');
 
-INSERT INTO InvoiceLineItemMetadata (LineItemId, MetaKey, MetaValue) VALUES
-(@LineItemId2, 'usageamount', '150'),
-(@LineItemId2, 'utilitytype', 'Electricity');
-
--- Michael Johnson
-INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
-VALUES (@InvoiceId2, 4, 'Late payment fee', 500.00);
-
--- Mary Johnson
-INSERT INTO InvoiceLineItems (InvoiceId, LineItemTypeId, Description, Amount)
-VALUES (@InvoiceId3, 2, 'Post-guest cleaning charge', 125.00);
-SET @LineItemId3 = LAST_INSERT_ID();
-
-INSERT INTO InvoiceLineItemMetadata (LineItemId, MetaKey, MetaValue) VALUES
-(@LineItemId3, 'cleaningtype', 'Post-guest'),
-(@LineItemId3, 'serviceprovider', 'CleanCo Inc');
-
--- 5️⃣ Seed Audit Log
-INSERT INTO InvoiceAuditLog (
-    InvoiceId, ActionType, ChangedBy, ChangeReason
-) VALUES
-(@InvoiceId1, 'Created', 'admin', 'Issued initial invoice'),
-(@InvoiceId2, 'Created', 'admin', 'Applied late fee'),
-(@InvoiceId3, 'Created', 'admin', 'Cleaning fee added');
-
+-- 5️⃣ Payments to match invoice totals
+-- John Doe (exact match for $2200)
 INSERT INTO Payments (
     Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
-    CardType, Last4Digits, AuthorizationCode,
-    CheckNumber, CheckBankName,
-    BankAccountNumber, RoutingNumber, TransactionId
-) VALUES
-(2200.00, '2025-07-10', 'PAY-001', @InvoiceDocId1, 6, 3, 'Card', 'Visa', '4242', 'AUTH1001',
- NULL, NULL, NULL, NULL, 'TXN1001');
+    CardType, Last4Digits, AuthorizationCode, CheckNumber, CheckBankName, TransactionId
+) VALUES (
+    2200.00, '2025-07-10', 'PAY-001', @InvoiceId1, 6, NULL, 'Card',
+    'Visa', '4242', 'AUTH1001', NULL, NULL, 'TXN1001'
+);
 
--- 👇 Payment 2 – Michael Johnson pays late fee via bank transfer
-INSERT INTO Payments (
-    Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
-    CardType, Last4Digits, AuthorizationCode,
-    CheckNumber, CheckBankName,
-    BankAccountNumber, RoutingNumber, TransactionId
-) VALUES
-(500.00, '2025-07-09', 'PAY-002', @InvoiceDocId2, 7, 4, 'Transfer', NULL, NULL, NULL,
- NULL, NULL, '****5678', '026009593', 'TXN1002');
+UPDATE InvoiceDocuments SET ispaid = TRUE WHERE invoiceid = 1;
 
--- 👇 Payment 3 – Mary Johnson pays cleaning fee via check
-INSERT INTO Payments (
-    Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
-    CardType, Last4Digits, AuthorizationCode,
-    CheckNumber, CheckBankName,
-    BankAccountNumber, RoutingNumber, TransactionId
-) VALUES
-(125.00, '2025-07-18', 'PAY-003', @InvoiceDocId3, 8, 4, 'Check', NULL, NULL, NULL,
- 'CHK001', 'Wells Fargo', NULL, NULL, 'TXN1003');
- 
 INSERT INTO TenantAnnouncements (Title, Message, PostedBy)
 VALUES
 -- General Maintenance
@@ -431,3 +363,7 @@ INSERT INTO Leases (
 
 -- John Smith @ Property 3
 (9, 3, 100, '2022-10-01', NULL, 3200.00, 3200.00, TRUE, TRUE, 'Web');
+
+
+-- ✅ Tenant balances should now be 0
+SELECT TenantId, Balance FROM Tenants WHERE TenantId IN (6, 7);

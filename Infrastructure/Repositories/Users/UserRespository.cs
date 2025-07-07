@@ -1,6 +1,9 @@
 ﻿using BCrypt.Net;
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Intuit.Ipp.Data;
 using Microsoft.EntityFrameworkCore;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Data;
@@ -571,50 +574,88 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Users
 
                 var isActive = user.IsActive; // Store the new state
 
-                await _context.SaveChangesAsync();
+                var save = await _context.SaveChangesAsync();
 
-                // ✅ Step 2: Find owner by UserId
-                var owner = await _context.Owners.FirstOrDefaultAsync(o => o.OwnerId == userId);
-                if (owner == null) return false;
-
-                owner.IsActive = isActive;
-                await _context.SaveChangesAsync();
-
-                // ✅ Step 3: Get all PropertyIds owned by this owner
-                var propertyIds = await _context.PropertyOwners
-                    .Where(po => po.OwnerId == owner.OwnerId)
-                    .Select(po => po.PropertyId)
-                    .ToListAsync();
-
-                if (propertyIds == null || propertyIds.Count == 0)
+                // ✅ Step 2: Check user role and update accordingly
+                _logger.LogInformation("User with ID {UserId} is now {IsActive}.", userId, isActive ? "active" : "inactive");
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == user.RoleId);
+                if (role == null)
                 {
-                    _logger.LogWarning("No properties found for owner with ID: {OwnerId}", owner.OwnerId);
-                    return false;
-                } else {
-                    _logger.LogInformation("Found {Count} properties for owner with ID: {OwnerId}", propertyIds.Count, owner.OwnerId);
+                    _logger.LogWarning("Role not found for User ID: {UserId}", userId);
+                    return false; // Role not found
                 }
-                foreach (var propertyId in propertyIds)
+
+                if (role.Name == "Owner") 
                 {
-                    _logger.LogInformation("Property ID: {PropertyId}", propertyId);
-                    var property = await _context.Properties.FindAsync(propertyId);
-                    if (property == null)
+                    _logger.LogInformation("User with ID {UserId} is an owner. Updating owner id and related properties.", userId);
+                    return await SetActivateOwnerAsync(userId, isActive);
+                }
+                else if (role.Name == "Tenant") 
                     {
-                        _logger.LogWarning("Property with ID {PropertyId} not found.", propertyId);
-                        continue; // Skip to the next property if not found
-                    }
-                    _logger.LogInformation("Updating property with ID: {PropertyId} to IsActive: {IsActive}", propertyId, isActive);
-                    property.IsActive = isActive; // Update IsActive status
+                    _logger.LogInformation("User with ID {UserId} is a tenant. Update the tenant id; No property updates required.", userId);
+                    return await SetActivateTenantAsync(userId, isActive);
                 }
 
-                // ✅ Step 4: Save changes to properties
-                await _context.SaveChangesAsync();
-                return true;
+                return save > 0;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error activating/deactivating user with ID: {UserId}", userId);
                 throw new Exception("An error occurred while activating/deactivating the user.", ex);
             }
+        }
+
+        public async Task<bool> SetActivateOwnerAsync(int userId, bool isActive)
+        {
+            var owner = await _context.Owners.FirstOrDefaultAsync(o => o.OwnerId == userId);
+            if (owner == null) return false;
+
+            owner.IsActive = isActive;
+            await _context.SaveChangesAsync();
+
+            // ✅ Step 3: Get all PropertyIds owned by this owner
+            var propertyIds = await _context.PropertyOwners
+                .Where(po => po.OwnerId == owner.OwnerId)
+                .Select(po => po.PropertyId)
+                .ToListAsync();
+
+            if (propertyIds == null || propertyIds.Count == 0)
+            {
+                _logger.LogWarning("No properties found for owner with ID: {OwnerId}", owner.OwnerId);
+                return false;
+            }
+            else
+            {
+                _logger.LogInformation("Found {Count} properties for owner with ID: {OwnerId}", propertyIds.Count, owner.OwnerId);
+            }
+            foreach (var propertyId in propertyIds)
+            {
+                _logger.LogInformation("Property ID: {PropertyId}", propertyId);
+                var property = await _context.Properties.FindAsync(propertyId);
+                if (property == null)
+                {
+                    _logger.LogWarning("Property with ID {PropertyId} not found.", propertyId);
+                    continue; // Skip to the next property if not found
+                }
+                _logger.LogInformation("Updating property with ID: {PropertyId} to IsActive: {IsActive}", propertyId, isActive);
+                property.IsActive = isActive; // Update IsActive status
+            }
+
+            // ✅ Step 4: Save changes to properties
+            var save = await _context.SaveChangesAsync();
+
+            return save > 0;
+        }
+
+        public async Task<bool> SetActivateTenantAsync(int userId, bool isActive)
+        {
+            var tenant = await _context.Tenants.FirstOrDefaultAsync(o => o.TenantId == userId);
+            if (tenant == null) return false;
+
+            tenant.IsActive = isActive;
+            var save = await _context.SaveChangesAsync();
+
+            return save > 0;
         }
     }
 }

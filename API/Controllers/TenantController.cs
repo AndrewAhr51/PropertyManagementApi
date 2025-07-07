@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using PropertyManagementAPI.Application.Services;
 using PropertyManagementAPI.Domain.DTOs.Users;
 using PropertyManagementAPI.Application.Services.Tenants;
+using PropertyManagementAPI.Application.Services.Users;
 
 namespace PropertyManagementAPI.API.Controllers
 {
@@ -11,15 +12,16 @@ namespace PropertyManagementAPI.API.Controllers
     public class TenantController : ControllerBase
     {
         private readonly ITenantService _service;
+        private readonly IUserService _usersService;
         private readonly ILogger<TenantController> _logger;
         private readonly IConfiguration _config;
 
-
-        public TenantController(ITenantService service, ILogger<TenantController> logger, IConfiguration config)
+        public TenantController(ITenantService service, ILogger<TenantController> logger, IConfiguration config, IUserService usersService)
         {
             _service = service;
             _logger = logger;
             _config = config;
+            _usersService = usersService;
         }
 
         [HttpPost("create")]
@@ -119,28 +121,18 @@ namespace PropertyManagementAPI.API.Controllers
             }
         }
 
-        [HttpDelete("deactivate/{tenantId}")]
+        [HttpPut("{tenantId}/setactivate")]
         public async Task<IActionResult> SetActivateTenant(int tenantId)
         {
-            _logger.LogInformation("DeactivateTenant: Attempting to deactivate tenant ID {Id}.", tenantId);
-
-            try
+            var success = await _usersService.SetActivateUserAsync(tenantId);
+            if (!success)
             {
-                var deleted = await _service.SetActivateTenant(tenantId);
-                if (!deleted)
-                {
-                    _logger.LogWarning("DeactivateTenant: Tenant ID {Id} not found.", tenantId);
-                    return NotFound();
-                }
+                _logger.LogWarning($"Tenant with ID {tenantId} not found or already inactive.");
+                return NotFound("Owner not found or already inactive.");
+            }
 
-                _logger.LogInformation("DeactivateTenant: Tenant ID {Id} deactivated successfully.", tenantId);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "DeactivateTenant: Error deactivating tenant ID {Id}.", tenantId);
-                return StatusCode(500, "An error occurred while deactivating the tenant.");
-            }
+            _logger.LogInformation($"Tenant with ID {tenantId} has been inactivated.");
+            return Ok("Owner inactivated successfully.");
         }
     }
 }

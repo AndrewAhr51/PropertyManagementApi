@@ -64,6 +64,22 @@ namespace PropertyManagementAPI.API.Controllers
             }
         }
 
+        // POST: api/payments
+        [HttpPost("reverse-payment/{paymentId}")]
+        public async Task<ActionResult<bool>> ReversePayment(int paymentId)
+        {
+            try
+            {
+                var save = await _paymentService.ReversePaymentAsync(paymentId);
+
+                return save ? Ok(new { message = "Payment reversed successfully." }) : BadRequest(new { error = "Failed to reverse payment." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
         [HttpPost("paypal/order")]
         public async Task<ActionResult<PayPalPaymentResponseDto>> CreatePayPalOrder([FromBody] CreatePayPalDto dto)
         {

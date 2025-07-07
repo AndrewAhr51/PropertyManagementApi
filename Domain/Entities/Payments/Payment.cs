@@ -21,14 +21,9 @@ namespace PropertyManagementAPI.Domain.Entities.Payments
         public string? AuthorizationCode { get; set; }
         public string? CheckNumber { get; set; }
         public string? CheckBankName { get; set; }
-        public string? BankAccountNumber { get; set; }
-        public string? RoutingNumber { get; set; }
         public string? TransactionId { get; set; }
-
         public Invoice Invoice { get; set; } = default!;
-
         public Tenant Tenant { get; set; } = default!;
-
         public Owner Owner { get; set; } = default!;
     }
 }

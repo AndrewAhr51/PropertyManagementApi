@@ -65,6 +65,18 @@ namespace PropertyManagementAPI.API.Controllers
         {
             try
             {
+                if (dto == null)
+                {
+                    _logger.LogWarning("Audit: CreateInvoiceDto is null");
+                    return BadRequest("Invalid invoice data.");
+                }
+
+                if (dto.PropertyId <= 0)
+                {
+                    _logger.LogWarning("Audit: Invalid PropertyId {PropertyId} in CreateInvoiceDto", dto.PropertyId);
+                    return BadRequest("Invalid PropertyId.");
+                }
+
                 _logger.LogInformation("API Request: Creating invoice for PropertyId {PropertyId}", dto.PropertyId);
                 var success = await _invoiceService.CreateInvoiceAsync(dto);
 
