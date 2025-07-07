@@ -11,6 +11,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
     public interface IPaymentRepository
     {
         Task<Payment> CreatePaymentAsync(CreatePaymentDto dto);
+      
         Task<PayPalPaymentResponseDto> CreatePayPalPaymentAsync(CreatePayPalDto dto);
         Task<Payment> GetPaymentByIdAsync(int paymentId);
         Task<IEnumerable<Payment>> GetPaymentByInvoiceIdAsync(int invoiceId);
@@ -18,6 +19,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
         Task SavePaymentChangesAsync();
         Task<StripePaymentResponseDto> CreateStripePaymentIntentAsync(CreateStripeDto dto); 
         Task<bool> CreateStripePaymentAsync(CreateStripeDto dto);
+        Task<bool> ReversePaymentAsync(int paymentId);
 
     }
 

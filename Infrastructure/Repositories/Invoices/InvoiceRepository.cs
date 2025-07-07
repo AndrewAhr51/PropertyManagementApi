@@ -137,15 +137,17 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
         public async Task<bool> CreateInvoiceAsync(CreateInvoiceDto invoice)
         {
+            if (invoice == null)
+            {
+                _logger.LogWarning("Invoice DTO is null");
+                return false;
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
                 _logger.LogInformation("Creating invoice for PropertyId: {PropertyId}", invoice.PropertyId);
-
-                if (invoice == null)
-                {
-                    _logger.LogWarning("Invoice DTO is null");
-                    return false;
-                }
 
                 var tenant = await GetPropertyTenantInfoAsync(invoice.PropertyId);
                 if (tenant == null)
@@ -167,7 +169,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     TenantName = tenant.TenantName,
                     Email = tenant.TenantEmail,
                     ReferenceNumber = referenceNumber,
-                    Amount = 0,
+                    Amount = invoiceInfo.Amount,
                     DueDate = invoice.DueDate,
                     LastMonthDue = invoiceInfo.LastMonthDue,
                     LastMonthPaid = invoiceInfo.LastMonthPaid,
@@ -175,17 +177,29 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     RentMonth = invoice.DueDate.Month,
                     RentYear = invoice.DueDate.Year,
                     Notes = invoice.Notes,
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    IsPaid = false // Explicit if you support this flag in schema
                 };
 
                 _context.Invoices.Add(newInvoice);
-                var save = await _context.SaveChangesAsync();
-                _logger.LogInformation("Invoice created successfully with InvoiceId: {InvoiceId}", newInvoice.InvoiceId);
 
+                // ⬆️ Optional: Directly adjust tenant balance upfront if needed
+                var tenantRecord = await _context.Tenants.FindAsync(tenant.TenantId);
+                if (tenantRecord != null)
+                {
+                    tenantRecord.Balance += newInvoice.Amount;
+                    _context.Tenants.Update(tenantRecord);
+                }
+
+                var save = await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Invoice created successfully with InvoiceId: {InvoiceId}", newInvoice.InvoiceId);
                 return save > 0;
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error occurred while creating invoice for PropertyId: {PropertyId}", invoice?.PropertyId);
                 return false;
             }

@@ -51,6 +51,20 @@ namespace PropertyManagementAPI.Application.Services.Payments
             }
         }
 
+        public async Task<bool>ReversePaymentAsync(int paymentId)
+        {
+            try
+            {
+                return await _paymentRepository.ReversePaymentAsync(paymentId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reversing the payment for payment id {paymentId}", paymentId);
+                throw;
+            }
+
+        }
+
         public async Task<PayPalPaymentResponseDto> CreatePayPalOrderAsync(CreatePayPalDto dto)
         {
             try
@@ -151,6 +165,7 @@ namespace PropertyManagementAPI.Application.Services.Payments
             return stripeDto;
 
         }
+
         public async Task<Invoice?> GetInvoiceAsync(int invoiceId)
         {
             try

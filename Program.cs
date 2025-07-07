@@ -187,6 +187,8 @@ builder.Services.AddScoped<IOwnerAnnouncementService, OwnerAnnouncementService>(
 builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
+//builder.Services.AddScoped<IECheckPaymentRepository, ECheckPaymentRepository>();
+//builder.Services.AddScoped<IECheckPaymentService, ECheckPaymentService>();
 builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddHttpClient<QuickBooksTokenClient>();
 builder.Services.AddScoped<QuickBooksPaymentService>();
@@ -294,8 +296,26 @@ builder.Services.AddSwaggerGen(c =>
     c.CustomSchemaIds(type => type.FullName);
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
+
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+
+// ✅ Enable Authentication Middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseMiddleware<RoleMiddleware>();
 
 // ✅ Configure Middleware Pipeline
 if (app.Environment.IsDevelopment())
@@ -305,16 +325,7 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Main API");
     });
-
 }
-
-// ✅ Enable Authentication Middleware
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseMiddleware<RoleMiddleware>();
 
 app.MapControllers();
 app.Run();

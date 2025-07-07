@@ -6,11 +6,8 @@ namespace PropertyManagementAPI.Domain.Entities.Invoices
     {
         public decimal LastMonthDue { get; set; }
         public decimal LastMonthPaid { get; set; }
-        public int PropertyId { get; set; }
-        public string? PropertyName { get; set; }
         public int RentMonth { get; set; }
         public int RentYear { get; set; }
-        public int? OwnerId { get; set; }
         public string? Notes { get; set; }
 
         public ICollection<InvoiceLineItem> LineItems { get; set; } = new List<InvoiceLineItem>();

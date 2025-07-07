@@ -7,8 +7,11 @@ namespace PropertyManagementAPI.Domain.Entities.Invoices.Base
     {
         [Key]
         public int InvoiceId { get; set; }
+        public int PropertyId { get; set; }
+        public string PropertyName { get; set; } = "unknown";
         public int TenantId { get; set; }
         public string TenantName { get; set; } = "unknown";
+        public int? OwnerId { get; set; }
         public string Email { get; set; } = default!;
         public string ReferenceNumber { get; set; } = default!;
         public decimal Amount { get; set; }

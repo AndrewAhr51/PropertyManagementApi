@@ -29,6 +29,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Emails> Emails { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<InvoiceDocuments> InvoiceDocuments { get; set; }
         public DbSet<InvoiceType> InvoiceTypes { get; set; }
         public DbSet<InvoiceLineItem> InvoiceLineItems { get; set; }
         public DbSet<InvoiceLineItemMetadata> InvoiceLineItemMetadata { get; set; }
@@ -58,6 +59,10 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<OwnerAnnouncement> OwnerAnnouncements { get; set; } = null!;
         public DbSet<ACHAuthorization> ACHAuthorizations { get; set; } = null!;
         public DbSet<PaymentTransactions> PaymentTransactions { get; set; } = null!;
+        public DbSet<ElectronicTransferPayment> ElectronicTransferPayments { get; set; } = null!;
+        public DbSet<WireTransfer> WireTransfers { get; set; } = null!;
+        public DbSet<CheckPayment> CheckPayments { get; set; } = null!;
+        public DbSet<PaymentMetadata> PaymentMetadata { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

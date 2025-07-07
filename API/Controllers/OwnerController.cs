@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementAPI.Application.Services.Owners;
+using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Domain.DTOs.Users;
 
 [ApiController]
@@ -7,12 +8,14 @@ using PropertyManagementAPI.Domain.DTOs.Users;
 public class OwnerController : ControllerBase
 {
     private readonly IOwnersService _ownersService;
+    private readonly IUserService _usersService;
     private readonly ILogger<OwnerController> _logger;
 
-    public OwnerController(IOwnersService ownersService, ILogger<OwnerController> logger)
+    public OwnerController(IOwnersService ownersService, ILogger<OwnerController> logger, IUserService usersService)
     {
         _ownersService = ownersService;
         _logger = logger;
+        _usersService = usersService;
     }
 
     // ✅ Add a new owner
@@ -114,7 +117,7 @@ public class OwnerController : ControllerBase
     [HttpPut("{ownerId}/setactivate")]
     public async Task<IActionResult> SetActivateOwner(int ownerId)
     {
-        var success = await _ownersService.SetActivateOwnerAsync(ownerId);
+        var success = await _usersService.SetActivateUserAsync(ownerId);
         if (!success)
         {
             _logger.LogWarning($"Owner with ID {ownerId} not found or already inactive.");

@@ -344,7 +344,10 @@ CREATE TABLE Leases (
 
 CREATE TABLE InvoiceDocuments (
     InvoiceId INT PRIMARY KEY AUTO_INCREMENT,
-    tenantid int NULL,
+	PropertyId INT NOT NULL,
+    PropertyName VARCHAR(50),
+    TenantId int NULL,
+    OwnerId INT NULL,
     TenantName VARCHAR(100) DEFAULT 'unknown',
     Email VARCHAR(255) NOT NULL ,
     ReferenceNumber VARCHAR(50) NOT NULL,
@@ -360,12 +363,9 @@ CREATE TABLE InvoiceDocuments (
 CREATE TABLE Invoices (
     InvoiceId INT PRIMARY KEY AUTO_INCREMENT,
     LastMonthDue DECIMAL(18,2) NOT NULL,
-    LastMonthPaid DECIMAL(18,2) NOT NULL,
-    PropertyId INT NOT NULL,
-    PropertyName VARCHAR(50),
-    RentMonth INT NOT NULL,
-    RentYear INT NOT NULL,
-    OwnerId INT NULL,
+    LastMonthPaid DECIMAL(18,2) NOT NULL, 
+    RentMonth INT,
+    RentYear INT,    
     Notes TEXT,
     CreatedBy VARCHAR(50) DEFAULT 'Web',
     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -413,7 +413,7 @@ CREATE TABLE InvoiceAuditLog (
     OldValues JSON NULL,
     NewValues JSON NULL,
     ChangeReason VARCHAR(255) NULL,
-    FOREIGN KEY (InvoiceId) REFERENCES invoices(InvoiceId) ON DELETE SET NULL,
+    FOREIGN KEY (InvoiceId) REFERENCES invoicedocuments(InvoiceId) ON DELETE SET NULL,
     INDEX (InvoiceId)
 );
 
@@ -429,10 +429,11 @@ CREATE TABLE BankAccounts (
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 -- Payment Table
+
 CREATE TABLE Payments (
     PaymentId INT AUTO_INCREMENT PRIMARY KEY,
     Amount DECIMAL(10,2) NOT NULL,
-    PaidOn DATETIME NOT NULL,
+    PaidOn DATETIME NULL,
     ReferenceNumber VARCHAR(50) NOT NULL,
     InvoiceId INT NOT NULL,
     TenantId INT NULL,  -- ✅ Now nullable
@@ -447,15 +448,30 @@ CREATE TABLE Payments (
     -- Check fields
     CheckNumber VARCHAR(30),
     CheckBankName VARCHAR(50),
-
-    -- Transfer fields
-    BankAccountNumber VARCHAR(30),
-    RoutingNumber VARCHAR(20),
     TransactionId VARCHAR(50),
 
     FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId),
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
+);
+
+CREATE TABLE PaymentMetadata (
+    PaymentMetadataId INT AUTO_INCREMENT PRIMARY KEY,
+    PaymentId INT NOT NULL,
+    `Key` VARCHAR(100) NOT NULL,
+    `Value` TEXT,
+
+    -- Foreign key constraint
+    CONSTRAINT fk_payment_metadata_payment
+        FOREIGN KEY (PaymentId)
+        REFERENCES Payments(PaymentId)
+        ON DELETE CASCADE
+);
+CREATE TABLE ElectronicTransferPayments(
+	PaymentId INT PRIMARY KEY,
+    BankAccountNumber VARCHAR(30),
+    RoutingNumber VARCHAR(20),    
+    FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId) ON DELETE CASCADE
 );
 
 CREATE TABLE PaymentAuditLog (
@@ -629,8 +645,6 @@ CREATE TABLE PaymentTransactions (
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 
-
-
 CREATE TABLE TriggerLog (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Message VARCHAR(255),
@@ -638,9 +652,6 @@ CREATE TABLE TriggerLog (
 );
 
 -- 📘 Start custom delimiter for compound statements
-DELIMITER $$
-
--- 🔄 Balance Adjustment After Invoice INSERT (base table)
 DELIMITER $$
 
 -- 🔄 After INSERT on InvoiceDocuments — Adjust balance
@@ -694,9 +705,9 @@ BEGIN
     END IF;
 END$$
 
--- 🧾 Audit After INSERT on invoices — Only use fields that exist in the derived table
-CREATE TRIGGER trg_audit_invoice_insert
-AFTER INSERT ON invoices
+-- 🧾 Audit After INSERT on invoices
+CREATE TRIGGER trg_audit_invoicedocuments_insert
+AFTER INSERT ON invoicedocuments
 FOR EACH ROW
 BEGIN
     INSERT INTO InvoiceAuditLog (
@@ -707,18 +718,18 @@ BEGIN
         NEW.CreatedBy,
         JSON_OBJECT(
             'PropertyId', NEW.PropertyId,
+            'PropertyName', NEW.PropertyName,
+            'TenantId', NEW.TenantId,
             'OwnerId', NEW.OwnerId,
-            'Notes', NEW.Notes,
-            'RentMonth', NEW.RentMonth,
-            'RentYear', NEW.RentYear,
-            'PropertyName', NEW.PropertyName
+            'Amount', NEW.Amount,
+            'DueDate', NEW.DueDate
         )
     );
 END$$
 
 -- 📘 Audit After UPDATE on invoices
-CREATE TRIGGER trg_audit_invoice_update
-AFTER UPDATE ON invoices
+CREATE TRIGGER trg_audit_invoicedocuments_update
+AFTER UPDATE ON invoicedocuments
 FOR EACH ROW
 BEGIN
     INSERT INTO InvoiceAuditLog (
@@ -729,26 +740,26 @@ BEGIN
         NEW.CreatedBy,
         JSON_OBJECT(
             'PropertyId', OLD.PropertyId,
+            'PropertyName', OLD.PropertyName,
+            'TenantId', OLD.TenantId,
             'OwnerId', OLD.OwnerId,
-            'Notes', OLD.Notes,
-            'RentMonth', OLD.RentMonth,
-            'RentYear', OLD.RentYear,
-            'PropertyName', OLD.PropertyName
+            'Amount', OLD.Amount,
+            'DueDate', OLD.DueDate
         ),
         JSON_OBJECT(
             'PropertyId', NEW.PropertyId,
+            'PropertyName', NEW.PropertyName,
+            'TenantId', NEW.TenantId,
             'OwnerId', NEW.OwnerId,
-            'Notes', NEW.Notes,
-            'RentMonth', NEW.RentMonth,
-            'RentYear', NEW.RentYear,
-            'PropertyName', NEW.PropertyName
+            'Amount', NEW.Amount,
+            'DueDate', NEW.DueDate
         )
     );
 END$$
 
 -- 🧹 Audit Before DELETE on invoices
-CREATE TRIGGER trg_audit_invoice_delete
-BEFORE DELETE ON invoices
+CREATE TRIGGER trg_audit_invoicedocuments_delete
+BEFORE DELETE ON invoicedocuments
 FOR EACH ROW
 BEGIN
     INSERT INTO InvoiceAuditLog (
@@ -759,12 +770,28 @@ BEGIN
         OLD.CreatedBy,
         JSON_OBJECT(
             'PropertyId', OLD.PropertyId,
+            'PropertyName', OLD.PropertyName,
+            'TenantId', OLD.TenantId,
             'OwnerId', OLD.OwnerId,
-            'Notes', OLD.Notes,
-            'RentMonth', OLD.RentMonth,
-            'RentYear', OLD.RentYear,
-            'PropertyName', OLD.PropertyName
+            'Amount', OLD.Amount,
+            'DueDate', OLD.DueDate
         )
+    );
+END$$
+
+-- 📦 BillingAddress history triggers
+CREATE TRIGGER LogBillingAddressInsert
+AFTER INSERT ON BillingAddress
+FOR EACH ROW
+BEGIN
+    INSERT INTO BillingAddressHistory (
+        BillingAddressId, StreetLine1, StreetLine2, City, State,
+        PostalCode, Country, AvsResult, IsVerified, ChangedOn
+    )
+    VALUES (
+        NEW.BillingAddressId, NEW.StreetLine1, NEW.StreetLine2,
+        NEW.City, NEW.State, NEW.PostalCode, NEW.Country,
+        NEW.AvsResult, NEW.IsVerified, NOW()
     );
 END$$
 
@@ -773,58 +800,13 @@ AFTER UPDATE ON BillingAddress
 FOR EACH ROW
 BEGIN
     INSERT INTO BillingAddressHistory (
-        BillingAddressId,
-        StreetLine1,
-        StreetLine2,
-        City,
-        State,
-        PostalCode,
-        Country,
-        AvsResult,
-        IsVerified,
-        ChangedOn
+        BillingAddressId, StreetLine1, StreetLine2, City, State,
+        PostalCode, Country, AvsResult, IsVerified, ChangedOn
     )
     VALUES (
-        OLD.BillingAddressId,
-        OLD.StreetLine1,
-        OLD.StreetLine2,
-        OLD.City,
-        OLD.State,
-        OLD.PostalCode,
-        OLD.Country,
-        OLD.AvsResult,
-        OLD.IsVerified,
-        NOW()
-    );
-END$$
-
-CREATE TRIGGER LogBillingAddressInsert
-AFTER INSERT ON BillingAddress
-FOR EACH ROW
-BEGIN
-    INSERT INTO BillingAddressHistory (
-        BillingAddressId,
-        StreetLine1,
-        StreetLine2,
-        City,
-        State,
-        PostalCode,
-        Country,
-        AvsResult,
-        IsVerified,
-        ChangedOn
-    )
-    VALUES (
-        NEW.BillingAddressId,
-        NEW.StreetLine1,
-        NEW.StreetLine2,
-        NEW.City,
-        NEW.State,
-        NEW.PostalCode,
-        NEW.Country,
-        NEW.AvsResult,
-        NEW.IsVerified,
-        NOW()
+        OLD.BillingAddressId, OLD.StreetLine1, OLD.StreetLine2,
+        OLD.City, OLD.State, OLD.PostalCode, OLD.Country,
+        OLD.AvsResult, OLD.IsVerified, NOW()
     );
 END$$
 
@@ -833,88 +815,17 @@ BEFORE DELETE ON BillingAddress
 FOR EACH ROW
 BEGIN
     INSERT INTO BillingAddressHistory (
-        BillingAddressId,
-        StreetLine1,
-        StreetLine2,
-        City,
-        State,
-        PostalCode,
-        Country,
-        AvsResult,
-        IsVerified,
-        ChangedOn
+        BillingAddressId, StreetLine1, StreetLine2, City, State,
+        PostalCode, Country, AvsResult, IsVerified, ChangedOn
     )
     VALUES (
-        OLD.BillingAddressId,
-        OLD.StreetLine1,
-        OLD.StreetLine2,
-        OLD.City,
-        OLD.State,
-        OLD.PostalCode,
-        OLD.Country,
-        OLD.AvsResult,
-        OLD.IsVerified,
-        NOW()
+        OLD.BillingAddressId, OLD.StreetLine1, OLD.StreetLine2,
+        OLD.City, OLD.State, OLD.PostalCode, OLD.Country,
+        OLD.AvsResult, OLD.IsVerified, NOW()
     );
 END$$
 
-CREATE TRIGGER trg_adjust_balance_after_payment
-AFTER INSERT ON Payments
-FOR EACH ROW
-BEGIN
-    IF NEW.TenantId IS NOT NULL AND NEW.OwnerId IS NULL THEN
-        UPDATE Tenants
-        SET Balance = Balance - NEW.Amount
-        WHERE TenantId = NEW.TenantId;
-		INSERT INTO TriggerLog (Message) VALUES (CONCAT('Trigger fired for TenantId: ', NEW.TenantId));
-        
-    ELSEIF NEW.OwnerId IS NOT NULL AND NEW.TenantId IS NULL THEN
-        UPDATE Owners
-        SET Balance = Balance + NEW.Amount
-        WHERE OwnerId = NEW.OwnerId;
-        
-        INSERT INTO TriggerLog (Message) VALUES (CONCAT('Trigger fired for OwnerId: ', NEW.OwnerId));
-    END IF;
-    
-END$$
-
-CREATE TRIGGER trg_adjust_balance_after_payment_update
-AFTER UPDATE ON Payments
-FOR EACH ROW
-BEGIN
-    -- Tenant-only payment adjustment
-    IF NEW.TenantId IS NOT NULL AND NEW.OwnerId IS NULL THEN
-        UPDATE Tenants
-        SET Balance = Balance + OLD.Amount - NEW.Amount
-        WHERE TenantId = NEW.TenantId;
-
-    -- Owner-only payment adjustment
-    ELSEIF NEW.OwnerId IS NOT NULL AND NEW.TenantId IS NULL THEN
-        UPDATE Owners
-        SET Balance = Balance - OLD.Amount + NEW.Amount
-        WHERE OwnerId = NEW.OwnerId;
-    END IF;
-END$$
-
-CREATE TRIGGER trg_adjust_balance_after_payment_delete
-AFTER DELETE ON Payments
-FOR EACH ROW
-BEGIN
-    -- If payment was for a tenant only
-    IF OLD.TenantId IS NOT NULL AND OLD.OwnerId IS NULL THEN
-        UPDATE Tenants
-        SET Balance = Balance + OLD.Amount
-        WHERE TenantId = OLD.TenantId;
-
-    -- If payment was for an owner only
-    ELSEIF OLD.OwnerId IS NOT NULL AND OLD.TenantId IS NULL THEN
-        UPDATE Owners
-        SET Balance = Balance - OLD.Amount
-        WHERE OwnerId = OLD.OwnerId;
-    END IF;
-END$$
-
--- Reset to default delimiter
+-- ✅ Reset the delimiter
 DELIMITER ;
 
 -- Optimized Indexes
@@ -929,7 +840,7 @@ CREATE INDEX IX_PropertyOwners_PropertyId ON PropertyOwners(PropertyId);
 CREATE INDEX IX_PropertyOwners_OwnerId ON PropertyOwners(OwnerId);
 -- Indexes on Invoices
 CREATE INDEX idx_invoices_due_date ON InvoiceDocuments(duedate);
-CREATE INDEX idx_invoices_property_id ON Invoices(propertyid);
+CREATE INDEX idx_invoices_property_id ON InvoiceDocuments(propertyid);
 
 -- Subtype indexes
 CREATE INDEX idx_utilityname ON LkupUtilities (UtilityName);

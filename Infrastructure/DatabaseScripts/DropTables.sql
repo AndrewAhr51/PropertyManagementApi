@@ -1,17 +1,24 @@
 USE PropertyManagement;
+-- 🔧 Disable FK checks to prevent dependency issues
+SET FOREIGN_KEY_CHECKS = 0;
 
+-- 📄 Drop tenant/invoice adjustment triggers
 DROP TRIGGER IF EXISTS trg_after_invoice_insert;
 DROP TRIGGER IF EXISTS trg_after_invoice_update;
 DROP TRIGGER IF EXISTS trg_before_invoice_delete;
 
-DROP TRIGGER IF EXISTS trg_audit_invoice_insert;
-DROP TRIGGER IF EXISTS trg_audit_invoice_update;
-DROP TRIGGER IF EXISTS trg_audit_invoice_delete;
+-- 📑 Drop audit triggers for invoices
+DROP TRIGGER IF EXISTS trg_audit_invoicedocuments_insert;
+DROP TRIGGER IF EXISTS trg_audit_invoicedocuments_update;
+DROP TRIGGER IF EXISTS trg_audit_invoicedocuments_delete;
 
+-- 📦 Drop billing address audit triggers
 DROP TRIGGER IF EXISTS LogBillingAddressInsert;
 DROP TRIGGER IF EXISTS LogBillingAddressUpdate;
 DROP TRIGGER IF EXISTS LogBillingAddressDelete;
-DROP TRIGGER IF EXISTS LogBillingAddressDelete;
+
+-- 🔧 Re-enable FK checks
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ✅ Drop tables with foreign key dependencies first
 DROP TABLE IF EXISTS InvoiceAuditLog;
@@ -32,6 +39,8 @@ DROP TABLE IF EXISTS InvoiceLineItemMetadata;
 DROP TABLE IF EXISTS InvoiceLineItems;
 DROP TABLE IF EXISTS InvoiceType;
 
+DROP TABLE IF EXISTS PaymentMetadata;
+DROP TABLE IF EXISTS ElectronicTransferPayments;
 DROP TABLE IF EXISTS TenantBankAccount;
 DROP TABLE IF EXISTS OwnerBankAccount; 
 DROP TABLE IF EXISTS PreferredMethod;
@@ -42,6 +51,7 @@ DROP TABLE IF EXISTS SpecialInstructions;
 DROP TABLE IF EXISTS CheckPayments;
 DROP TABLE IF EXISTS WireTransfers;
 DROP TABLE IF EXISTS CardPayments;
+
 DROP TABLE IF EXISTS Payments;
 
 -- ✅ Drop base invoice table

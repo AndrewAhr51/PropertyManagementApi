@@ -8,6 +8,8 @@ namespace PropertyManagementAPI.Domain.Entities.Payments
         public int PaymentId { get; set; }
         public int InvoiceId { get; set; }
         public int TenantId { get; set; }
+        public DateTime? PaidOn { get; set; }
+        public int OwnerId { get; set; }
         public int PropertyId { get; set; }
         public decimal Amount { get; set; }
         public int PaymentMethodId { get; set; }
