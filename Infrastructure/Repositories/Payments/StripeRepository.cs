@@ -1,10 +1,12 @@
-﻿using PropertyManagementAPI.Application.Services.Payments;
+﻿using Microsoft.Extensions.Logging;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.Entities.Payments;
 using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
+using Stripe;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 {
@@ -13,60 +15,28 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
         private readonly MySqlDbContext _context;
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly ILogger<StripeRepository> _logger;
-        private readonly IStripeService _stripeService;
         private readonly AuditEventBuilder _audit;
 
-        public StripeRepository(MySqlDbContext context, IInvoiceRepository invoiceRepository, ILogger<StripeRepository> logger, IStripeService stripeService, AuditEventBuilder audit)
+        public StripeRepository(
+            MySqlDbContext context,
+            IInvoiceRepository invoiceRepository,
+            ILogger<StripeRepository> logger,
+            AuditEventBuilder audit)
         {
             _context = context;
             _invoiceRepository = invoiceRepository;
             _logger = logger;
-            _stripeService = stripeService;
             _audit = audit;
-
-        }
-      
-        public async Task<bool> CreateStripePaymentAsync(CreateStripeDto dto)
-        {
-            try
-            {
-                var payment = new CardPayment
-                {
-                    CardType = dto.Metadata.GetValueOrDefault("CardType"),
-                    Last4Digits = dto.Metadata.GetValueOrDefault("Last4Digits"),
-                    AuthorizationCode = dto.Metadata.GetValueOrDefault("AuthorizationCode"),
-                    Amount = dto.Amount,
-                    PaidOn = dto.PaidOn,
-                    InvoiceId = dto.InvoiceId,
-                    TenantId = dto.TenantId == 0 ? null : dto.TenantId,
-                    OwnerId = dto.OwnerId == 0 ? null : dto.OwnerId,
-                    PaymentType = "Card",
-                    ReferenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId)
-                };
-
-                await AddPaymentAsync(payment);
-                await SavePaymentChangesAsync();
-
-                _logger.LogInformation("Stripe card payment created: {ReferenceNumber}", payment.ReferenceNumber);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating Stripe card payment for InvoiceId {InvoiceId}", dto.InvoiceId);
-                return false;
-            }
         }
 
         public async Task<StripePaymentResponseDto> CreateStripePaymentIntentAsync(CreateStripeDto dto)
         {
             try
             {
-                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
-                if (invoice == null)
-                    throw new ArgumentException($"Invoice {dto.InvoiceId} not found");
+                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId)
+                    ?? throw new ArgumentException($"Invoice {dto.InvoiceId} not found");
 
-                var intent = await _stripeService.ProcessPaymentIntentAsync(dto.Amount, dto.Currency);
+                var intent = await ProcessPaymentIntentAsync(dto.Amount, dto.Currency);
 
                 var responseDto = new StripePaymentResponseDto
                 {
@@ -80,23 +50,22 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 
                 await _audit.LogSuccessAsync("CreateStripePaymentIntentAsync", new
                 {
-                    InvoiceId = dto.InvoiceId,
-                    TenantId = dto.TenantId,
-                    Amount = dto.Amount
+                    dto.InvoiceId,
+                    dto.TenantId,
+                    dto.Amount
                 }, "Web");
-
 
                 return responseDto;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating Stripe payment intent for InvoiceId {InvoiceId}", dto.InvoiceId);
+                _logger.LogError(ex, "❌ Failed: CreateStripePaymentIntentAsync for InvoiceId {InvoiceId}", dto.InvoiceId);
 
                 await _audit.LogFailureAsync("CreateStripePaymentIntentAsync", new
                 {
-                    InvoiceId = dto.InvoiceId,
-                    TenantId = dto.TenantId,
-                    Amount = dto.Amount,
+                    dto.InvoiceId,
+                    dto.TenantId,
+                    dto.Amount,
                     Error = ex.Message
                 }, "Web");
 
@@ -104,47 +73,83 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
             }
         }
 
-        public async Task<bool> ProcessStripePaymentAsync(CreateStripeDto dto)
+        public async Task<StripePaymentResponseDto> ProcessPaymentIntentAsync(decimal amount, string currency)
         {
             try
             {
-                var payment = new CardPayment
+                var options = new PaymentIntentCreateOptions
                 {
-                    CardType = dto.Metadata.GetValueOrDefault("CardType"),
-                    Last4Digits = dto.Metadata.GetValueOrDefault("Last4Digits"),
-                    AuthorizationCode = dto.Metadata.GetValueOrDefault("AuthorizationCode"),
-                    Amount = dto.Amount,
-                    PaidOn = dto.PaidOn,
-                    InvoiceId = dto.InvoiceId,
-                    TenantId = dto.TenantId == 0 ? null : dto.TenantId,
-                    OwnerId = dto.OwnerId == 0 ? null : dto.OwnerId,
-                    PaymentType = "Card",
-                    ReferenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId)
+                    Amount = (long)(amount * 100), // Stripe uses cents
+                    Currency = currency.ToLower(),
+                    PaymentMethodTypes = new List<string> { "card" },
+                    Metadata = new Dictionary<string, string>
+            {
+                { "Application", "PropertyManagement" },
+                { "Purpose", "InvoicePayment" }
+            }
                 };
+
+                var service = new PaymentIntentService();
+                var intent = await service.CreateAsync(options);
+
+                return new StripePaymentResponseDto
+                {
+                    ClientSecret = intent.ClientSecret,
+                    Status = intent.Status,
+                    Amount = amount,
+                    Currency = currency
+                };
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe API error while creating payment intent.");
+                throw new ApplicationException("Stripe payment initialization failed", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during ProcessPaymentIntentAsync.");
+                throw;
+            }
+        }
+        public async Task<bool> CreateStripePaymentAsync(CreateStripeDto dto)
+        {
+            return await HandlePaymentAsync(dto, "CreateStripePaymentAsync");
+        }
+
+        public async Task<bool> ProcessStripePaymentAsync(CreateStripeDto dto)
+        {
+            return await HandlePaymentAsync(dto, "ProcessStripePaymentAsync");
+        }
+
+        private async Task<bool> HandlePaymentAsync(CreateStripeDto dto, string action)
+        {
+            try
+            {
+                var payment = BuildCardPaymentFromDto(dto);
 
                 await AddPaymentAsync(payment);
                 await SavePaymentChangesAsync();
 
-                _logger.LogInformation("Stripe card payment created: {ReferenceNumber}", payment.ReferenceNumber);
+                _logger.LogInformation("✅ {Action} created Stripe card payment: {ReferenceNumber}", action, payment.ReferenceNumber);
 
-                await _audit.LogSuccessAsync("ProcessStripePaymentAsync", new
+                await _audit.LogSuccessAsync(action, new
                 {
-                    InvoiceId = dto.InvoiceId,
-                    TenantId = dto.TenantId,
-                    Amount = dto.Amount
+                    dto.InvoiceId,
+                    dto.TenantId,
+                    dto.Amount
                 }, "Web");
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating Stripe card payment for InvoiceId {InvoiceId}", dto.InvoiceId);
+                _logger.LogError(ex, "❌ Failed: {Action} for InvoiceId {InvoiceId}", action, dto.InvoiceId);
 
-                await _audit.LogFailureAsync("ProcessStripePaymentAsync", new
+                await _audit.LogFailureAsync(action, new
                 {
-                    InvoiceId = dto.InvoiceId,
-                    TenantId = dto.TenantId,
-                    Amount = dto.Amount,
+                    dto.InvoiceId,
+                    dto.TenantId,
+                    dto.Amount,
                     Error = ex.Message
                 }, "Web");
 
@@ -152,24 +157,36 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
             }
         }
 
-        public async Task SavePaymentChangesAsync()
+        private CardPayment BuildCardPaymentFromDto(CreateStripeDto dto)
         {
-            await _context.SaveChangesAsync();
+            return new CardPayment
+            {
+                CardType = dto.Metadata.GetValueOrDefault("CardType"),
+                Last4Digits = dto.Metadata.GetValueOrDefault("Last4Digits"),
+                AuthorizationCode = dto.Metadata.GetValueOrDefault("AuthorizationCode"),
+                Amount = dto.Amount,
+                PaidOn = dto.PaidOn,
+                InvoiceId = dto.InvoiceId,
+                TenantId = dto.TenantId == 0 ? null : dto.TenantId,
+                OwnerId = dto.OwnerId == 0 ? null : dto.OwnerId,
+                PaymentType = "Card",
+                ReferenceNumber = ReferenceNumberHelper.Generate("REF", dto.PropertyId)
+            };
         }
-              
+
         public async Task FinalizePaymentAsync(Payment payment, Dictionary<string, string> metadata)
         {
             await AddPaymentAsync(payment);
 
             if (metadata?.Any() == true)
             {
-                foreach (var kvp in metadata)
+                foreach (var (key, value) in metadata)
                 {
                     _context.PaymentMetadata.Add(new PaymentMetadata
                     {
                         Payment = payment,
-                        Key = kvp.Key,
-                        Value = kvp.Value
+                        Key = key,
+                        Value = value
                     });
                 }
             }
@@ -177,8 +194,8 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
             var invoice = await _context.InvoiceDocuments.FindAsync(payment.InvoiceId);
             if (invoice != null)
             {
-                _context.InvoiceDocuments.Attach(invoice);
                 invoice.IsPaid = true;
+                _context.InvoiceDocuments.Attach(invoice);
                 _context.Entry(invoice).Property(i => i.IsPaid).IsModified = true;
             }
 
@@ -191,9 +208,15 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 
             await SavePaymentChangesAsync();
         }
+
         public async Task AddPaymentAsync(Payment payment)
         {
             await _context.Payments.AddAsync(payment);
+        }
+
+        public async Task SavePaymentChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

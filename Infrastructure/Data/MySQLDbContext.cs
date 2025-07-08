@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Domain.Entities.Invoices;
+using PropertyManagementAPI.Domain.Entities.Invoices.Base;
 using PropertyManagementAPI.Domain.Entities.Maintenance;
 using PropertyManagementAPI.Domain.Entities.Notes;
 using PropertyManagementAPI.Domain.Entities.OwnerAnnouncements;
@@ -16,7 +18,6 @@ using PropertyManagementAPI.Domain.Entities.Vendors;
 using BankAccount = PropertyManagementAPI.Domain.Entities.Payments.Banking.BankAccount;
 using Invoice = PropertyManagementAPI.Domain.Entities.Invoices.Invoice;
 using InvoiceLineItem = PropertyManagementAPI.Domain.Entities.Invoices.InvoiceLineItem;
-using PropertyManagementAPI.Domain.Entities.Invoices.Base;
 
 namespace PropertyManagementAPI.Infrastructure.Data
 {
@@ -63,6 +64,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<WireTransfer> WireTransfers { get; set; } = null!;
         public DbSet<CheckPayment> CheckPayments { get; set; } = null!;
         public DbSet<PaymentMetadata> PaymentMetadata { get; set; } = null!;
+        public DbSet<StripeWebhookEvent> StripeWebhookEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

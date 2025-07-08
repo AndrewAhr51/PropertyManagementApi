@@ -94,9 +94,4 @@
     <PackageReference Include="xunit" Version="2.9.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Application\Services\Payments\Stripe\" />
-    <Folder Include="Domain\DTOs\Payments\NewFolder\" />
-  </ItemGroup>
-
 </Project>

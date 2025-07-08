@@ -26,6 +26,7 @@ using PropertyManagementAPI.Application.Services.Payments.CardTokens;
 using PropertyManagementAPI.Application.Services.Payments.PayPal;
 using PropertyManagementAPI.Application.Services.Payments.Plaid;
 using PropertyManagementAPI.Application.Services.Payments.PreferredMethods;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Application.Services.Property;
 using PropertyManagementAPI.Application.Services.Quickbooks;
 using PropertyManagementAPI.Application.Services.Roles;
@@ -46,6 +47,7 @@ using PropertyManagementAPI.Infrastructure.Repositories.Notes;
 using PropertyManagementAPI.Infrastructure.Repositories.OwnerAnnouncements;
 using PropertyManagementAPI.Infrastructure.Repositories.Owners;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
+
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.Banking;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.CardTokens;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.PreferredMethods;
@@ -101,8 +103,12 @@ if (string.IsNullOrWhiteSpace(qbClientId) || string.IsNullOrWhiteSpace(qbClientS
     throw new InvalidOperationException("Missing QuickBooks credentials from environment.");
 }
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    });
 
-// ✅ Configure PlaidOptions with DI (based on appsettings/env vars)
 builder.Services
     .AddOptions<PlaidOptions>()
     .Bind(builder.Configuration.GetSection("Plaid"))
@@ -126,7 +132,6 @@ builder.Services
     .Bind(builder.Configuration.GetSection("QB"))
     .ValidateDataAnnotations()
     .ValidateOnStart();
-
 
 // Optional: also inject PlaidOptions directly
 builder.Services.AddSingleton(res =>
@@ -183,25 +188,25 @@ builder.Services.AddScoped<ITenantAnnouncementRepository, TenantAnnouncementRepo
 builder.Services.AddScoped<ITenantAnnouncementService, TenantAnnouncementService>();
 builder.Services.AddScoped<IOwnerAnnouncementRepository, OwnerAnnouncementRepository>();
 builder.Services.AddScoped<IOwnerAnnouncementService, OwnerAnnouncementService>();
-builder.Services.AddScoped<IPayPalPaymentProcessor,PayPalPaymentProcessor>();
+builder.Services.AddScoped<IPayPalPaymentProcessor, PayPalPaymentProcessor>();
 builder.Services.AddScoped<IPayPalRepository, PayPalRepository>();
 builder.Services.AddScoped<IPayPalService, PayPalService>();
-builder.Services.AddScoped<IStripeRepository, StripeRepository>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
-//builder.Services.AddScoped<IECheckPaymentRepository, ECheckPaymentRepository>();
-//builder.Services.AddScoped<IECheckPaymentService, ECheckPaymentService>();
 builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddHttpClient<QuickBooksTokenClient>();
 builder.Services.AddScoped<QuickBooksPaymentService>();
 builder.Services.AddScoped<IStateManager, StateManager>();
 builder.Services.AddScoped<AuditEventBuilder>();
 builder.Services.AddScoped<PaymentAuditLogger>();
+builder.Services.AddScoped<IStripeWebhookService, StripeWebhookService>();
 
-
+Console.WriteLine("📣 Before StripeRepository registration");
+builder.Services.AddScoped<IStripeRepository, StripeRepository>();
 builder.Services.AddScoped<IStripeService, StripeService>(provider =>
 {
     var opts = provider.GetRequiredService<IOptions<StripeOptions>>().Value;
+
     var invoiceRepository = provider.GetRequiredService<IInvoiceRepository>();
     var stripeRepository = provider.GetRequiredService<IStripeRepository>();
     var logger = provider.GetRequiredService<ILogger<StripeService>>();
@@ -212,10 +217,11 @@ builder.Services.AddScoped<IStripeService, StripeService>(provider =>
         opts.PublishableKey,
         invoiceRepository,
         logger,
-        stripeRepository,
+        stripeRepository, 
         auditLogger
     );
 });
+
 
 builder.Services.AddScoped<IPayPalService, PayPalService>(provider =>
 {
@@ -264,13 +270,16 @@ builder.Services.AddSingleton(new QuickBooksAuthSettings
 builder.Services.AddSingleton(res =>
     res.GetRequiredService<IOptions<PlaidOptions>>().Value);
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-    });
+var testProvider = builder.Services.BuildServiceProvider();
+var testRepo = testProvider.GetService<IStripeRepository>();
+Console.WriteLine(testRepo == null
+    ? "❌ IStripeRepository not registered properly"
+    : "✅ IStripeRepository is registered and resolvable");
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddEnvironmentVariables();
 
 // ✅ Ensure JwtSettings Exists & Generate Test Key If Missing
 var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
@@ -371,6 +380,8 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 app.Run();
+
+
 
 public class DynamicModelCacheKeyFactory : IModelCacheKeyFactory
 {

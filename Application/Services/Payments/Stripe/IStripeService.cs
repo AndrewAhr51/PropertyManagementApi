@@ -1,7 +1,7 @@
 ﻿using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using Stripe;
 
-namespace PropertyManagementAPI.Application.Services.Payments
+namespace PropertyManagementAPI.Application.Services.Payments.Stripe
 {
     public interface IStripeService
     {
