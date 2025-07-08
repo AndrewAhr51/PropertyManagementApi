@@ -1,12 +1,10 @@
-﻿using PropertyManagementAPI.Application.Services.Payments.PayPal;
-using PropertyManagementAPI.Common.Helpers;
+﻿using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 using Stripe;
 
-
-namespace PropertyManagementAPI.Application.Services.Payments
+namespace PropertyManagementAPI.Application.Services.Payments.Stripe
 {
     public class StripeService : IStripeService
     {
@@ -17,21 +15,19 @@ namespace PropertyManagementAPI.Application.Services.Payments
         private readonly IStripeRepository _stripeRepository;
         private readonly PaymentAuditLogger _auditLogger;
 
-
         public StripeService(string secretKey, string publishableKey, IInvoiceRepository invoiceRepository, ILogger<StripeService> logger,
-            IStripeRepository stripeRepository, PaymentAuditLogger auditLogger)
+              IStripeRepository stripeRepository,PaymentAuditLogger auditLogger)
         {
             _secretKey = secretKey;
             _publishableKey = publishableKey;
             _invoiceRepository = invoiceRepository;
-            _stripeRepository = _stripeRepository;
             _logger = logger;
+            _stripeRepository = stripeRepository;
             _auditLogger = auditLogger;
-
+                  
             StripeConfiguration.ApiKey = _secretKey;
         }
-
-     
+             
         public async Task<PaymentIntent> ProcessPaymentIntentAsync(decimal amount, string currency)
         {
             var options = new PaymentIntentCreateOptions
