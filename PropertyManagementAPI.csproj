@@ -4,7 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+      <BrowserLinkEnabled>false</BrowserLinkEnabled>
+    </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="API\Controllers\OLD\**" />
@@ -91,6 +92,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Application\Services\Payments\Stripe\" />
+    <Folder Include="Domain\DTOs\Payments\NewFolder\" />
   </ItemGroup>
 
 </Project>

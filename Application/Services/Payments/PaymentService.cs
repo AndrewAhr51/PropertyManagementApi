@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using PayPalCheckoutSdk.Orders;
-using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Payments;
 using PropertyManagementAPI.Domain.DTOs.Payments.PayPal;
@@ -18,152 +17,30 @@ namespace PropertyManagementAPI.Application.Services.Payments
         private readonly IPaymentRepository _paymentRepository;
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly ILogger<PaymentService> _logger;
-        private readonly IPaymentProcessor _paymentProcessor;
+        private readonly IPayPalPaymentProcessor _payPalPaymentProcessor;
         private readonly PaymentAuditLogger _auditLogger;
-        private readonly IStripeService _stripeService;
-
-        public PaymentService(
-            IPaymentRepository paymentRepository,
-            IInvoiceRepository invoiceRepository,
-            ILogger<PaymentService> logger,
-            IPaymentProcessor paymentProcessor,
-            PaymentAuditLogger auditLogger,
-            IStripeService stripeService)
+        
+        public PaymentService(IPaymentRepository paymentRepository,IInvoiceRepository invoiceRepository,ILogger<PaymentService> logger,
+            IPayPalPaymentProcessor payPalPaymentProcessor, PaymentAuditLogger auditLogger)
         {
             _paymentRepository = paymentRepository;
             _invoiceRepository = invoiceRepository;
-            _paymentProcessor = paymentProcessor;
+            _payPalPaymentProcessor = payPalPaymentProcessor;
             _logger = logger;
             _auditLogger = auditLogger;
-            _stripeService = stripeService;
         }
 
-        public async Task<Payment> CreatePaymentAsync(CreatePaymentDto dto)
+        public async Task<Payment> ProcessPaymentAsync(CreatePaymentDto dto)
         {
             try
             {
-                return await _paymentRepository.CreatePaymentAsync(dto);
+                return await _paymentRepository.ProcessPaymentAsync(dto);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating payment for InvoiceId {InvoiceId}", dto.InvoiceId);
                 throw;
             }
-        }
-
-        public async Task<bool>ReversePaymentAsync(int paymentId)
-        {
-            try
-            {
-                return await _paymentRepository.ReversePaymentAsync(paymentId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error reversing the payment for payment id {paymentId}", paymentId);
-                throw;
-            }
-
-        }
-
-        public async Task<PayPalPaymentResponseDto> CreatePayPalOrderAsync(CreatePayPalDto dto)
-        {
-            try
-            {
-                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
-                if (invoice == null)
-                    throw new ArgumentException($"Invoice {dto.InvoiceId} not found");
-
-                var orderId = await _paymentProcessor.CreatePayPalOrderAsync(dto.Amount, "USD", invoice);
-                var approvalLink = await _paymentProcessor.GetApprovalLinkAsync(orderId);
-
-                return new PayPalPaymentResponseDto
-                {
-                    OrderId = orderId,
-                    ApprovalLink = approvalLink,
-                    Status = "CREATED",
-                    Amount = dto.Amount,
-                    CurrencyCode = "USD",
-                    InvoiceId = invoice.InvoiceId,
-                    InvoiceReference = invoice.ReferenceNumber
-                };
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating PayPal order for InvoiceId {InvoiceId}", dto.InvoiceId);
-                throw;
-            }
-        }
-
-        public async Task<CardPayment> CapturePayPalCardPaymentAsync(string orderId, CreatePayPalDto dto, Invoice invoice)
-        {
-            try
-            {
-                var status = await _paymentProcessor.CapturePayPalOrderAsync(orderId);
-
-                if (status != "COMPLETED")
-                    throw new InvalidOperationException($"PayPal capture failed with status: {status}");
-
-                var payment = new CardPayment
-                {
-                    InvoiceId = invoice.InvoiceId,
-                    TenantId = invoice.TenantId,
-                    OwnerId = invoice.OwnerId,
-                    Status = status,
-                    OrderId = orderId,
-                    PaidOn = DateTime.UtcNow,
-                    CardType = dto.Metadata.GetValueOrDefault("CardType"),
-                    Last4Digits = dto.Metadata.GetValueOrDefault("Last4Digits"),
-                    AuthorizationCode = orderId
-                };
-
-                await _paymentRepository.AddPaymentAsync(payment); 
-                await _paymentRepository.SavePaymentChangesAsync();
-
-                return payment;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error capturing PayPal order {OrderId}", orderId);
-                throw;
-            }
-        }
-
-        public async Task<StripePaymentResponseDto> CreateStripePaymentIntentAsync(CreateStripeDto dto)
-        {
-            StripePaymentResponseDto stripeDto = new StripePaymentResponseDto();
-            try
-            {
-                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
-                if (invoice == null)
-                    throw new ArgumentException($"Invoice {dto.InvoiceId} not found");
-
-                var intent = await _stripeService.CreatePaymentIntentAsync(dto.Amount, dto.Currency);
-
-                stripeDto = new StripePaymentResponseDto
-                {
-                    ClientSecret = intent.ClientSecret,
-                    Status = intent.Status,
-                    Amount = dto.Amount,
-                    Currency = dto.Currency,
-                    InvoiceId = invoice.InvoiceId,
-                    InvoiceReference = invoice.ReferenceNumber
-                };
-
-                var save = await _paymentRepository.CreateStripePaymentAsync(dto);
-                if (!save)
-                {
-                    throw new InvalidOperationException("Failed to save Stripe payment details.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating Stripe payment intent for InvoiceId {InvoiceId}", dto.InvoiceId);
-                throw;
-            }
-
-            return stripeDto;
-
         }
 
         public async Task<Invoice?> GetInvoiceAsync(int invoiceId)
@@ -205,30 +82,19 @@ namespace PropertyManagementAPI.Application.Services.Payments
             }
         }
 
-        public async Task<string> GetApprovalLinkAsync(string orderId)
+        public async Task<bool> ReversePaymentAsync(int paymentId)
         {
             try
             {
-                return await _paymentProcessor.GetApprovalLinkAsync(orderId);
+                return await _paymentRepository.ReversePaymentAsync(paymentId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving approval link for OrderId {OrderId}", orderId);
+                _logger.LogError(ex, "Error reversing the payment for payment id {paymentId}", paymentId);
                 throw;
             }
+
         }
 
-        public async Task<string> CreatePayPalOrderAsync(decimal amount, string currency, Invoice invoice)
-        {
-            try
-            {
-                return await _paymentProcessor.CreatePayPalOrderAsync(amount, currency, invoice);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating PayPal order for InvoiceId {InvoiceId}", invoice.InvoiceId);
-                throw;
-            }
-        }
     }
 }

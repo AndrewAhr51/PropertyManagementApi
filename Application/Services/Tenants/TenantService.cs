@@ -29,6 +29,11 @@ namespace PropertyManagementAPI.Application.Services.Tenants
             return await _repository.GetTenantByIdAsync(tenantId);
         }
 
+        public async Task<List<TenantDto?>> GetTenantByPropertyIdAsync(int tenantId)
+        {
+            return await _repository.GetTenantByPropertyIdAsync(tenantId);
+        }
+
         public async Task<bool> UpdateTenantAsync(int tenantId, TenantDto dto)
         {
             return await _repository.UpdateTenantAsync(dto);

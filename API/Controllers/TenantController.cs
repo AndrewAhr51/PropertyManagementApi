@@ -68,7 +68,7 @@ namespace PropertyManagementAPI.API.Controllers
             }
         }
 
-        [HttpGet("by-id/{tenantId}")]
+        [HttpGet("by-tenant-id/{tenantId}")]
         public async Task<IActionResult> GetTenantById(int tenantId)
         {
             _logger.LogInformation("GetTenantById: Fetching tenant ID {Id}.", tenantId);
@@ -87,6 +87,29 @@ namespace PropertyManagementAPI.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetTenantById: Failed to retrieve tenant ID {Id}.", tenantId);
+                return StatusCode(500, "An error occurred while retrieving the tenant.");
+            }
+        }
+
+        [HttpGet("by-property-id/{propertyid}")]
+        public async Task<IActionResult> GetTenantByPropertyId(int propertyid)
+        {
+            _logger.LogInformation("GetTenantByPropertyId: Fetching property ID {Id}.", propertyid);
+
+            try
+            {
+                var tenant = await _service.GetTenantByPropertyIdAsync(propertyid);
+                if (tenant == null)
+                {
+                    _logger.LogWarning("GetTenantByPropertyId: property ID {Id} not found.", propertyid);
+                    return NotFound();
+                }
+
+                return Ok(tenant);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetTenantByPropertyId: Failed to retrieve tenant by property id {propertyid}.", propertyid);
                 return StatusCode(500, "An error occurred while retrieving the tenant.");
             }
         }
