@@ -1,4 +1,6 @@
-﻿using Going.Plaid;
+﻿using CorrelationId;
+using CorrelationId.DependencyInjection;
+using Going.Plaid;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +39,7 @@ using PropertyManagementAPI.Application.Services.Vendors;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.DTOs.Invoices;
+using PropertyManagementAPI.Infrastructure.Auditing;
 //
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Payments;
@@ -47,7 +50,6 @@ using PropertyManagementAPI.Infrastructure.Repositories.Notes;
 using PropertyManagementAPI.Infrastructure.Repositories.OwnerAnnouncements;
 using PropertyManagementAPI.Infrastructure.Repositories.Owners;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
-
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.Banking;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.CardTokens;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.PreferredMethods;
@@ -72,6 +74,18 @@ builder.Services.AddDbContext<MySqlDbContext>(options =>
         .UseMySql(builder.Configuration.GetConnectionString("MySQLConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySQLConnection")))
         .ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>()
 );
+
+var plaidClientId = builder.Configuration["Plaid:ClientId"];
+var plaidSecret = builder.Configuration["Plaid:Secret"];
+if (string.IsNullOrWhiteSpace(plaidClientId) || string.IsNullOrWhiteSpace(plaidSecret))
+{
+    throw new InvalidOperationException("Missing Plaid credentials from environment.");
+}
+var plaidEnvironment = builder.Configuration["Plaid:Environment"];
+if (string.IsNullOrWhiteSpace(plaidEnvironment))
+{
+    throw new InvalidOperationException("Missing Plaid environment from environment.");
+}
 
 var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
 var stripePublishableKey = builder.Configuration["Stripe:PublishableKey"];
@@ -133,6 +147,8 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddDefaultCorrelationId();
+
 // Optional: also inject PlaidOptions directly
 builder.Services.AddSingleton(res =>
     res.GetRequiredService<IOptions<PlaidOptions>>().Value);
@@ -192,6 +208,7 @@ builder.Services.AddScoped<IPayPalPaymentProcessor, PayPalPaymentProcessor>();
 builder.Services.AddScoped<IPayPalRepository, PayPalRepository>();
 builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
+
 builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
 builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddHttpClient<QuickBooksTokenClient>();
@@ -200,6 +217,7 @@ builder.Services.AddScoped<IStateManager, StateManager>();
 builder.Services.AddScoped<AuditEventBuilder>();
 builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddScoped<IStripeWebhookService, StripeWebhookService>();
+builder.Services.AddScoped<PlaidPaymentAuditLogger>();
 
 Console.WriteLine("📣 Before StripeRepository registration");
 builder.Services.AddScoped<IStripeRepository, StripeRepository>();
@@ -222,6 +240,31 @@ builder.Services.AddScoped<IStripeService, StripeService>(provider =>
     );
 });
 
+builder.Services.AddSingleton<IOptions<PlaidOptions>>(
+    Options.Create(new PlaidOptions
+    {
+        ClientId = plaidClientId,
+        Secret = plaidSecret,
+        Environment = plaidEnvironment
+    }));
+
+builder.Services.AddScoped<PlaidClient>(provider =>
+{
+    var plaidOptions = provider.GetRequiredService<IOptions<Going.Plaid.PlaidOptions>>();
+    var httpFactory = provider.GetRequiredService<IHttpClientFactory>();
+    var logger = provider.GetRequiredService<ILogger<PlaidClient>>();
+
+    return new PlaidClient(plaidOptions, httpFactory, logger);
+});
+
+builder.Services.AddScoped<IPlaidService, PlaidService>(provider =>
+{       
+    var plaidClient = provider.GetRequiredService<PlaidClient>();
+    var logger = provider.GetRequiredService<ILogger<PlaidService>>();
+    var plaidAuditLogger = provider.GetRequiredService<PlaidPaymentAuditLogger>(); // Updated namespace
+    var correlation = provider.GetRequiredService<CorrelationContextAccessor>();
+    return new PlaidService(plaidClient, logger, plaidAuditLogger, correlation);
+});
 
 builder.Services.AddScoped<IPayPalService, PayPalService>(provider =>
 {
@@ -269,13 +312,6 @@ builder.Services.AddSingleton(new QuickBooksAuthSettings
 
 builder.Services.AddSingleton(res =>
     res.GetRequiredService<IOptions<PlaidOptions>>().Value);
-
-var testProvider = builder.Services.BuildServiceProvider();
-var testRepo = testProvider.GetService<IStripeRepository>();
-Console.WriteLine(testRepo == null
-    ? "❌ IStripeRepository not registered properly"
-    : "✅ IStripeRepository is registered and resolvable");
-
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true)
@@ -359,6 +395,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseCorrelationId();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
