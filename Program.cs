@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PayPalCheckoutSdk.Core;
 using PdfSharp.Fonts;
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services.Accounting.Quickbooks;
@@ -21,12 +22,10 @@ using PropertyManagementAPI.Application.Services.Notes;
 using PropertyManagementAPI.Application.Services.OwnerAnnouncements;
 using PropertyManagementAPI.Application.Services.Owners;
 using PropertyManagementAPI.Application.Services.Payments;
-using PropertyManagementAPI.Application.Services.Payments.Banking;
 using PropertyManagementAPI.Application.Services.Payments.CardTokens;
 using PropertyManagementAPI.Application.Services.Payments.PayPal;
 using PropertyManagementAPI.Application.Services.Payments.Plaid;
 using PropertyManagementAPI.Application.Services.Payments.PreferredMethods;
-using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Application.Services.Property;
 using PropertyManagementAPI.Application.Services.Quickbooks;
 using PropertyManagementAPI.Application.Services.Roles;
@@ -184,7 +183,10 @@ builder.Services.AddScoped<ITenantAnnouncementRepository, TenantAnnouncementRepo
 builder.Services.AddScoped<ITenantAnnouncementService, TenantAnnouncementService>();
 builder.Services.AddScoped<IOwnerAnnouncementRepository, OwnerAnnouncementRepository>();
 builder.Services.AddScoped<IOwnerAnnouncementService, OwnerAnnouncementService>();
-builder.Services.AddScoped<IPaymentProcessor, PayPalPaymentProcessor>();
+builder.Services.AddScoped<IPayPalPaymentProcessor,PayPalPaymentProcessor>();
+builder.Services.AddScoped<IPayPalRepository, PayPalRepository>();
+builder.Services.AddScoped<IPayPalService, PayPalService>();
+builder.Services.AddScoped<IStripeRepository, StripeRepository>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
 //builder.Services.AddScoped<IECheckPaymentRepository, ECheckPaymentRepository>();
@@ -193,23 +195,63 @@ builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddHttpClient<QuickBooksTokenClient>();
 builder.Services.AddScoped<QuickBooksPaymentService>();
 builder.Services.AddScoped<IStateManager, StateManager>();
+builder.Services.AddScoped<AuditEventBuilder>();
+builder.Services.AddScoped<PaymentAuditLogger>();
+
 
 builder.Services.AddScoped<IStripeService, StripeService>(provider =>
 {
     var opts = provider.GetRequiredService<IOptions<StripeOptions>>().Value;
-    return new StripeService(opts.SecretKey, opts.PublishableKey);
+    var invoiceRepository = provider.GetRequiredService<IInvoiceRepository>();
+    var stripeRepository = provider.GetRequiredService<IStripeRepository>();
+    var logger = provider.GetRequiredService<ILogger<StripeService>>();
+    var auditLogger = provider.GetRequiredService<PaymentAuditLogger>();
+
+    return new StripeService(
+        opts.SecretKey,
+        opts.PublishableKey,
+        invoiceRepository,
+        logger,
+        stripeRepository,
+        auditLogger
+    );
+});
+
+builder.Services.AddScoped<IPayPalService, PayPalService>(provider =>
+{
+    var invoiceRepository = provider.GetRequiredService<IInvoiceRepository>();
+    var logger = provider.GetRequiredService<ILogger<PayPalService>>();
+    var paymentRepository = provider.GetRequiredService<IPaymentRepository>();
+    var payPalPaymentProcessor = provider.GetRequiredService<IPayPalPaymentProcessor>();
+    var auditLogger = provider.GetRequiredService<PaymentAuditLogger>();
+    var payPalHttpClient = provider.GetRequiredService<PayPalHttpClient>();
+
+    return new PayPalService(
+        invoiceRepository,
+        logger,
+        paymentRepository,
+        payPalPaymentProcessor,
+        auditLogger,
+        payPalHttpClient
+    );
 });
 
 builder.Services.AddSingleton<QuickBooksTokenClient>();
 builder.Services.AddSingleton<QuickBooksTokenManager>();
 builder.Services.AddTransient<QuickBooksInvoiceService>();
 
-builder.Services.AddSingleton<QuickBooksTokenManager>();
 
 builder.Services.AddSingleton<PayPalClient>(provider =>
 {
     var opts = provider.GetRequiredService<IOptions<PayPalOptions>>().Value;
     return new PayPalClient(opts.ClientId, opts.Secret);
+});
+
+builder.Services.AddScoped<PayPalHttpClient>(provider =>
+{
+    var opts = provider.GetRequiredService<IOptions<PayPalOptions>>().Value;
+    var environment = new SandboxEnvironment(opts.ClientId, opts.Secret);
+    return new PayPalHttpClient(environment);
 });
 
 builder.Services.AddSingleton(new QuickBooksAuthSettings

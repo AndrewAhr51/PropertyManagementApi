@@ -218,6 +218,42 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Tenants
             }
         }
 
+        public async Task<List<TenantDto?>> GetTenantByPropertyIdAsync(int propertyId)
+        {
+            _logger.LogInformation("Retrieving tenants with Property Id {PropertyId}", propertyId);
+
+            try
+            {
+                var tenants = await _context.Tenants
+                    .Where(t => t.PropertyId == propertyId)
+                    .Select(t => new TenantDto
+                    {
+                        TenantId = t.TenantId,
+                        PropertyId = t.PropertyId,
+                        FirstName = t.FirstName,
+                        LastName = t.LastName,
+                        Email = t.Email,
+                        PhoneNumber = t.PhoneNumber,
+                        MoveInDate = t.MoveInDate,
+                        Balance = t.Balance,
+                        CreatedBy = t.CreatedBy
+                    })
+                    .ToListAsync();
+
+                if (tenants == null || tenants.Count == 0)
+                {
+                    _logger.LogWarning("No tenants found for Property Id {PropertyId}", propertyId);
+                    return new List<TenantDto?>(); // ✅ Explicit empty list for clarity
+                }
+
+                return tenants;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving tenants with Property Id {PropertyId}", propertyId);
+                return new List<TenantDto?>(); // ✅ Safe fallback
+            }
+        }
     }
 }
 

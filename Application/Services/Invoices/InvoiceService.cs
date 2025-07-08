@@ -6,6 +6,7 @@ using PropertyManagementAPI.Domain.DTOs.Invoices.Mappers;
 using PropertyManagementAPI.Domain.Entities.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using Stripe;
+using Invoice = PropertyManagementAPI.Domain.Entities.Invoices.Invoice;
 using InvoiceLineItem = PropertyManagementAPI.Domain.Entities.Invoices.InvoiceLineItem;
 
 namespace PropertyManagementAPI.Application.Services.Invoices
@@ -16,7 +17,7 @@ namespace PropertyManagementAPI.Application.Services.Invoices
 
         public InvoiceService(IInvoiceRepository repo) => _inventoryRepository = repo;
 
-        public async Task<InvoiceDto?> GetInvoiceByIdAsync(int id)
+        public async Task<InvoiceDto> GetInvoiceByIdAsync(int id)
         {
             var invoice = await _inventoryRepository.GetInvoiceByIdAsync(id);
             if (invoice == null)

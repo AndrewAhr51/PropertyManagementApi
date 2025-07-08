@@ -1,13 +1,14 @@
 ﻿namespace PropertyManagementAPI.Domain.DTOs.Payments.PayPal
 {
-    public class PayPalPaymentResponseDto
+    public class PayPalCaptureResponseDto
     {
         public string OrderId { get; set; }
-        public string ApprovalLink { get; set; }
         public string Status { get; set; }
+        public string CaptureId { get; set; }
         public decimal Amount { get; set; }
         public string CurrencyCode { get; set; }
-        public int InvoiceId { get; set; }
-        public string InvoiceReference { get; set; }
+        public DateTime CaptureTime { get; set; }
+        public string PayerEmail { get; set; }
+        public string PayerName { get; set; }
     }
 }
