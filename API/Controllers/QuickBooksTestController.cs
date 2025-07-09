@@ -1,4 +1,7 @@
 ﻿#if DEBUG
+
+using CorrelationId;
+using CorrelationId.Abstractions;
 using Intuit.Ipp.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -9,8 +12,8 @@ using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Application.Services.Tenants;
 using PropertyManagementAPI.Domain.DTOs.Invoices;
 using PropertyManagementAPI.Domain.DTOs.Quickbooks;
-using Stripe;
-using Customer = Intuit.Ipp.Data.Customer;
+using PropertyManagementAPI.Domain.Responses;
+using PropertyManagementAPI.Application.Services.Intuit;
 
 namespace PropertyManagementAPI.API.Controllers
 {
@@ -18,119 +21,115 @@ namespace PropertyManagementAPI.API.Controllers
     [Route("api/test/quickbooks")]
     public class QuickBooksTestController : ControllerBase
     {
-        private readonly QuickBooksAuthSettings _authSettings;
-        private readonly QuickBooksTokenManager _tokenManager;
-        private readonly QuickBooksInvoiceService _qbInvoiceService;
-        private readonly ITenantService _tenantService;
-        private readonly IInvoiceService _invoiceService;
         private readonly ILogger<QuickBooksTestController> _logger;
+        private readonly IQuickBooksTokenManager _tokenManager;
+        private readonly IQuickBooksInvoiceService _invoiceService;
+        private readonly ITenantService _tenantService;
+        private readonly IInvoiceService _localInvoiceService;
+        private readonly IOptions<QuickBooksAuthSettings> _authOptions;
+        private readonly IItemReferenceResolver _itemResolver;
+        private readonly ICorrelationContextAccessor _correlation;
 
         public QuickBooksTestController(
-            QuickBooksTokenManager tokenManager,
-            QuickBooksInvoiceService qbInvoiceService,
+            IQuickBooksTokenManager tokenManager,
+            IQuickBooksInvoiceService invoiceService,
             ITenantService tenantService,
-            IInvoiceService invoiceService,
+            IInvoiceService localInvoiceService,
             ILogger<QuickBooksTestController> logger,
-            QuickBooksAuthSettings authSettings)
+            IOptions<QuickBooksAuthSettings> authOptions,
+            IItemReferenceResolver itemResolver,
+            ICorrelationContextAccessor correlation)
         {
             _tokenManager = tokenManager;
-            _qbInvoiceService = qbInvoiceService;
-            _tenantService = tenantService;
             _invoiceService = invoiceService;
+            _tenantService = tenantService;
+            _localInvoiceService = localInvoiceService;
             _logger = logger;
-            _authSettings = authSettings;
+            _authOptions = authOptions;
+            _itemResolver = itemResolver;
+            _correlation = correlation;
         }
 
-        /// <summary>
-        /// Displays the current QuickBooks configuration values for debugging.
-        /// </summary>
-        /// <returns>QuickBooksOptions values (clientId, secret, redirectUri).</returns>
         [HttpGet("debug-config")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult DebugQuickBooksConfig()
         {
-            return Ok(new
+            var config = _authOptions.Value;
+            return Ok(new DebugApiResponse("QuickBooks config loaded", new
             {
-                ClientId = _authSettings.ClientId,
-                Secret = string.IsNullOrEmpty(_authSettings.ClientSecret) ? "(empty)" : "***",
-                RedirectUri = _authSettings.RedirectUri
-            });
+                ClientId = config.ClientId,
+                Secret = "(hidden)",
+                RedirectUri = config.RedirectUri
+            }));
         }
 
-        /// <summary>
-        /// Initiates QuickBooks OAuth flow and redirects to Intuit for tenant authorization.
-        /// </summary>
-        /// <param name="tenantId">The ID of the tenant to authorize with QuickBooks.</param>
-        /// <returns>Redirects to Intuit OAuth authorization screen.</returns>
+        [HttpPost("authorize-url")]
+        public IActionResult GetAuthorizationUrl([FromQuery] int tenantId)
+        {
+            var uri = GenerateQuickBooksAuthUrl(tenantId);
+            return Ok(new { redirectUrl = uri });
+        }
+
         [HttpGet("authorize")]
-        [ProducesResponseType(StatusCodes.Status302Found)]
         public IActionResult AuthorizeTenant([FromQuery] int tenantId)
         {
-            if (string.IsNullOrWhiteSpace(_authSettings.RedirectUri))
-            {
-                _logger.LogError("Missing RedirectUri in QuickBooks settings.");
-                return StatusCode(500, "Missing RedirectUri configuration.");
-            }
-
-            var redirectUri = Uri.EscapeDataString(_authSettings.RedirectUri);
+            var redirectUri = Uri.EscapeDataString(_authOptions.Value.RedirectUri);
             var scopes = Uri.EscapeDataString("com.intuit.quickbooks.accounting");
-            var state = tenantId.ToString();
-
             var authUrl = $"https://appcenter.intuit.com/connect/oauth2?" +
-                          $"client_id={_authSettings.ClientId}&" +
+                          $"client_id={_authOptions.Value.ClientId}&" +
                           $"redirect_uri={redirectUri}&" +
                           $"response_type=code&" +
                           $"scope={scopes}&" +
-                          $"state={state}";
-
+                          $"state={tenantId}";
             return Redirect(authUrl);
         }
 
-
         [HttpGet("generate-token")]
-        public async Task<IActionResult> GenerateToken()
+        public async Task<IActionResult> GenerateToken(string realmid)
         {
             try
             {
-                var token = await _tokenManager.GetTokenAsync(); // Optional sandbox stub
-                return Ok(new { access_token = token });
+                var token = await _tokenManager.GetTokenAsync(realmid);
+                return Ok(new DebugApiResponse("Token generated", new { token }));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "QuickBooksTest: Failed to generate token.");
-                return StatusCode(500, "Token generation failed.");
+                _logger.LogError(ex, "Failed to generate QuickBooks token.");
+                return StatusCode(500, new DebugApiResponse("Token generation failed"));
             }
         }
 
-
-        /// <summary>
-        /// Receives OAuth callback from QuickBooks, exchanges code for tokens, and links tenant.
-        /// </summary>
-        /// <param name="code">Authorization code from QuickBooks.</param>
-        /// <param name="realmId">QuickBooks company identifier.</param>
-        /// <param name="state">Tenant ID passed through OAuth flow.</param>
-        /// <returns>Linking status message.</returns>
-        [HttpGet("callback")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> QuickBooksCallback(
-            [FromQuery] string code,
-            [FromQuery] string realmId,
-            [FromQuery] string state)
-
+        [HttpGet("ping")]
+        public async Task<IActionResult> VerifyQuickBooksConnection([FromQuery] int tenantId)
         {
-            _logger.LogInformation("QuickBooksCallback: code={Code}, realmId={RealmId}, state={State}", code, realmId, state);
+            var tenant = await _tenantService.GetTenantByIdAsync(tenantId);
+            if (tenant == null || string.IsNullOrWhiteSpace(tenant.RealmId))
+                return BadRequest(new DebugApiResponse("Tenant or realmId not found"));
+
+            var result = await _invoiceService.VerifyConnectionAsync(tenant.RealmId);
+            return Ok(new DebugApiResponse("Ping result", new { connected = result }));
+        }
+
+        [HttpGet("callback")]
+        public async Task<IActionResult> QuickBooksCallback(
+        [FromQuery] string code,
+        [FromQuery] string realmId,
+        [FromQuery] string state)
+        {
+            var traceId = _correlation.CorrelationContext?.CorrelationId;
+
+            _logger.LogInformation("OAuth callback received: code={Code}, realmId={RealmId}, state={State}, trace={TraceId}",
+                code, realmId, state, traceId);
+
+            if (!int.TryParse(state, out var tenantId))
+                return BadRequest(new DebugApiResponse("Invalid tenant identifier"));
 
             try
             {
-                var tokenSet = await _tokenManager.ExchangeAuthCodeForTokenAsync(code);
-                if (tokenSet == null) return StatusCode(500, "Token exchange failed.");
-
-                if (!int.TryParse(state, out var tenantId))
+                var tokenSet = await _tokenManager.ExchangeAuthCodeForTokenAsync(realmId, code);
+                if (tokenSet == null || string.IsNullOrWhiteSpace(tokenSet.AccessToken))
                 {
-                    _logger.LogWarning("QuickBooksCallback: Invalid state value {State}", state);
-                    return BadRequest("Invalid tenant identifier.");
+                    _logger.LogError("Token exchange failed for tenantId={TenantId}, trace={TraceId}", tenantId, traceId);
+                    return StatusCode(500, new DebugApiResponse("Token exchange failed"));
                 }
 
                 var saved = await _tenantService.LinkQuickBooksAccountAsync(
@@ -142,43 +141,37 @@ namespace PropertyManagementAPI.API.Controllers
 
                 if (!saved)
                 {
-                    _logger.LogError("QuickBooksCallback: Failed to link QuickBooks account for tenant {TenantId}", tenantId);
-                    return StatusCode(500, "Linking failed.");
+                    _logger.LogError("Failed to persist QuickBooks token for tenantId={TenantId}, trace={TraceId}", tenantId, traceId);
+                    return StatusCode(500, new DebugApiResponse($"Failed to link QuickBooks account for tenant {tenantId}"));
                 }
 
-                _logger.LogInformation("QuickBooksCallback: Tenant {TenantId} linked to realm {RealmId}", tenantId, realmId);
-                return Ok("QuickBooks account successfully linked.");
+                _logger.LogInformation("Tenant {TenantId} successfully linked to QuickBooks realm {RealmId}, trace={TraceId}",
+                    tenantId, realmId, traceId);
+
+                return Ok(new DebugApiResponse("QuickBooks account linked successfully"));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "QuickBooksCallback: Error during callback.");
-                return StatusCode(500, "Callback processing error.");
+                _logger.LogError(ex, "OAuth callback error: tenantId={TenantId}, trace={TraceId}", tenantId, traceId);
+                return StatusCode(500, new DebugApiResponse("OAuth callback failed"));
             }
         }
 
-        /// <summary>
-        /// Syncs a local invoice to QuickBooks for a given tenant.
-        /// </summary>
-        /// <param name="tenantId">Tenant ID whose QuickBooks account is already linked.</param>
-        /// <param name="invoiceId">Invoice ID to sync.</param>
-        /// <returns>QuickBooks invoice object.</returns>
         [HttpPost("sync-invoice-quickbooks")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> SyncInvoiceToQuickBooksAsync(
-            [FromQuery] int tenantId,
-            [FromBody] int invoiceId)
+        public async Task<IActionResult> SyncInvoiceToQuickBooks([FromQuery] int tenantId, [FromBody] int invoiceId)
         {
-            _logger.LogInformation("SyncInvoice: tenant={TenantId}, invoice={InvoiceId}", tenantId, invoiceId);
+            _logger.LogInformation("SyncInvoice invoked: tenantId={TenantId}, invoiceId={InvoiceId}, trace={TraceId}",
+                tenantId, invoiceId, _correlation.CorrelationContext?.CorrelationId);
 
             try
             {
                 var tenant = await _tenantService.GetTenantByIdAsync(tenantId);
                 if (tenant == null || string.IsNullOrWhiteSpace(tenant.RealmId))
-                    return BadRequest("Tenant or realmId not found.");
+                    return BadRequest(new DebugApiResponse("Tenant or realmId not found"));
 
-                var localInvoice = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
+                var localInvoice = await _localInvoiceService.GetInvoiceByIdAsync(invoiceId);
                 if (localInvoice == null)
-                    return NotFound("Invoice not found.");
+                    return NotFound(new DebugApiResponse("Invoice not found"));
 
                 var customer = new Customer
                 {
@@ -189,12 +182,14 @@ namespace PropertyManagementAPI.API.Controllers
 
                 var lines = localInvoice.LineItems.Select(item =>
                 {
+                    var resolvedItemId = _itemResolver.ResolveItemId(item.LineItemTypeName ?? "Service") ?? "default";
+
                     var detail = new SalesItemLineDetail
                     {
                         ItemRef = new ReferenceType
                         {
                             name = item.LineItemTypeName ?? "Service",
-                            Value = "123" // Replace with actual item ID
+                            Value = resolvedItemId
                         }
                     };
 
@@ -207,24 +202,42 @@ namespace PropertyManagementAPI.API.Controllers
                     };
                 }).ToList();
 
-                var itemId = lines.FirstOrDefault()?.AnyIntuitObject is SalesItemLineDetail detail
-                    ? detail.ItemRef.Value
-                    : "123";
+                var itemId = lines.FirstOrDefault()?.AnyIntuitObject is SalesItemLineDetail d ? d.ItemRef.Value : "default";
 
-                var qbInvoice = await _qbInvoiceService.CreateInvoiceAsync(
+                var qbInvoice = await _invoiceService.CreateInvoiceAsync(
                     tenant.RealmId,
                     customer,
                     localInvoice.LineItems.Sum(li => li.Amount),
                     itemId
                 );
 
-                return Ok(qbInvoice);
+                var dto = new QuickBooksInvoiceDto
+                {
+                    Id = qbInvoice.Id,
+                    TotalAmount = qbInvoice.TotalAmt,
+                    SyncStatus = "Success"
+                };
+
+                return Ok(new DebugApiResponse("Invoice synced", dto));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "SyncInvoice: Error syncing invoice for tenant {TenantId}", tenantId);
-                return StatusCode(500, "Invoice sync failed.");
+                _logger.LogError(ex, "SyncInvoice error: tenantId={TenantId}, trace={TraceId}", tenantId, _correlation.CorrelationContext?.CorrelationId);
+                return StatusCode(500, new DebugApiResponse("Invoice sync failed"));
             }
+        }
+        private string GenerateQuickBooksAuthUrl(int tenantId)
+        {
+            var clientId = _authOptions.Value.ClientId;
+            var redirectUri = Uri.EscapeDataString(_authOptions.Value.RedirectUri ?? "");
+            var scopes = Uri.EscapeDataString("com.intuit.quickbooks.accounting");
+
+            return $"https://appcenter.intuit.com/connect/oauth2?" +
+                   $"client_id={clientId}&" +
+                   $"redirect_uri={redirectUri}&" +
+                   $"response_type=code&" +
+                   $"scope={scopes}&" +
+                   $"state={tenantId}";
         }
     }
 }

@@ -10,6 +10,7 @@ using PropertyManagementAPI.Domain.Entities.Payments;
 using PropertyManagementAPI.Domain.Entities.Payments.Banking;
 using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 using PropertyManagementAPI.Domain.Entities.Payments.PreferredMethods;
+using PropertyManagementAPI.Domain.Entities.Payments.Quickbooks;
 using PropertyManagementAPI.Domain.Entities.Property;
 using PropertyManagementAPI.Domain.Entities.Roles;
 using PropertyManagementAPI.Domain.Entities.TenantAnnouncements;
@@ -65,6 +66,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<CheckPayment> CheckPayments { get; set; } = null!;
         public DbSet<PaymentMetadata> PaymentMetadata { get; set; } = null!;
         public DbSet<StripeWebhookEvent> StripeWebhookEvents { get; set; }
+        public DbSet<QuickBooksAuditLog> QuickBooksAuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -154,7 +156,11 @@ namespace PropertyManagementAPI.Infrastructure.Data
             modelBuilder.Entity<InvoiceDocuments>().ToTable("InvoiceDocuments"); // Base entity
             modelBuilder.Entity<Invoice>().ToTable("Invoices"); // Derived TPT entity
 
+            modelBuilder.Entity<QuickBooksAuditLog>()
+                .Property(x => x.EventType).IsRequired().HasMaxLength(100);
 
+            modelBuilder.Entity<QuickBooksAuditLog>()
+                .Property(x => x.RealmId).IsRequired().HasMaxLength(64);
         }
     }
 }

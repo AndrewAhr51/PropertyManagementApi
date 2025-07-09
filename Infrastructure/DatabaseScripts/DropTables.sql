@@ -21,6 +21,7 @@ DROP TRIGGER IF EXISTS LogBillingAddressDelete;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ✅ Drop tables with foreign key dependencies first
+DROP TABLE IF EXISTS QuickBooksAuditLog;
 DROP TABLE IF EXISTS InvoiceAuditLog;
 DROP TABLE IF EXISTS RolePermissions;
 DROP TABLE IF EXISTS PaymentReminders;

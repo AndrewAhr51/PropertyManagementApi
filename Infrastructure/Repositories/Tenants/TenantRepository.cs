@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PayPalCheckoutSdk.Core;
 using PropertyManagementAPI.Domain.DTOs.Users;
+using PropertyManagementAPI.Domain.Entities.Payments.Quickbooks;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Repositories.Users;
@@ -183,6 +184,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Tenants
                 throw new Exception("An error occurred while deleting the user.", ex);
             }
         }
+
         public async Task<bool> LinkQuickBooksAccountAsync(int tenantId, string accessToken, string refreshToken, string realmId)
         {
             _logger.LogInformation("LinkQuickBooksAccount: Starting link for TenantId {TenantId}", tenantId);
@@ -252,6 +254,37 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Tenants
             {
                 _logger.LogError(ex, "Error retrieving tenants with Property Id {PropertyId}", propertyId);
                 return new List<TenantDto?>(); // ✅ Safe fallback
+            }
+        }
+
+        public async Task<bool> RecordQuickBooksAuditAsync(int tenantId, string realmId, string eventType, string? correlationId = null)
+        {
+            try
+            {
+                var log = new QuickBooksAuditLog
+                {
+                    TenantId = tenantId,
+                    RealmId = realmId,
+                    EventType = eventType,
+                    CorrelationId = correlationId,
+                    TimestampUtc = DateTime.UtcNow
+                };
+
+                _context.QuickBooksAuditLogs.Add(log);
+               var save = await _context.SaveChangesAsync();
+                return save > 0;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "Database update error while recording QuickBooks audit log: tenantId={TenantId}, realmId={RealmId}, eventType={EventType}, correlationId={CorrelationId}",
+                    tenantId, realmId, eventType, correlationId);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to record QuickBooks audit log: tenantId={TenantId}, realmId={RealmId}, eventType={EventType}, correlationId={CorrelationId}",
+                    tenantId, realmId, eventType, correlationId);
+                return false;
             }
         }
     }

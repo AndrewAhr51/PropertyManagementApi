@@ -645,6 +645,17 @@ CREATE TABLE PaymentTransactions (
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
 );
 
+CREATE TABLE QuickBooksAuditLog (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    TenantId INT NOT NULL,
+    RealmId VARCHAR(64) NOT NULL,
+    EventType VARCHAR(100) NOT NULL,
+    CorrelationId VARCHAR(128),
+    TimestampUtc DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_Tenant_Timestamp (TenantId, TimestampUtc),
+    INDEX idx_Realm (RealmId)
+);
 CREATE TABLE TriggerLog (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Message VARCHAR(255),
