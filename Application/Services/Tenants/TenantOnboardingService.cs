@@ -1,5 +1,6 @@
 ﻿using PropertyManagementAPI.Application.Services.Accounting.Quickbooks;
 using PropertyManagementAPI.Application.Services.Quickbooks;
+using PropertyManagementAPI.Infrastructure.Quickbooks;
 using PropertyManagementAPI.Infrastructure.Repositories.Property;
 using PropertyManagementAPI.Infrastructure.Repositories.Tenants;
 

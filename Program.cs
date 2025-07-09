@@ -18,6 +18,7 @@ using PropertyManagementAPI.Application.Services.Accounting.Quickbooks;
 using PropertyManagementAPI.Application.Services.Auth;
 using PropertyManagementAPI.Application.Services.Documents;
 using PropertyManagementAPI.Application.Services.Email;
+using PropertyManagementAPI.Application.Services.Intuit;
 using PropertyManagementAPI.Application.Services.InvoiceExport;
 using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Application.Services.Notes;
@@ -43,6 +44,7 @@ using PropertyManagementAPI.Infrastructure.Auditing;
 //
 using PropertyManagementAPI.Infrastructure.Data;
 using PropertyManagementAPI.Infrastructure.Payments;
+using PropertyManagementAPI.Infrastructure.Quickbooks;
 using PropertyManagementAPI.Infrastructure.Repositories.Documents;
 using PropertyManagementAPI.Infrastructure.Repositories.Email;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
@@ -54,6 +56,7 @@ using PropertyManagementAPI.Infrastructure.Repositories.Payments.Banking;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.CardTokens;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments.PreferredMethods;
 using PropertyManagementAPI.Infrastructure.Repositories.Property;
+using PropertyManagementAPI.Infrastructure.Repositories.Quickbooks;
 using PropertyManagementAPI.Infrastructure.Repositories.Roles;
 using PropertyManagementAPI.Infrastructure.Repositories.TenantAnnouncements;
 using PropertyManagementAPI.Infrastructure.Repositories.Tenants;
@@ -204,22 +207,32 @@ builder.Services.AddScoped<ITenantAnnouncementRepository, TenantAnnouncementRepo
 builder.Services.AddScoped<ITenantAnnouncementService, TenantAnnouncementService>();
 builder.Services.AddScoped<IOwnerAnnouncementRepository, OwnerAnnouncementRepository>();
 builder.Services.AddScoped<IOwnerAnnouncementService, OwnerAnnouncementService>();
+
+//PayPal
 builder.Services.AddScoped<IPayPalPaymentProcessor, PayPalPaymentProcessor>();
 builder.Services.AddScoped<IPayPalRepository, PayPalRepository>();
 builder.Services.AddScoped<IPayPalService, PayPalService>();
-builder.Services.AddScoped<IPlaidService, PlaidService>();
 
+//Plaid
+builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
 builder.Services.AddScoped<PaymentAuditLogger>();
+
+//Quickbooks
 builder.Services.AddHttpClient<QuickBooksTokenClient>();
 builder.Services.AddScoped<QuickBooksPaymentService>();
 builder.Services.AddScoped<IStateManager, StateManager>();
+builder.Services.AddScoped<IItemReferenceResolver, DefaultItemReferenceResolver>();
+builder.Services.AddScoped<IQuickBooksTokenManager, QuickBooksTokenManager>();
+builder.Services.AddScoped<IQuickBooksInvoiceService, QuickBooksInvoiceService>();
+builder.Services.AddSingleton<ITokenStore, InMemoryTokenStore>();
+builder.Services.AddScoped<IQuickBooksUrlService, QuickBooksUrlService>();
+
+//Stripe
 builder.Services.AddScoped<AuditEventBuilder>();
 builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddScoped<IStripeWebhookService, StripeWebhookService>();
 builder.Services.AddScoped<PlaidPaymentAuditLogger>();
-
-Console.WriteLine("📣 Before StripeRepository registration");
 builder.Services.AddScoped<IStripeRepository, StripeRepository>();
 builder.Services.AddScoped<IStripeService, StripeService>(provider =>
 {
@@ -393,6 +406,18 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<PlaidSettings>(
+    builder.Configuration.GetSection("Plaid"));
+
+builder.Services.Configure<QuickBooksAuthSettings>(
+    builder.Configuration.GetSection("QB"));
+
+builder.Services.Configure<PayPalSettings>(
+    builder.Configuration.GetSection("PayPal"));
+
+builder.Services.Configure<StripeSettings>(
+    builder.Configuration.GetSection("Stripe"));
+
 var app = builder.Build();
 
 app.UseCorrelationId();
@@ -417,9 +442,6 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 app.Run();
-
-
-
 public class DynamicModelCacheKeyFactory : IModelCacheKeyFactory
 {
     public object Create(DbContext context, bool designTime) =>

@@ -11,5 +11,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Tenants
         Task<bool> UpdateTenantAsync(TenantDto dto);
         Task<bool> SetActivateTenant(int tenantId);
         Task<bool> LinkQuickBooksAccountAsync(int tenantId, string AccessToken, string RefreshToken, string realmId);
+        Task<bool> RecordQuickBooksAuditAsync(int tenantId, string realmId, string eventType, string? correlationId = null);
     }
 }

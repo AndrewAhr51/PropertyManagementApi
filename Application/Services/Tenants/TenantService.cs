@@ -48,5 +48,10 @@ namespace PropertyManagementAPI.Application.Services.Tenants
         {
             return await _repository.LinkQuickBooksAccountAsync(tenantId, AccessToken, RefreshToken, realmId);
         }
+
+        public async Task<bool> RecordQuickBooksAuditAsync(int tenantId, string realmId, string eventType, string? correlationId = null)
+        {
+            return await _repository.RecordQuickBooksAuditAsync(tenantId, realmId, eventType, correlationId);
+        }
     }
 }

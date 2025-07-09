@@ -32,11 +32,11 @@ namespace PropertyManagementAPI.Application.Services.Quickbooks
             return new Customer
             {
                 DisplayName = $"{tenant.FirstName?.Trim()} {tenant.LastName?.Trim()}".Trim(),
-                PrimaryEmailAddr = new Intuit.Ipp.Data.EmailAddress
+                PrimaryEmailAddr = new EmailAddress
                 {
                     Address = tenant.Email
                 },
-                BillAddr = new Intuit.Ipp.Data.PhysicalAddress
+                BillAddr = new PhysicalAddress
                 {
                     Line1 = properties.Address,
                     Line2 = properties.Address1,

@@ -4,8 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-      <BrowserLinkEnabled>false</BrowserLinkEnabled>
-    </PropertyGroup>
+    <BrowserLinkEnabled>false</BrowserLinkEnabled>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="API\Controllers\OLD\**" />

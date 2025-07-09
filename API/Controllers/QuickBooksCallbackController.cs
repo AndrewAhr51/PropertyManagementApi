@@ -5,6 +5,7 @@ using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services.Accounting.Quickbooks;
 using PropertyManagementAPI.Application.Services.Tenants;
 using PropertyManagementAPI.Domain.DTOs.Quickbooks;
+using PropertyManagementAPI.Infrastructure.Quickbooks;
 
 namespace PropertyManagementAPI.API.Controllers
 {
@@ -12,13 +13,13 @@ namespace PropertyManagementAPI.API.Controllers
     [Route("api/accounting/quickbooks")]
     public class QuickBooksCallbackController : ControllerBase
     {
-        private readonly QuickBooksTokenManager _tokenManager;
+        private readonly IQuickBooksTokenManager _tokenManager;
         private readonly ITenantService _tenantService;
         private readonly QuickBooksOptions _qbOptions;
         private readonly ILogger<QuickBooksCallbackController> _logger;
 
         public QuickBooksCallbackController(
-            QuickBooksTokenManager tokenManager,
+            IQuickBooksTokenManager tokenManager,
             ITenantService tenantService,
             IOptions<QuickBooksOptions> qbOptions,
             ILogger<QuickBooksCallbackController> logger)
@@ -42,7 +43,7 @@ namespace PropertyManagementAPI.API.Controllers
 
             try
             {
-                var tokenSet = await _tokenManager.ExchangeAuthCodeForTokenAsync(code);
+                var tokenSet = await _tokenManager.ExchangeAuthCodeForTokenAsync(realmId, code);
                 if (tokenSet == null)
                 {
                     _logger.LogError("Token exchange failed — no token set returned.");
