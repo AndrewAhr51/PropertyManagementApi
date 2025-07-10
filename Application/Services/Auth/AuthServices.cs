@@ -16,22 +16,43 @@ namespace PropertyManagementAPI.Application.Services.Auth
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly IEmailService _emailService;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IConfiguration configuration, IUserRepository userRepository, IEmailService emailService)
+
+        public AuthService(
+            IConfiguration configuration,
+            IUserRepository userRepository,
+            IEmailService emailService,
+            ILogger<AuthService> logger)
         {
             _configuration = configuration;
             _userRepository = userRepository;
             _emailService = emailService;
+            _logger = logger;
         }
+
 
         // ✅ Authenticate user and generate JWT token
         public async Task<string?> AuthenticateAsync(LoginDto loginDto)
         {
-            var user = await _userRepository.GetByUsernameAsync(loginDto.UserName);
-            if (user is null || !VerifyPassword(user.PasswordHash, loginDto.Password))
-                return null;
+            try
+            {
+                var user = await _userRepository.GetByUsernameAsync(loginDto.UserName);
+                if (user is null || !VerifyPassword(user.PasswordHash, loginDto.Password))
+                {
+                    _logger.LogWarning("Authentication failed for user {UserName}.", loginDto.UserName);
+                    return null;
+                }
 
-            return GenerateJwtToken(user);
+                var token = GenerateJwtToken(user);
+                _logger.LogInformation("Authentication succeeded for user {UserName}.", loginDto.UserName);
+                return token;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during authentication for user {UserName}.", loginDto.UserName);
+                throw;
+            }
         }
 
         private string GenerateJwtToken(Domain.Entities.User.Users user)
@@ -104,17 +125,37 @@ namespace PropertyManagementAPI.Application.Services.Auth
         // ✅ Password Reset Implementation
         public async Task<bool> SendResetEmailAsync(EmailDto emailDto)
         {
-            var user = await _userRepository.GetByEmailAsync(emailDto.EmailAddress);
-            if (user is null) return false;
+            try
+            {
+                var user = await _userRepository.GetByEmailAsync(emailDto.EmailAddress);
+                if (user is null)
+                {
+                    _logger.LogWarning("Password reset requested for non-existent email: {Email}", emailDto.EmailAddress);
+                    return false;
+                }
 
-            var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            await _userRepository.StoreResetTokenAsync(emailDto.EmailAddress, token, DateTime.UtcNow.AddMinutes(30));
+                var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                await _userRepository.StoreResetTokenAsync(emailDto.EmailAddress, token, DateTime.UtcNow.AddMinutes(30));
 
-            var resetLink = $"https://yourapp.com/reset-password?token={token}&email={emailDto.EmailAddress}";
-            emailDto.Subject = "Password Reset";
-            emailDto.Body = $"Click here to reset your password: {resetLink}";
+                var resetLink = $"https://yourapp.com/reset-password?token={token}&email={emailDto.EmailAddress}";
+                emailDto.Subject = "Password Reset";
+                emailDto.Body = $"Click here to reset your password: {resetLink}";
 
-            return await _emailService.SendEmailAsync(emailDto);
+                var success = await _emailService.SendEmailAsync(emailDto);
+                if (!success)
+                {
+                    _logger.LogWarning("Failed to send password reset email to {Email}.", emailDto.EmailAddress);
+                    return false;
+                }
+
+                _logger.LogInformation("Password reset email sent to {Email}.", emailDto.EmailAddress);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while sending password reset email to {Email}.", emailDto.EmailAddress);
+                return false;
+            }
         }
 
         public async Task<bool> ValidateResetTokenAsync(string email, string token)

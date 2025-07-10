@@ -65,63 +65,69 @@ namespace PropertyManagementAPI.Infrastructure.Quickbooks
 
         public async Task<TokenSet?> ExchangeAuthCodeForTokenAsync(string realmId, string authCode)
         {
-            var clientId = _config["QB:ClientId"];
-            var clientSecret = _config["QB:Secret"];
-            var redirectUri = _config["QB:RedirectUri"];
-
-            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret) || string.IsNullOrWhiteSpace(redirectUri))
+            try
             {
-                _logger.LogError("QuickBooks configuration missing: ClientId/Secret/RedirectUri.");
+                var clientId = _config["QB:ClientId"];
+                var clientSecret = _config["QB:Secret"];
+                var redirectUri = _config["QB:RedirectUri"];
+
+                if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret) || string.IsNullOrWhiteSpace(redirectUri))
+                {
+                    _logger.LogError("QuickBooks configuration missing: ClientId/Secret/RedirectUri.");
+                    return null;
+                }
+
+                var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
+                var client = _httpFactory.CreateClient();
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer")
+                {
+                    Headers = { Authorization = new AuthenticationHeaderValue("Basic", encoded) },
+                    Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "grant_type", "authorization_code" },
+                { "code", authCode },
+                { "redirect_uri", redirectUri }
+            })
+                };
+
+                var response = await client.SendAsync(request);
+                var body = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Token exchange failed for realm={RealmId}: {StatusCode} - {Body}", realmId, response.StatusCode, body);
+                    return null;
+                }
+
+                var parsed = JsonConvert.DeserializeObject<TokenResponse>(body);
+                if (parsed == null || string.IsNullOrWhiteSpace(parsed.AccessToken))
+                {
+                    _logger.LogError("Failed to deserialize token response for realm={RealmId}", realmId);
+                    return null;
+                }
+
+                var tokenSet = new TokenSet
+                {
+                    AccessToken = parsed.AccessToken,
+                    RefreshToken = parsed.RefreshToken,
+                    ExpiresAtUtc = DateTime.UtcNow.AddMinutes(55)
+                };
+
+                _accessToken = tokenSet.AccessToken;
+                _refreshToken = tokenSet.RefreshToken;
+                _expiresAtUtc = tokenSet.ExpiresAtUtc;
+
+                _logger.LogInformation("Token exchange succeeded for realm={RealmId}. AccessToken length: {Length}", realmId, tokenSet.AccessToken.Length);
+
+                await _tokenStore.SaveTokenAsync(realmId, tokenSet);
+                return tokenSet;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during token exchange for realm={RealmId}", realmId);
                 return null;
             }
-
-            var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
-            var client = _httpFactory.CreateClient();
-
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer")
-            {
-                Headers = { Authorization = new AuthenticationHeaderValue("Basic", encoded) },
-                Content = new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            { "grant_type", "authorization_code" },
-            { "code", authCode },
-            { "redirect_uri", redirectUri }
-        })
-            };
-
-            var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError("Token exchange failed for realm={RealmId}: {StatusCode} - {Body}", realmId, response.StatusCode, body);
-                return null;
-            }
-
-            var parsed = JsonConvert.DeserializeObject<TokenResponse>(body);
-            if (parsed == null || string.IsNullOrWhiteSpace(parsed.AccessToken))
-            {
-                _logger.LogError("Failed to deserialize token response for realm={RealmId}", realmId);
-                return null;
-            }
-
-            var tokenSet = new TokenSet
-            {
-                AccessToken = parsed.AccessToken,
-                RefreshToken = parsed.RefreshToken,
-                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(55)
-            };
-
-            _accessToken = tokenSet.AccessToken;
-            _refreshToken = tokenSet.RefreshToken;
-            _expiresAtUtc = tokenSet.ExpiresAtUtc;
-
-            _logger.LogInformation("Token exchange succeeded for realm={RealmId}. AccessToken length: {Length}", realmId, tokenSet.AccessToken.Length);
-
-            // Persist token by realm for future reuse
-            await _tokenStore.SaveTokenAsync(realmId, tokenSet);
-
-            return tokenSet;
         }
 
         public async Task<TokenSet?> RefreshTokenAsync(string refreshToken)

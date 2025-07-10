@@ -24,9 +24,16 @@ namespace PropertyManagementAPI.Infrastructure.Quickbooks
             _logger = logger;
         }
 
-        public async Task<Invoice> CreateInvoiceAsync(string realmId, Customer customer, decimal amount, string itemId)
+     public async Task<Invoice> CreateInvoiceAsync(string realmId, Customer customer, decimal amount, string itemId)
+{
+    const int maxRetries = 3;
+    const int baseDelayMs = 500;
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++)
+    {
+        try
         {
-            var token = await _tokenManager.GetTokenAsync(realmId); // consider tenant-aware token access
+            var token = await _tokenManager.GetTokenAsync(realmId);
             if (string.IsNullOrWhiteSpace(token))
             {
                 _logger.LogError("Access token for realm {RealmId} is missing or invalid.", realmId);
@@ -53,9 +60,38 @@ namespace PropertyManagementAPI.Infrastructure.Quickbooks
                 Line = new Line[] { lineItem }
             };
 
-            return dataService.Add(invoice) as Invoice
-                ?? throw new InvalidOperationException("Invoice creation failed.");
+            var result = dataService.Add(invoice) as Invoice;
+
+            if (result == null)
+            {
+                _logger.LogError("Failed to create invoice for customer {CustomerId} in realm {RealmId}", customer?.Id, realmId);
+                throw new InvalidOperationException("Invoice creation failed.");
+            }
+
+            _logger.LogInformation("Invoice created successfully for customer {CustomerId} in realm {RealmId}", customer?.Id, realmId);
+            return result;
         }
+        catch (Exception ex) when (IsTransient(ex) && attempt < maxRetries)
+        {
+            int delay = baseDelayMs * (int)Math.Pow(2, attempt - 1);
+            _logger.LogWarning(ex, "Retry {Attempt} for invoice creation failed. Waiting {Delay}ms before retrying...", attempt, delay);
+            await System.Threading.Tasks.Task.Delay(delay);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating invoice for customer {CustomerId} in realm {RealmId}", customer?.Id, realmId);
+            throw;
+        }
+    }
+
+    throw new InvalidOperationException("Invoice creation failed after maximum retry attempts.");
+}
+
+private bool IsTransient(Exception ex)
+{
+    // Customize based on actual known transient exceptions
+    return ex is TimeoutException || ex is HttpRequestException || ex is OperationCanceledException;
+}
 
         public async Task<bool> VerifyConnectionAsync(string realmId)
         {
