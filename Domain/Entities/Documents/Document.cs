@@ -4,23 +4,23 @@ namespace PropertyManagementAPI.Domain.Entities.Documents
 {
     public class Document
     {
-        [Key]
-        public int DocumentId { get; set; }
+        public int Id { get; set; }
 
-        public int PropertyId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string MimeType { get; set; } = string.Empty;
+        public long SizeInBytes { get; set; }
+        public string DocumentType { get; set; } = string.Empty;
 
-        public int TenantId { get; set; }
+        public DateTime CreateDate { get; set; } = DateTime.UtcNow;
+        public int CreatedByUserId { get; set; }
 
-        [MaxLength(255)]
-        public string FileName { get; set; }
+        public bool IsEncrypted { get; set; } = false;
+        public string? Checksum { get; set; }
+        public string? CorrelationId { get; set; }
+        public string Status { get; set; } = "Active";
 
-        [MaxLength(500)]
-        public string FileUrl { get; set; }
+        public byte[] Content { get; set; } = Array.Empty<byte>();
 
-        [MaxLength(100)]
-        public string Category { get; set; }
-
-        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public ICollection<DocumentReference> References { get; set; } = new List<DocumentReference>();
     }
 }

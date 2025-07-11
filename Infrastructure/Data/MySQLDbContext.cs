@@ -16,6 +16,7 @@ using PropertyManagementAPI.Domain.Entities.Roles;
 using PropertyManagementAPI.Domain.Entities.TenantAnnouncements;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Domain.Entities.Vendors;
+using PropertyManagementAPI.Infrastructure.Data.Configurations.Documents;
 using BankAccount = PropertyManagementAPI.Domain.Entities.Payments.Banking.BankAccount;
 using Invoice = PropertyManagementAPI.Domain.Entities.Invoices.Invoice;
 using InvoiceLineItem = PropertyManagementAPI.Domain.Entities.Invoices.InvoiceLineItem;
@@ -40,7 +41,7 @@ namespace PropertyManagementAPI.Infrastructure.Data
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Lease> Leases { get; set; }
         public DbSet<Document> Documents { get; set; }
-        public DbSet<DocumentStorage> DocumentStorage { get; set; }
+        public DbSet<DocumentReference> DocumentReferences { get; set; }
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<Note> Notes { get; set; }
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
@@ -161,6 +162,10 @@ namespace PropertyManagementAPI.Infrastructure.Data
 
             modelBuilder.Entity<QuickBooksAuditLog>()
                 .Property(x => x.RealmId).IsRequired().HasMaxLength(64);
+
+            // Document & Reference Configuration
+            modelBuilder.ApplyConfiguration(new DocumentConfiguration());
+            modelBuilder.ApplyConfiguration(new DocumentReferenceConfiguration());
         }
     }
 }

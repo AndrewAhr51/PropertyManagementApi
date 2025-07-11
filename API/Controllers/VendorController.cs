@@ -6,6 +6,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/vendors")]
+    [Tags("Vendor")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class VendorController : ControllerBase
     {
         private readonly IVendorService _vendorService;

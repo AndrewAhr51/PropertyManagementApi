@@ -1,22 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PropertyManagementAPI.Domain.DTOs.Documents
 {
     public class DocumentDto
     {
-        public int DocumentId { get; set; }
+        public int Id { get; set; }
 
-        public int PropertyId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string MimeType { get; set; } = string.Empty;
+        public long SizeInBytes { get; set; }
+        public string DocumentType { get; set; } = string.Empty;
 
-        public int TenantId { get; set; }
+        public DateTime CreateDate { get; set; }
+        public int CreatedByUserId { get; set; }
 
-        public string FileName { get; set; }
+        public bool IsEncrypted { get; set; }
+        public string? Checksum { get; set; }
+        public string? CorrelationId { get; set; }
+        public string Status { get; set; } = "Active";
 
-        public string FileUrl { get; set; }
+        // Optional: for upload APIs or binary streaming
+        public byte[]? Content { get; set; }
 
-        public string Category { get; set; }
-
-        public string CreatedBy { get; set; } = "Web"; // Default value for CreatedBy  
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        // Optional: linked entity references (tenant, property, owner, etc.)
+        public List<DocumentReferenceDto> References { get; set; } = new();
     }
 }

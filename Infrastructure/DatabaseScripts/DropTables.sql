@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS QuickBooksAuditLog;
 DROP TABLE IF EXISTS InvoiceAuditLog;
 DROP TABLE IF EXISTS RolePermissions;
 DROP TABLE IF EXISTS PaymentReminders;
-DROP TABLE IF EXISTS DocumentStorage;
+DROP TABLE IF EXISTS DocumentReferences;
 DROP TABLE IF EXISTS Documents;
 DROP TABLE IF EXISTS Notes;
 DROP TABLE IF EXISTS triggerlog;

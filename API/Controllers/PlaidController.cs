@@ -10,6 +10,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/plaid")]
+    [Tags("Plaid-Payments")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class PlaidController : ControllerBase
     {
         private readonly IPlaidService _plaidService;

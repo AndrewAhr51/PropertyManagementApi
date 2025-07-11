@@ -1,41 +1,268 @@
-﻿using PropertyManagementAPI.Domain.DTOs.Documents;
+﻿using Microsoft.Extensions.Logging;
+using PropertyManagementAPI.Common.Helpers;
+using PropertyManagementAPI.Common.Utilities;
+using PropertyManagementAPI.Domain.DTOs.Documents;
+using PropertyManagementAPI.Domain.Entities.User;
+using PropertyManagementAPI.Infrastructure.Repositories.Documents;
+using System.ComponentModel.Design;
 
-public class DocumentService : IDocumentService
+namespace PropertyManagementAPI.Application.Services.Documents
 {
-    private readonly IDocumentRepository _repository;
 
-    public DocumentService(IDocumentRepository repository)
+    public class DocumentService : IDocumentService
     {
-        _repository = repository;
-    }
+        private readonly IDocumentRepository _documentRepository;
+        private readonly IDocumentReferenceService _referenceService;
+        private readonly ILogger<DocumentService> _logger;
+        private readonly EncryptionDocHelper _encryptionDocHelper;
 
-    public async Task<DocumentDto> CreateAsync(DocumentDto dto)
-    {
-        return await _repository.AddAsync(dto);
-    }
+        public DocumentService(IDocumentRepository documentRepository, ILogger<DocumentService> logger, IDocumentReferenceService referenceService)
+        {
+            _documentRepository = documentRepository;
+            _referenceService = referenceService;
+            _logger = logger;
+        }
 
-    public async Task<IEnumerable<DocumentDto>> GetAllAsync()
-    {
-        return await _repository.GetAllAsync();
-    }
+        public async Task<DocumentDto> CreateDocumentAsync(DocumentDto dto)
+        {
+            try
+            {
+                _logger.LogInformation("Creating document: {Name}", dto.Name);
 
-    public async Task<DocumentDto?> GetByIdAsync(int documentId)
-    {
-        return await _repository.GetByIdAsync(documentId);
-    }
+                var created = await _documentRepository.CreateDocumentAsync(dto); // handles metadata only
+                if (created?.Id <= 0)
+                    throw new InvalidOperationException("Document creation failed.");
 
-    public async Task<IEnumerable<DocumentDto>> GetByPropertyIdAsync(int propertyId)
-    {
-        return await _repository.GetByPropertyIdAsync(propertyId);
-    }
+                if (dto.Content?.Length > 0)
+                {
+                    var uploaded = await _documentRepository.UploadDocumentContentAsync(created.Id, dto.Content);
+                    if (!uploaded)
+                        _logger.LogWarning("Content upload failed for DocumentId: {DocumentId}", created.Id);
+                }
 
-    public async Task<IEnumerable<DocumentDto>> GetByTenantIdAsync(int tenantId)
-    {
-        return await _repository.GetByTenantIdAsync(tenantId);
-    }
+                _logger.LogInformation("Document created successfully: {DocumentId}", created.Id);
+                return created;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create document: {Name}", dto.Name);
+                throw;
+            }
+        }
+        public async Task<DocumentDto?> GetDocumentByIdAsync(int documentId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching document by ID: {DocumentId}", documentId);
+                return await _documentRepository.GetDocumentByIdAsync(documentId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching document ID: {DocumentId}", documentId);
+                throw;
+            }
+        }
 
-    public async Task<bool> DeleteAsync(int documentId)
-    {
-        return await _repository.DeleteAsync(documentId);
+        public async Task<IEnumerable<DocumentDto>> GetAllDocumentAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving all documents");
+                return await _documentRepository.GetAllAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving documents");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteDocumentAsync(int documentId)
+        {
+            try
+            {
+                _logger.LogWarning("Deleting document ID: {DocumentId}", documentId);
+                return await _documentRepository.DeleteDocumentAsync(documentId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete document ID: {DocumentId}", documentId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DocumentDto>> GetDocumentByPropertyIdAsync(int propertyId)
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving documents for property ID: {PropertyId}", propertyId);
+                return await _documentRepository.GetDocumentByPropertyIdAsync(propertyId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve documents for property ID: {PropertyId}", propertyId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DocumentDto>> GetDocumentByTenantIdAsync(int tenantId)
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving documents for tenant ID: {TenantId}", tenantId);
+                return await _documentRepository.GetDocumentByTenantIdAsync(tenantId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving documents for tenant ID: {TenantId}", tenantId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DocumentDto>> GetDocumentByOwnerIdAsync(int ownerId)
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving documents for owner ID: {OwnerId}", ownerId);
+                return await _documentRepository.GetDocumentByOwnerIdAsync(ownerId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving documents for owner ID: {OwnerId}", ownerId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DocumentDto>> GetDocumentByCreatedByAsync(int userId)
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving documents created by user ID: {UserId}", userId);
+                return await _documentRepository.GetDocumentByCreatedByAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving documents for creator ID: {UserId}", userId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DocumentDto>> GetDocumentByAccessRoleAsync(string role)
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving documents with access role: {Role}", role);
+                return await _documentRepository.GetDocumentByAccessRoleAsync(role);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving documents with role: {Role}", role);
+                throw;
+            }
+        }
+
+        public async Task<byte[]?> GetDocumentContentAsync(int documentId)
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving document content for ID: {DocumentId}", documentId);
+                return await _documentRepository.GetDocumentContentAsync(documentId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving document content for ID: {DocumentId}", documentId);
+                throw;
+            }
+        }
+
+        public async Task<DocumentDto> UploadCompleteDocumentAsync(DocumentUploadDto uploadDto)
+        {
+            try
+            {
+                _logger.LogInformation("Initiating full document upload for: {FileName}", uploadDto.FileName);
+             
+                var encryptedContent = _encryptionDocHelper.EncryptBytes(uploadDto.Content);
+
+                // 1️⃣ Generate correlation ID internally
+                var correlationId = Guid.NewGuid().ToString();
+
+                var metadata = new DocumentDto
+                {
+                    Name = uploadDto.FileName,
+                    MimeType = MimeTypeResolver.GetMimeType(uploadDto.FileName, _logger),
+                    SizeInBytes = encryptedContent.Length,
+                    DocumentType = uploadDto.DocumentType ?? "General",
+                    CreateDate = DateTime.UtcNow,
+                    CreatedByUserId = uploadDto.UploadedByUserId,
+                    IsEncrypted = true,
+                    Status = uploadDto.Status,
+                    Checksum = DocumentHelper.GetChecksum(encryptedContent),
+                    CorrelationId = correlationId
+                };
+
+                _logger.LogInformation("Document uploaded: {FileName} | MIME: {MimeType} | Checksum: {Checksum}", uploadDto.FileName, metadata.MimeType, metadata.Checksum);
+                // Step 2️ Validate metadata
+                if (string.IsNullOrWhiteSpace(metadata.Name) || metadata.SizeInBytes <= 0)
+                {
+                    _logger.LogWarning("Invalid document metadata for: {FileName}", uploadDto.FileName);
+                    throw new ArgumentException("Invalid document metadata provided.");
+                }
+                if (string.IsNullOrWhiteSpace(metadata.MimeType))
+                {
+                    metadata.MimeType = MimeTypeResolver.GetMimeType(uploadDto.FileName, _logger);
+                    _logger.LogInformation("Resolved MIME type for {FileName}: {MimeType}", uploadDto.FileName, metadata.MimeType);
+                }
+                if (metadata.SizeInBytes <= 0)
+                {
+                    _logger.LogWarning("Document size is zero or negative for: {FileName}", uploadDto.FileName);
+                    throw new ArgumentException("Document size must be greater than zero.");
+                }
+                if (string.IsNullOrWhiteSpace(metadata.DocumentType))
+                {
+                    metadata.DocumentType = "General"; // Default type
+                    _logger.LogInformation("Default document type set for {FileName}: {DocumentType}", uploadDto.FileName, metadata.DocumentType);
+                }
+                if (uploadDto.UploadedByUserId <= 0)
+                {
+                    _logger.LogWarning("Invalid user ID for upload: {FileName}", uploadDto.FileName);
+                    throw new ArgumentException("UploadedByUserId must be a valid user ID.");
+                }
+                if (string.IsNullOrWhiteSpace(uploadDto.Status))
+                {
+                    metadata.Status = "Active"; // Default status
+                    _logger.LogInformation("Default status set for {FileName}: {Status}", uploadDto.FileName, metadata.Status);
+                }
+
+                // Step 3️ Create document (metadata only)
+                var created = await _documentRepository.CreateDocumentAsync(metadata);
+                if (created.Id <= 0)
+                    throw new InvalidOperationException("Document creation failed.");
+
+                // Step 4️ Upload content
+                bool uploaded = await _documentRepository.UploadDocumentContentAsync(created.Id, encryptedContent);
+                if (!uploaded)
+                    _logger.LogWarning("Binary content upload failed for DocumentId: {DocumentId}", created.Id);
+
+                // Step 5️ Optionally auto-link to default entity (e.g. tenant, owner) if desired
+                await _referenceService.AddReferenceAsync(new DocumentReferenceDto
+                {
+                    DocumentId = created.Id,                  
+                    RelatedEntityId = uploadDto.RelatedEntityId,
+                    RelatedEntityType = uploadDto.RelatedEntityType,             
+                    LinkedByUserId = uploadDto.UploadedByUserId,
+                    LinkDate = DateTime.UtcNow,
+                    AccessRole = "Manager",                   
+                    Description = uploadDto.Description
+                });
+
+                _logger.LogInformation("Document fully uploaded: {DocumentId}", created.Id);
+                return created;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to complete document upload for: {FileName}", uploadDto.FileName);
+                throw;
+            }
+        }
     }
 }

@@ -38,7 +38,6 @@ using PropertyManagementAPI.Application.Services.Tenants;
 using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Application.Services.Vendors;
 using PropertyManagementAPI.Common.Helpers;
-using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.DTOs.Invoices;
 using PropertyManagementAPI.Infrastructure.Auditing;
 //
@@ -108,7 +107,14 @@ var encryptionKey = builder.Configuration["EncryptionSettings:Key"];
 var encryptionIV = builder.Configuration["EncryptionSettings:IV"];
 if (string.IsNullOrWhiteSpace(encryptionKey) || string.IsNullOrWhiteSpace(encryptionIV))
 {
-    throw new InvalidOperationException("Missing Encryption credentials from environment.");
+    throw new InvalidOperationException("Missing JWT Encryption credentials from environment.");
+}
+
+var encryptionDocKey = builder.Configuration["EncryptionDocSettings:Key"];
+var encryptionDocIV = builder.Configuration["EncryptionDocSettings:IV"];
+if (string.IsNullOrWhiteSpace(encryptionDocKey) || string.IsNullOrWhiteSpace(encryptionDocIV))
+{
+    throw new InvalidOperationException("Missing Document Encryption credentials from environment.");
 }
 
 var qbClientId = builder.Configuration["QB:ClientId"];
@@ -161,15 +167,18 @@ builder.Services.AddPlaid(builder.Configuration.GetSection("Plaid"));
 builder.Services.AddScoped<IPlaidSandboxTestService, PlaidSandboxTestService>();
 
 // ✅ Register Repositories & Services 
-builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
-builder.Services.AddSingleton<EncryptionHelper>();
+builder.Services.Configure<EncryptionJwtSettings>(builder.Configuration.GetSection("EncryptionSettings"));
+builder.Services.AddSingleton<EncryptionJwtHelper>();
+builder.Services.Configure<EncryptionDocSettings>(builder.Configuration.GetSection("EncryptionDocSettings"));
+builder.Services.AddSingleton<EncryptionDocHelper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
-builder.Services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
-builder.Services.AddScoped<IDocumentStorageService, DocumentStorageService>();
+builder.Services.AddScoped<IDocumentReferenceRepository, DocumentReferenceRepository>();
+builder.Services.AddScoped<IDocumentReferenceService, DocumentReferenceService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
@@ -227,6 +236,9 @@ builder.Services.AddScoped<IQuickBooksTokenManager, QuickBooksTokenManager>();
 builder.Services.AddScoped<IQuickBooksInvoiceService, QuickBooksInvoiceService>();
 builder.Services.AddSingleton<ITokenStore, InMemoryTokenStore>();
 builder.Services.AddScoped<IQuickBooksUrlService, QuickBooksUrlService>();
+builder.Services.AddSingleton<EncryptionDocHelper>();
+builder.Services.AddSingleton<EncryptionJwtHelper>();
+
 
 //Stripe
 builder.Services.AddScoped<AuditEventBuilder>();
@@ -345,7 +357,8 @@ if (string.IsNullOrEmpty(jwtSettings.SecretKey))
 }
 
 builder.Services.Configure<JwtSettings>(jwtSettingsSection);
-builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("EncryptionSettings"));
+builder.Services.Configure<EncryptionJwtSettings>(builder.Configuration.GetSection("EncryptionSettings"));
+builder.Services.Configure<EncryptionDocSettings>(builder.Configuration.GetSection("EncryptionDocSettings"));
 
 // ✅ Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -7,6 +7,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/properties")]
+    [Tags("Property")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class PropertyController : ControllerBase
     {
         private readonly IPropertyService _propertyService;

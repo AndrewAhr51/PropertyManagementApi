@@ -5,6 +5,9 @@ using PropertyManagementAPI.Domain.DTOs.Users;
 
 [ApiController]
 [Route("api/owners")]
+[Tags("Owner")]
+[ApiExplorerSettings(GroupName = "v1")]
+[Produces("application/json")]
 public class OwnerController : ControllerBase
 {
     private readonly IOwnersService _ownersService;

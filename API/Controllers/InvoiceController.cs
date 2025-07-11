@@ -7,6 +7,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/invoices")]
+    [Tags("Invoices")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class InvoiceController : ControllerBase
     {
         private readonly IInvoiceService _invoiceService;

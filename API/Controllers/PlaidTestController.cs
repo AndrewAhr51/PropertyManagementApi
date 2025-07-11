@@ -10,8 +10,10 @@ using PropertyManagementAPI.Application.Services.Payments.Plaid;
 namespace PropertyManagementAPI.API.Controllers.Test
 {
     [ApiController]
-    [ApiExplorerSettings(IgnoreApi = true)]
+    [ApiExplorerSettings(IgnoreApi = true, GroupName = "v1")]
     [Route("api/test/plaid")]
+    [Tags("Plaid-Test-Payments")]
+    [Produces("application/json")]
     public class PlaidTestController : ControllerBase
     {
         private readonly IPlaidService _plaidService;
