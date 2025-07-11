@@ -7,6 +7,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/leases")]
+    [Tags("Leases")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class LeaseController : ControllerBase
     {
         private readonly ILeaseService _service;

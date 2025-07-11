@@ -19,6 +19,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/test/quickbooks")]
+    [Tags("Quickbooks-Test")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class QuickBooksTestController : ControllerBase
     {
         private readonly ILogger<QuickBooksTestController> _logger;

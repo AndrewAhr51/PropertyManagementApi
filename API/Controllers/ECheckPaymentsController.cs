@@ -6,6 +6,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/echeck")]
+    [Tags("E-Check References")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class ECheckPaymentsController : ControllerBase
     {
         private readonly IECheckPaymentService _service;

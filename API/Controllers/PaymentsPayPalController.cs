@@ -15,6 +15,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/payments/paypal")]
+    [Tags("PayPal-Payments")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class PaymentsPayPalController : ControllerBase
     {
         private readonly IPayPalService _payPalService;

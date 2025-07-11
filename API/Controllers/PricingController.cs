@@ -3,6 +3,9 @@ using PropertyManagementAPI.Domain.DTOs.Property.Pricing;
 
 [ApiController]
 [Route("api/pricing")]
+[Tags("Pricing")]
+[ApiExplorerSettings(GroupName = "v1")]
+[Produces("application/json")]
 public class PricingController : ControllerBase
 {
     private readonly IPricingService _service;

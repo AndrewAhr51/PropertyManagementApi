@@ -7,6 +7,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/maintenance-requests")]
+    [Tags("Maintenance")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class MaintenanceRequestController : ControllerBase
     {
         private readonly IMaintenanceRequestService _service;

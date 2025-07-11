@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/webhooks/stripe")]
+[Tags("Stripe-Webhook")]
+[ApiExplorerSettings(GroupName = "v1")]
+[Produces("application/json")]
 public class StripeWebhookController : ControllerBase
 {
     private readonly ILogger<StripeWebhookController> _logger;

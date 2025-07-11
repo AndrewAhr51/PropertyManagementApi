@@ -7,6 +7,11 @@ using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 
 namespace PropertyManagementAPI.API.Controllers
 {
+    [ApiController]
+    [Route("api/payments/stripe")]
+    [Tags("Stripe-Payments")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class PaymentsStripeController : Controller
     {
         private readonly IInvoiceRepository _invoiceRepository;

@@ -4,6 +4,9 @@ using PropertyManagementAPI.Domain.DTOs.Property;
 
 [ApiController]
 [Route("api/properties/{propertyId}/photos")]
+[Tags("Property-Photos")]
+[ApiExplorerSettings(GroupName = "v1")]
+[Produces("application/json")]
 public class PropertyPhotosController : ControllerBase
 {
     private readonly IPropertyPhotosService _photoService;

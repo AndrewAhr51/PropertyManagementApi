@@ -1,6 +1,6 @@
-﻿namespace PropertyManagementAPI.Common.Utilities
+﻿namespace PropertyManagementAPI.Common.Helpers
 {
-    public class EncryptionSettings
+    public class EncryptionJwtSettings
     {
         public string Key { get; set; }
         public string IV { get; set; }

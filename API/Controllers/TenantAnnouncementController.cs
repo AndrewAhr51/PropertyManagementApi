@@ -7,6 +7,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/announcements")]
+    [Tags("Tenant-Announcements")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class TenantAnnouncementsController : ControllerBase
     {
         private readonly ITenantAnnouncementService _service;

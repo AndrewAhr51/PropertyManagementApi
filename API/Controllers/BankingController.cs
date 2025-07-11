@@ -9,6 +9,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/banking")]
+    [Tags("Banking")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class BankingController : ControllerBase
     {
         private readonly IECheckPaymentService _paymentService;

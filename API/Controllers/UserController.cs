@@ -4,6 +4,9 @@ using PropertyManagementAPI.Domain.DTOs.Users;
 
 [ApiController]
 [Route("api/users")]
+[Tags("User")]
+[ApiExplorerSettings(GroupName = "v1")]
+[Produces("application/json")]
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;

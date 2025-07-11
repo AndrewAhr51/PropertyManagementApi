@@ -6,6 +6,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Notes")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class NoteController : ControllerBase
     {
         private readonly INoteService _noteService;

@@ -11,6 +11,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/accounting/quickbooks")]
+    [Tags("Quickbooks-Callback")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class QuickBooksCallbackController : ControllerBase
     {
         private readonly IQuickBooksTokenManager _tokenManager;

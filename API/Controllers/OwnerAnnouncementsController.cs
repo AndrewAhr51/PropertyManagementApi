@@ -7,6 +7,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/owner-announcements")]
+    [Tags("Owner-Announcements")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class OwnerAnnouncementsController : ControllerBase
     {
         private readonly IOwnerAnnouncementService _service;

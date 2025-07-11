@@ -584,31 +584,38 @@ CREATE TABLE SpecialInstructions (
 );
 -- Documents
 CREATE TABLE Documents (
-    DocumentId INT PRIMARY KEY AUTO_INCREMENT,
-    PropertyId INT NULL,
-    TenantId INT NULL,
-    FileName VARCHAR(255),
-    FileUrl VARCHAR(500),
-    Category VARCHAR(100),
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (PropertyId) REFERENCES Properties(PropertyId),
-    FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId)
+  Id INT AUTO_INCREMENT PRIMARY KEY,
+  Name VARCHAR(255) NOT NULL,
+  MimeType VARCHAR(100) NOT NULL,
+  SizeInBytes BIGINT NOT NULL,
+  DocumentType VARCHAR(100),
+  CreateDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,   
+  CreatedBy INT NOT NULL,
+  IsEncrypted BOOLEAN DEFAULT FALSE,
+  Checksum CHAR(64),  -- Optional SHA-256 hash
+  CorrelationId VARCHAR(128),
+  Status VARCHAR(50) DEFAULT 'Active',
+  Content LONGBLOB NOT NULL,
+
+  INDEX idx_CreatedBy (CreatedByUserId),
+  INDEX idx_DocumentType (DocumentType),
+  INDEX idx_CreateDate (CreateDate)
 );
 
-CREATE TABLE DocumentStorage (
-    DocumentStorageId INT AUTO_INCREMENT PRIMARY KEY,
-    DocumentId INT NOT NULL,         -- Foreign key reference to Documents
-    invoiceId INT NOT NULL,    -- Assuming UUID format to match Invoices table
-    FileName VARCHAR(255) NOT NULL,
-    FileType VARCHAR(50) NOT NULL,   -- PDF, DOCX, JPG, etc.
-    FileData LONGBLOB NOT NULL,      -- MySQL equivalent of VARBINARY(MAX)
-    CreatedBy CHAR(50) DEFAULT 'Web',
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (DocumentId) REFERENCES Documents(DocumentId) ON DELETE CASCADE,
-    FOREIGN KEY (invoiceId) REFERENCES Invoices(invoiceId) ON DELETE CASCADE
+CREATE TABLE DocumentReferences (
+  Id INT AUTO_INCREMENT PRIMARY KEY,
+  DocumentId INT NOT NULL,
+  RelatedEntityType VARCHAR(50) NOT NULL,     -- 'Tenant', 'Owner', etc.
+  RelatedEntityId INT NOT NULL,
+  AccessRole VARCHAR(50),                     -- 'Uploader', 'Signer', etc.
+  LinkedAtUtc DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (DocumentId) REFERENCES Documents(Id) ON DELETE CASCADE,
+
+  INDEX idx_EntityLookup (RelatedEntityType, RelatedEntityId),
+  INDEX idx_DocumentAccess (DocumentId, AccessRole)
 );
+
 -- Payment Reminders
 CREATE TABLE PaymentReminders (
     ReminderId INT PRIMARY KEY AUTO_INCREMENT,

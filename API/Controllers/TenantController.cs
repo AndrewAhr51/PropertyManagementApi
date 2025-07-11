@@ -9,6 +9,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/tenants")]
+    [Tags("Tenant")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class TenantController : ControllerBase
     {
         private readonly ITenantService _service;

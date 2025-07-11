@@ -9,6 +9,9 @@ namespace PropertyManagementAPI.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Payments")]
+    [ApiExplorerSettings(GroupName = "v1")]
+    [Produces("application/json")]
     public class PaymentsController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
