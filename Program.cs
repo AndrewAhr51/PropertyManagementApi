@@ -431,6 +431,9 @@ builder.Services.Configure<PayPalSettings>(
 builder.Services.Configure<StripeSettings>(
     builder.Configuration.GetSection("Stripe"));
 
+builder.Services.Configure<EncryptionDocSettings>(
+    builder.Configuration.GetSection("EncryptionDocSettings"));
+
 var app = builder.Build();
 
 app.UseCorrelationId();

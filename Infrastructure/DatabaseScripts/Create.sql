@@ -597,7 +597,7 @@ CREATE TABLE Documents (
   Status VARCHAR(50) DEFAULT 'Active',
   Content LONGBLOB NOT NULL,
 
-  INDEX idx_CreatedBy (CreatedByUserId),
+  INDEX idx_CreatedBy (CreatedBy),
   INDEX idx_DocumentType (DocumentType),
   INDEX idx_CreateDate (CreateDate)
 );
@@ -608,7 +608,8 @@ CREATE TABLE DocumentReferences (
   RelatedEntityType VARCHAR(50) NOT NULL,     -- 'Tenant', 'Owner', etc.
   RelatedEntityId INT NOT NULL,
   AccessRole VARCHAR(50),                     -- 'Uploader', 'Signer', etc.
-  LinkedAtUtc DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  LinkedDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  Description VARCHAR(100), 
 
   FOREIGN KEY (DocumentId) REFERENCES Documents(Id) ON DELETE CASCADE,
 

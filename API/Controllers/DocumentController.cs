@@ -24,22 +24,16 @@ namespace PropertyManagementAPI.API.Controllers.Documents
             _logger = logger;
         }
 
-        [HttpPost("Upload document")]
+        [HttpPost("upload-document")]
         [ActionName("Upload Complete Document")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(DocumentDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<DocumentDto>> UploadDocument([FromForm] DocumentUploadDto uploadDto)
         {
-            if (uploadDto.Content == null || uploadDto.Content.Length == 0)
-            {
-                _logger.LogWarning("Empty content submitted for upload: {FileName}", uploadDto.FileName);
-                return BadRequest("No document content provided.");
-            }
-
+          
             var created = await _documentService.UploadCompleteDocumentAsync(uploadDto);
             return CreatedAtAction(nameof(GetById), new { documentId = created.Id }, created);
-            
         }
 
         // 🔍 Get Document By ID
@@ -65,7 +59,7 @@ namespace PropertyManagementAPI.API.Controllers.Documents
         }
 
         // 🗑️ Delete Document
-        [HttpDelete("{documentId:int}")]
+        [HttpDelete("delete/{documentId:int}")]
         [ActionName("Delete Document")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -127,7 +121,7 @@ namespace PropertyManagementAPI.API.Controllers.Documents
         }
 
         // 📎 Download Document Content
-        [HttpGet("{documentId:int}/download")]
+        [HttpGet("download/{documentId:int}/download")]
         [ActionName("Download Document Content")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

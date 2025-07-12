@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Infrastructure.Data.Configurations.Documents
             builder.Property(d => d.SizeInBytes).IsRequired();
             builder.Property(d => d.DocumentType).HasMaxLength(100);
             builder.Property(d => d.CreateDate).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
-            builder.Property(d => d.CreatedByUserId).IsRequired();
+            builder.Property(d => d.CreatedBy).IsRequired();
             builder.Property(d => d.IsEncrypted).HasDefaultValue(false);
             builder.Property(d => d.Checksum).HasMaxLength(64);
             builder.Property(d => d.CorrelationId).HasMaxLength(128);
