@@ -12,7 +12,7 @@ namespace PropertyManagementAPI.Domain.Entities.Documents
         public string DocumentType { get; set; } = string.Empty;
 
         public DateTime CreateDate { get; set; } = DateTime.UtcNow;
-        public int CreatedByUserId { get; set; }
+        public int CreatedBy { get; set; }
 
         public bool IsEncrypted { get; set; } = false;
         public string? Checksum { get; set; }

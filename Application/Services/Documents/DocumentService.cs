@@ -16,11 +16,12 @@ namespace PropertyManagementAPI.Application.Services.Documents
         private readonly ILogger<DocumentService> _logger;
         private readonly EncryptionDocHelper _encryptionDocHelper;
 
-        public DocumentService(IDocumentRepository documentRepository, ILogger<DocumentService> logger, IDocumentReferenceService referenceService)
+        public DocumentService(IDocumentRepository documentRepository, ILogger<DocumentService> logger, IDocumentReferenceService referenceService, EncryptionDocHelper encryptionDocHelper)
         {
             _documentRepository = documentRepository;
             _referenceService = referenceService;
             _logger = logger;
+            _encryptionDocHelper = encryptionDocHelper;
         }
 
         public async Task<DocumentDto> CreateDocumentAsync(DocumentDto dto)
@@ -29,15 +30,22 @@ namespace PropertyManagementAPI.Application.Services.Documents
             {
                 _logger.LogInformation("Creating document: {Name}", dto.Name);
 
-                var created = await _documentRepository.CreateDocumentAsync(dto); // handles metadata only
+                var created = await _documentRepository.CreateDocumentAsync(dto); // Handles metadata only
                 if (created?.Id <= 0)
                     throw new InvalidOperationException("Document creation failed.");
 
                 if (dto.Content?.Length > 0)
                 {
-                    var uploaded = await _documentRepository.UploadDocumentContentAsync(created.Id, dto.Content);
-                    if (!uploaded)
+                    var updated = await _documentRepository.UploadDocumentContentAsync(created.Id, dto.Content);
+
+                    if (updated == null)
+                    {
                         _logger.LogWarning("Content upload failed for DocumentId: {DocumentId}", created.Id);
+                        // Optional: return metadata-only if binary failed
+                        return created;
+                    }
+
+                    created = updated; // Replace with updated content, size, checksum, etc.
                 }
 
                 _logger.LogInformation("Document created successfully: {DocumentId}", created.Id);
@@ -49,6 +57,7 @@ namespace PropertyManagementAPI.Application.Services.Documents
                 throw;
             }
         }
+
         public async Task<DocumentDto?> GetDocumentByIdAsync(int documentId)
         {
             try
@@ -180,7 +189,7 @@ namespace PropertyManagementAPI.Application.Services.Documents
             try
             {
                 _logger.LogInformation("Initiating full document upload for: {FileName}", uploadDto.FileName);
-             
+
                 var encryptedContent = _encryptionDocHelper.EncryptBytes(uploadDto.Content);
 
                 // 1️⃣ Generate correlation ID internally
@@ -189,11 +198,12 @@ namespace PropertyManagementAPI.Application.Services.Documents
                 var metadata = new DocumentDto
                 {
                     Name = uploadDto.FileName,
+                    Content = encryptedContent,
                     MimeType = MimeTypeResolver.GetMimeType(uploadDto.FileName, _logger),
                     SizeInBytes = encryptedContent.Length,
                     DocumentType = uploadDto.DocumentType ?? "General",
                     CreateDate = DateTime.UtcNow,
-                    CreatedByUserId = uploadDto.UploadedByUserId,
+                    CreatedBy = uploadDto.UploadedByUserId,
                     IsEncrypted = true,
                     Status = uploadDto.Status,
                     Checksum = DocumentHelper.GetChecksum(encryptedContent),
@@ -201,6 +211,7 @@ namespace PropertyManagementAPI.Application.Services.Documents
                 };
 
                 _logger.LogInformation("Document uploaded: {FileName} | MIME: {MimeType} | Checksum: {Checksum}", uploadDto.FileName, metadata.MimeType, metadata.Checksum);
+
                 // Step 2️ Validate metadata
                 if (string.IsNullOrWhiteSpace(metadata.Name) || metadata.SizeInBytes <= 0)
                 {
@@ -239,24 +250,24 @@ namespace PropertyManagementAPI.Application.Services.Documents
                     throw new InvalidOperationException("Document creation failed.");
 
                 // Step 4️ Upload content
-                bool uploaded = await _documentRepository.UploadDocumentContentAsync(created.Id, encryptedContent);
-                if (!uploaded)
-                    _logger.LogWarning("Binary content upload failed for DocumentId: {DocumentId}", created.Id);
+                created = await _documentRepository.UploadDocumentContentAsync(created.Id, encryptedContent);
+                if (created.Id <= 0)
+                    throw new InvalidOperationException("Document creation failed.");
 
                 // Step 5️ Optionally auto-link to default entity (e.g. tenant, owner) if desired
                 await _referenceService.AddReferenceAsync(new DocumentReferenceDto
                 {
-                    DocumentId = created.Id,                  
-                    RelatedEntityId = uploadDto.RelatedEntityId,
-                    RelatedEntityType = uploadDto.RelatedEntityType,             
-                    LinkedByUserId = uploadDto.UploadedByUserId,
-                    LinkDate = DateTime.UtcNow,
-                    AccessRole = "Manager",                   
+                    DocumentId = created.Id,
+                    RelatedEntityType = uploadDto.DocumentType,
+                    RelatedEntityId = uploadDto.UploadedByUserId,
+                    LinkedDate = DateTime.UtcNow,
+                    AccessRole = "Manager",
                     Description = uploadDto.Description
                 });
 
                 _logger.LogInformation("Document fully uploaded: {DocumentId}", created.Id);
                 return created;
+
             }
             catch (Exception ex)
             {

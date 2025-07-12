@@ -14,7 +14,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
         private readonly EncryptionDocHelper _encryptionDocHelper;
 
         public int RetryDelay { get; private set; }
-        public int MaxRetryCount { get; private set; }
+        public int MaxRetryCount { get; private set; } = 3;
 
 
         // Constructor of DocumentRepository
@@ -39,7 +39,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
                     SizeInBytes = dto.Content?.Length ?? dto.SizeInBytes,
                     DocumentType = dto.DocumentType,
                     CreateDate = dto.CreateDate,
-                    CreatedByUserId = dto.CreatedByUserId,
+                    CreatedBy = dto.CreatedBy,
                     IsEncrypted = dto.IsEncrypted,
                     Checksum = dto.Checksum,
                     CorrelationId = correlationId,
@@ -189,7 +189,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
             try
             {
                 return await _context.Documents
-                    .Where(d => d.CreatedByUserId == userId)
+                    .Where(d => d.CreatedBy == userId)
                     .Select(d => MapToDto(d))
                     .ToListAsync();
             }
@@ -241,12 +241,12 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
             }
         }
 
-        public async Task<bool> UploadDocumentContentAsync(int documentId, byte[] encryptedContent)
+        public async Task<DocumentDto?> UploadDocumentContentAsync(int documentId, byte[] encryptedContent)
         {
             if (encryptedContent == null || encryptedContent.Length == 0)
             {
                 _logger.LogWarning("Empty content passed for upload: {DocumentId}", documentId);
-                return false;
+                return null;
             }
 
             for (int attempt = 1; attempt <= MaxRetryCount; attempt++)
@@ -257,10 +257,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
                     if (doc == null)
                     {
                         _logger.LogWarning("Document not found for content upload: {DocumentId}", documentId);
-                        return false;
+                        return null;
                     }
 
-                    // Store already encrypted content
                     doc.Content = encryptedContent;
                     doc.SizeInBytes = encryptedContent.Length;
                     doc.Checksum = DocumentHelper.GetChecksum(encryptedContent);
@@ -269,7 +268,21 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("Document content uploaded successfully on attempt {Attempt}: {DocumentId}", attempt, documentId);
-                    return true;
+
+                    return new DocumentDto
+                    {
+                        Id = doc.Id,
+                        Name = doc.Name,
+                        MimeType = doc.MimeType,
+                        SizeInBytes = doc.SizeInBytes,
+                        DocumentType = doc.DocumentType,
+                        CreateDate = doc.CreateDate,
+                        CreatedBy = doc.CreatedBy,
+                        IsEncrypted = doc.IsEncrypted,
+                        Status = doc.Status,
+                        Checksum = doc.Checksum,
+                        CorrelationId = doc.CorrelationId
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -278,14 +291,14 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
                     if (attempt == MaxRetryCount)
                     {
                         _logger.LogError(ex, "All upload attempts failed for DocumentId: {DocumentId}", documentId);
-                        return false;
+                        return null;
                     }
 
                     await Task.Delay(RetryDelay * attempt);
                 }
             }
 
-            return false;
+            return null;
         }
 
         private static DocumentDto MapToDto(Document d) => new DocumentDto
@@ -296,7 +309,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
             SizeInBytes = d.SizeInBytes,
             DocumentType = d.DocumentType,
             CreateDate = d.CreateDate,
-            CreatedByUserId = d.CreatedByUserId,
+            CreatedBy = d.CreatedBy,
             IsEncrypted = d.IsEncrypted,
             Checksum = d.Checksum,
             CorrelationId = d.CorrelationId,

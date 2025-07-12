@@ -9,7 +9,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
         Task<IEnumerable<DocumentReferenceDto>> GetDocumentReferenceByEntityAsync(string relatedEntityType, int relatedEntityId);
         Task<IEnumerable<DocumentReferenceDto>> GetDocumentReferenceByCreatorAsync(int userId);
 
-        Task<DocumentReferenceDto> AddDocumentReferenceAsync(DocumentReferenceDto referenceDto);
+        Task<bool> AddDocumentReferenceAsync(DocumentReferenceDto referenceDto);
         Task<bool> RemoveDocumentReferenceAsync(int referenceId);
     }
 }

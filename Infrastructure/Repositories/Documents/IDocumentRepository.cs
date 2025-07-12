@@ -21,6 +21,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
 
         // Binary Access
         Task<byte[]?> GetDocumentContentAsync(int documentId);
-        Task<bool> UploadDocumentContentAsync(int documentId, byte[] content);
+        Task<DocumentDto> UploadDocumentContentAsync(int documentId, byte[] content);
     }
 }

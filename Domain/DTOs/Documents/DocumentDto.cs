@@ -13,7 +13,7 @@ namespace PropertyManagementAPI.Domain.DTOs.Documents
         public string DocumentType { get; set; } = string.Empty;
 
         public DateTime CreateDate { get; set; }
-        public int CreatedByUserId { get; set; }
+        public int CreatedBy { get; set; }
 
         public bool IsEncrypted { get; set; }
         public string? Checksum { get; set; }

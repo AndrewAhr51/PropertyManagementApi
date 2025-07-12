@@ -17,17 +17,29 @@ namespace PropertyManagementAPI.Application.Services.Documents
             _logger = logger;
         }
 
-        public async Task<DocumentReferenceDto> AddReferenceAsync(DocumentReferenceDto dto)
+        public async Task<DocumentReferenceDto?> AddReferenceAsync(DocumentReferenceDto dto)
         {
             try
             {
                 _logger.LogInformation("Adding reference to DocumentId: {DocumentId}", dto.DocumentId);
-                return await _repository.AddDocumentReferenceAsync(dto);
+
+                var success = await _repository.AddDocumentReferenceAsync(dto);
+
+                if (success)
+                {
+                    _logger.LogInformation("Reference added successfully. ReferenceId: {ReferenceId}", dto.Id);
+                    return dto;
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to add reference for DocumentId: {DocumentId}", dto.DocumentId);
+                    return null;
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding document reference for DocumentId: {DocumentId}", dto.DocumentId);
-                throw;
+                return null;
             }
         }
 
