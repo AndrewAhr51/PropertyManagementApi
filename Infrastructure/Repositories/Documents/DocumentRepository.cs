@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options; // Ensure this is included
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Documents;
+using PropertyManagementAPI.Domain.DTOs.Other;
 using PropertyManagementAPI.Domain.Entities.Documents;
 using PropertyManagementAPI.Infrastructure.Data;
 
@@ -22,6 +23,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
         {
             _context = context;
             _logger = logger;
+            _encryptionDocHelper = encryptionDocHelper;
         }
 
         public async Task<DocumentDto> CreateDocumentAsync(DocumentDto dto)
@@ -65,7 +67,10 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
         {
             try
             {
-                var doc = await _context.Documents.FindAsync(documentId);
+                var doc = await _context.Documents
+                    .Include(d => d.References) // Add any other navigation properties here if needed
+                    .FirstOrDefaultAsync(d => d.Id == documentId);
+                
                 if (doc == null) return null;
 
                 if (doc.IsEncrypted && doc.Content != null && doc.Content.Length > 0)
@@ -272,6 +277,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
                     return new DocumentDto
                     {
                         Id = doc.Id,
+                        Content = doc.Content,
                         Name = doc.Name,
                         MimeType = doc.MimeType,
                         SizeInBytes = doc.SizeInBytes,
@@ -314,7 +320,58 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
             Checksum = d.Checksum,
             CorrelationId = d.CorrelationId,
             Status = d.Status,
-            References = new List<DocumentReferenceDto>() // Populate via eager loading if needed
+            References = d.References?.Select(r => new DocumentReferenceDto
+            {
+                Id = r.Id,
+                DocumentId = r.DocumentId,
+                RelatedEntityId = r.RelatedEntityId,
+                RelatedEntityType = r.RelatedEntityType,
+                AccessRole = r.AccessRole,
+                LinkedDate = r.LinkedDate,
+                Description = r.Description,
+            }).ToList() ?? new List<DocumentReferenceDto>()
         };
+
+        public async Task<PagedResult<DocumentDto>> GetPagedDocumentsAsync(int pageIndex, int pageSize)
+        {
+            var query = _context.Documents
+                .OrderByDescending(d => d.CreateDate); // Sort by date, adjust as needed
+
+            var totalCount = await query.CountAsync();
+
+            var documents = await query
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    MimeType = d.MimeType,
+                    SizeInBytes = d.SizeInBytes,
+                    CreateDate = d.CreateDate,
+                    DocumentType = d.DocumentType,
+                    Status = d.Status,
+                    IsEncrypted = d.IsEncrypted,
+                    Checksum = d.Checksum,
+                    CorrelationId = d.CorrelationId,
+                    References = d.References.Select(r => new DocumentReferenceDto
+                    {
+                        RelatedEntityId = r.RelatedEntityId,
+                        RelatedEntityType = r.RelatedEntityType,
+                        AccessRole = r.AccessRole,
+                        LinkedDate = r.LinkedDate,
+                        Description = r.Description
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return new PagedResult<DocumentDto>
+            {
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                Data = documents
+            };
+        }
     }
 }

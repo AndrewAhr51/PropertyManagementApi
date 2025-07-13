@@ -1,4 +1,5 @@
 ﻿using PropertyManagementAPI.Domain.DTOs.Documents;
+using PropertyManagementAPI.Domain.DTOs.Other;
 
 namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
 {
@@ -22,5 +23,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Documents
         // Binary Access
         Task<byte[]?> GetDocumentContentAsync(int documentId);
         Task<DocumentDto> UploadDocumentContentAsync(int documentId, byte[] content);
+        Task<PagedResult<DocumentDto>> GetPagedDocumentsAsync(int pageIndex, int pageSize);
     }
 }

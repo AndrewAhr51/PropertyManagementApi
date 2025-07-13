@@ -2,6 +2,7 @@
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.DTOs.Documents;
+using PropertyManagementAPI.Domain.DTOs.Other;
 using PropertyManagementAPI.Domain.Entities.User;
 using PropertyManagementAPI.Infrastructure.Repositories.Documents;
 using System.ComponentModel.Design;
@@ -190,74 +191,56 @@ namespace PropertyManagementAPI.Application.Services.Documents
             {
                 _logger.LogInformation("Initiating full document upload for: {FileName}", uploadDto.FileName);
 
-                var encryptedContent = _encryptionDocHelper.EncryptBytes(uploadDto.Content);
+                // 🔐 Read file stream and encrypt bytes
+                using var memoryStream = new MemoryStream();
+                await uploadDto.File.CopyToAsync(memoryStream);
+                var rawBytes = memoryStream.ToArray();
 
-                // 1️⃣ Generate correlation ID internally
+                if (rawBytes.Length == 0)
+                    throw new ArgumentException("Uploaded file is empty.");
+
+                var encryptedContent = _encryptionDocHelper.EncryptBytes(rawBytes);
+
+                // 🆔 Generate correlation ID
                 var correlationId = Guid.NewGuid().ToString();
 
                 var metadata = new DocumentDto
                 {
-                    Name = uploadDto.FileName,
                     Content = encryptedContent,
-                    MimeType = MimeTypeResolver.GetMimeType(uploadDto.FileName, _logger),
+                    Name = string.IsNullOrWhiteSpace(uploadDto.FileName) ? uploadDto.File.FileName : uploadDto.FileName,
+                    MimeType = MimeTypeResolver.GetMimeType(uploadDto.FileName ?? uploadDto.File.FileName, _logger),
                     SizeInBytes = encryptedContent.Length,
-                    DocumentType = uploadDto.DocumentType ?? "General",
+                    DocumentType = string.IsNullOrWhiteSpace(uploadDto.DocumentType) ? "General" : uploadDto.DocumentType,
                     CreateDate = DateTime.UtcNow,
                     CreatedBy = uploadDto.UploadedByUserId,
                     IsEncrypted = true,
-                    Status = uploadDto.Status,
+                    Status = string.IsNullOrWhiteSpace(uploadDto.Status) ? "Active" : uploadDto.Status,
                     Checksum = DocumentHelper.GetChecksum(encryptedContent),
                     CorrelationId = correlationId
                 };
 
-                _logger.LogInformation("Document uploaded: {FileName} | MIME: {MimeType} | Checksum: {Checksum}", uploadDto.FileName, metadata.MimeType, metadata.Checksum);
+                _logger.LogInformation("Document metadata built: {FileName} | MIME: {MimeType} | Checksum: {Checksum}", metadata.Name, metadata.MimeType, metadata.Checksum);
 
-                // Step 2️ Validate metadata
-                if (string.IsNullOrWhiteSpace(metadata.Name) || metadata.SizeInBytes <= 0)
-                {
-                    _logger.LogWarning("Invalid document metadata for: {FileName}", uploadDto.FileName);
-                    throw new ArgumentException("Invalid document metadata provided.");
-                }
-                if (string.IsNullOrWhiteSpace(metadata.MimeType))
-                {
-                    metadata.MimeType = MimeTypeResolver.GetMimeType(uploadDto.FileName, _logger);
-                    _logger.LogInformation("Resolved MIME type for {FileName}: {MimeType}", uploadDto.FileName, metadata.MimeType);
-                }
-                if (metadata.SizeInBytes <= 0)
-                {
-                    _logger.LogWarning("Document size is zero or negative for: {FileName}", uploadDto.FileName);
-                    throw new ArgumentException("Document size must be greater than zero.");
-                }
-                if (string.IsNullOrWhiteSpace(metadata.DocumentType))
-                {
-                    metadata.DocumentType = "General"; // Default type
-                    _logger.LogInformation("Default document type set for {FileName}: {DocumentType}", uploadDto.FileName, metadata.DocumentType);
-                }
-                if (uploadDto.UploadedByUserId <= 0)
-                {
-                    _logger.LogWarning("Invalid user ID for upload: {FileName}", uploadDto.FileName);
+                if (metadata.CreatedBy <= 0)
                     throw new ArgumentException("UploadedByUserId must be a valid user ID.");
-                }
-                if (string.IsNullOrWhiteSpace(uploadDto.Status))
-                {
-                    metadata.Status = "Active"; // Default status
-                    _logger.LogInformation("Default status set for {FileName}: {Status}", uploadDto.FileName, metadata.Status);
-                }
 
-                // Step 3️ Create document (metadata only)
+                // Step 1: Save metadata
                 var created = await _documentRepository.CreateDocumentAsync(metadata);
                 if (created.Id <= 0)
                     throw new InvalidOperationException("Document creation failed.");
 
-                // Step 4️ Upload content
-                created = await _documentRepository.UploadDocumentContentAsync(created.Id, encryptedContent);
-                if (created.Id <= 0)
-                    throw new InvalidOperationException("Document creation failed.");
+                // Step 2: Store encrypted content
+                var updated = await _documentRepository.UploadDocumentContentAsync(created.Id, encryptedContent);
+                if (updated == null)
+                {
+                    _logger.LogWarning("Content upload failed for DocumentId: {DocumentId}", created.Id);
+                    return created;
+                }
 
-                // Step 5️ Optionally auto-link to default entity (e.g. tenant, owner) if desired
+                // Step 3: Link to entity
                 await _referenceService.AddReferenceAsync(new DocumentReferenceDto
                 {
-                    DocumentId = created.Id,
+                    DocumentId = updated.Id,
                     RelatedEntityType = uploadDto.DocumentType,
                     RelatedEntityId = uploadDto.UploadedByUserId,
                     LinkedDate = DateTime.UtcNow,
@@ -265,15 +248,19 @@ namespace PropertyManagementAPI.Application.Services.Documents
                     Description = uploadDto.Description
                 });
 
-                _logger.LogInformation("Document fully uploaded: {DocumentId}", created.Id);
-                return created;
-
+                _logger.LogInformation("Document fully uploaded: {DocumentId}", updated.Id);
+                return updated;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to complete document upload for: {FileName}", uploadDto.FileName);
                 throw;
             }
+        }
+
+        public async Task<PagedResult<DocumentDto>> GetPagedDocumentsAsync(int pageIndex, int pageSize)
+        {
+            return await _documentRepository.GetPagedDocumentsAsync(pageIndex, pageSize);
         }
     }
 }
