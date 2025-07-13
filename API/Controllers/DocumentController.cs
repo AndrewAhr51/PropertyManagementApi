@@ -4,6 +4,7 @@ using PropertyManagementAPI.Application.Services.Documents;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Common.Utilities;
 using PropertyManagementAPI.Domain.DTOs.Documents;
+using PropertyManagementAPI.Domain.DTOs.Other;
 
 namespace PropertyManagementAPI.API.Controllers.Documents
 {
@@ -18,9 +19,10 @@ namespace PropertyManagementAPI.API.Controllers.Documents
         private readonly ILogger<DocumentController> _logger;
         private readonly EncryptionDocHelper _encryptionDocHelper;
 
-        public DocumentController(IDocumentService documentService, ILogger<DocumentController> logger)
+        public DocumentController(IDocumentService documentService, ILogger<DocumentController> logger, EncryptionDocHelper _encryptionDocHelper)
         {
             _documentService = documentService;
+            this._encryptionDocHelper = _encryptionDocHelper;
             _logger = logger;
         }
 
@@ -31,31 +33,81 @@ namespace PropertyManagementAPI.API.Controllers.Documents
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<DocumentDto>> UploadDocument([FromForm] DocumentUploadDto uploadDto)
         {
-          
+            if (!ModelState.IsValid)
+            {
+                foreach (var kvp in ModelState)
+                {
+                    foreach (var error in kvp.Value.Errors)
+                    {
+                        _logger.LogWarning("ModelState error on '{Key}': {Error}", kvp.Key, error.ErrorMessage);
+                    }
+                }
+                return BadRequest(ModelState);
+            }
+
+            if (uploadDto?.File == null || uploadDto.File.Length == 0)
+            {
+                _logger.LogWarning("Upload failed: No file provided.");
+                return BadRequest("File is required for upload.");
+            }
+
             var created = await _documentService.UploadCompleteDocumentAsync(uploadDto);
-            return CreatedAtAction(nameof(GetById), new { documentId = created.Id }, created);
+
+            if (created == null || created.Id <= 0)
+            {
+                _logger.LogWarning("Document creation failed.");
+                return BadRequest("Unable to create document.");
+            }
+
+            var document = await _documentService.GetDocumentByIdAsync(created.Id);
+
+            if (document == null)
+            {
+                _logger.LogWarning("Document not found after creation.");
+                return NotFound("Document not found after creation.");
+            }
+
+            // 🧩 Return explicitly serialized 201 with JSON content
+            return CreatedAtRoute("GetDocumentById", new { id = document.Id }, document);
+
         }
 
-        // 🔍 Get Document By ID
         [HttpGet("{documentId:int}")]
         [ActionName("Get Document By Id")]
         [ProducesResponseType(typeof(DocumentDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DocumentDto>> GetById(int documentId)
         {
-            var result = await _documentService.GetDocumentByIdAsync(documentId);
-            if (result == null) return NotFound();
-            return Ok(result);
+            _logger.LogInformation("Fetching document with ID: {DocumentId}", documentId);
+
+            var document = await _documentService.GetDocumentByIdAsync(documentId);
+            if (document is null)
+            {
+                _logger.LogWarning("Document not found: {DocumentId}", documentId);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Document retrieved: {DocumentId}", document.Id);
+            return Ok(document);
         }
 
         // 📋 List All Documents
         [HttpGet("all")]
         [ActionName("List All Documents")]
-        [ProducesResponseType(typeof(IEnumerable<DocumentDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<DocumentDto>>> GetAll()
+        [ProducesResponseType(typeof(PagedResult<DocumentDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<PagedResult<DocumentDto>>> GetAll([FromQuery] int pageIndex = 0, [FromQuery] int pageSize = 10)
         {
             var results = await _documentService.GetAllDocumentAsync();
             return Ok(results);
+        }
+
+        [HttpGet("get-paged-documents")]
+        [ActionName("Documents with Paging")]
+        [ProducesResponseType(typeof(PagedResult<DocumentDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<PagedResult<DocumentDto>>> GetPagedDocuments([FromQuery] int pageIndex = 0, [FromQuery] int pageSize = 10)
+        {
+            var result = await _documentService.GetPagedDocumentsAsync(pageIndex, pageSize);
+            return Ok(result);
         }
 
         // 🗑️ Delete Document
@@ -121,7 +173,7 @@ namespace PropertyManagementAPI.API.Controllers.Documents
         }
 
         // 📎 Download Document Content
-        [HttpGet("download/{documentId:int}/download")]
+        [HttpGet("content/{documentId:int}/download")]
         [ActionName("Download Document Content")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -133,6 +185,13 @@ namespace PropertyManagementAPI.API.Controllers.Documents
             var doc = await _documentService.GetDocumentByIdAsync(documentId);
             var mimeType = doc?.MimeType ?? "application/octet-stream";
             return File(content, mimeType, doc?.Name);
+        }
+
+        [HttpGet("{id}", Name = "GetDocumentById")]
+        public async Task<ActionResult<DocumentDto>> GetDocumentById(int id)
+        {
+            var document = await _documentService.GetDocumentByIdAsync(id);
+            return Ok(document);
         }
     }
 }

@@ -63,6 +63,7 @@ using PropertyManagementAPI.Infrastructure.Repositories.Users;
 using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Environment = System.Environment;
 using PlaidOptions = PropertyManagementAPI.Infrastructure.Payments.PlaidOptions;
@@ -392,8 +393,25 @@ foreach (var section in builder.Configuration.GetChildren())
     Console.WriteLine($"🔹 Found Configuration Section: {section.Key}");
 }
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200") // Adjust to match your Angular port
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // ✅ Add Controllers & API Documentation (Swagger)
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; // 👈 Add this line
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -411,11 +429,11 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", builder =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        builder.WithOrigins("http://localhost:4200")
+               .AllowAnyHeader()
+               .AllowAnyMethod();
     });
 });
 
@@ -436,6 +454,9 @@ builder.Services.Configure<EncryptionDocSettings>(
 
 var app = builder.Build();
 
+app.UseCors("AllowFrontend"); // ✅ Apply the specific CORS policy
+
+app.UseRouting();
 app.UseCorrelationId();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
