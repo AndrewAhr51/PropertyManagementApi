@@ -95,6 +95,13 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             }).ToList();
         }
 
+        public async Task<IEnumerable<OpenInvoiceByTenantDto>> GetAllInvoicesByTenantIdAsync(int tenantId)
+        {
+            var invoicesListByTenant = await _inventoryRepository.GetAllInvoicesByTenantIdAsync(tenantId);
+            return invoicesListByTenant;
+        }
+
+
         public async Task<bool> CreateInvoiceAsync(CreateInvoiceDto dto)
         {
             var save = await _inventoryRepository.CreateInvoiceAsync(dto);

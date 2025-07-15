@@ -7,7 +7,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.PayPal
 {
     public interface IPayPalService
     {
-        Task<PayPalPaymentResponseDto> InitializePayPalOrderAsync(CreatePayPalDto dto);
+        Task<PayPalPaymentResponseDto> InitializePayPalAsync(CreatePayPalDto dto);
         Task<CardPayment> CapturePayPalCardPaymentAsync(string orderId, CreatePayPalDto dto, Invoice invoice);
         Task<string> GetPayPalApprovalLinkAsync(string orderId);
         Task<PayPalCaptureResponseDto> CaptureOrderAsync(string orderId);

@@ -7,6 +7,8 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
     {
         Task<Invoice?> GetInvoiceByIdAsync(int invoiceId);
         Task<List<Invoice>> GetAllInvoicesAsync();
+
+        Task<IEnumerable<OpenInvoiceByTenantDto>> GetAllInvoicesByTenantIdAsync(int TenantId);
         Task<bool> CreateInvoiceAsync(CreateInvoiceDto invoice);
         Task<bool>UpdateInvoiceAsync(InvoiceDto invoice);
         Task<bool>DeleteInvoiceAsync(int invoiceId);

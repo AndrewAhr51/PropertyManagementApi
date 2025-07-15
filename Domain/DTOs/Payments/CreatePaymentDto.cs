@@ -17,7 +17,9 @@ namespace PropertyManagementAPI.Domain.DTOs.Payments
         public int? TenantId { get; set; }
 
         public int? OwnerId { get; set; }
-          
+
+        public string Currency { get; set; } = "USD"; // default to USD, can be overridden  
+
         [Required(ErrorMessage = "Payment method is required.")]
         [RegularExpression("^(Card|Check|Transfer)$", ErrorMessage = "Invalid payment method.")]
         public string PaymentMethod { get; set; }

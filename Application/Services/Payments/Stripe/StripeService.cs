@@ -41,7 +41,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.Stripe
             return await service.CreateAsync(options);
         }
 
-        public async Task<StripePaymentResponseDto> ProcessStripePaymentIntentAsync(CreateStripeDto dto)
+        public async Task<StripePaymentResponseDto> ProcessStripePaymentAsync(CreateStripeDto dto)
         {
             StripePaymentResponseDto stripeDto = new StripePaymentResponseDto();
             try

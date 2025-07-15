@@ -35,9 +35,9 @@ namespace PropertyManagementAPI.API.Controllers
 
         // 1️⃣ Step 1: Initialize the order (CreatePayPalOrderAsync)
         [HttpPost("initialize")]
-        public async Task<ActionResult<PayPalPaymentResponseDto>> InitializePayPalOrderAsync([FromBody] CreatePayPalDto dto)
+        public async Task<ActionResult<PayPalPaymentResponseDto>> InitializePayPal([FromBody] CreatePayPalDto dto)
         {
-            var result = await _payPalService.InitializePayPalOrderAsync(dto);
+            var result = await _payPalService.InitializePayPalAsync(dto);
 
             if (string.IsNullOrWhiteSpace(result?.ApprovalLink))
                 return BadRequest(new { error = "Approval link not returned by PayPal." });

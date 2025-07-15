@@ -16,7 +16,7 @@ namespace PropertyManagementAPI.Application.Services.Payments
             _client = client;
         }
 
-        public async Task<PayPalOrderResult> CreatePayPalOrderAsync(decimal amount, string currency, Invoice invoice, string idempotencyKey)
+        public async Task<PayPalOrderResult> InitializePayPalOrderAsync(decimal amount, string currency, Invoice invoice, string idempotencyKey)
         {
             var orderRequest = new OrdersCreateRequest();
             orderRequest.Prefer("return=representation");
