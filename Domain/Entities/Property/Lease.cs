@@ -25,9 +25,6 @@ namespace PropertyManagementAPI.Domain.Entities.Property
         public DateTime? EndDate { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal Amount { get; set; }
-
-        [Column(TypeName = "decimal(10,2)")]
         public decimal DepositAmount { get; set; }
 
         public bool DepositPaid { get; set; } = false;
