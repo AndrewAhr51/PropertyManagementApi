@@ -39,6 +39,24 @@ namespace PropertyManagementAPI.API.Controllers
             }
         }
 
+        // 🔹 Get all invoices for a tenant
+        [HttpGet("get-all-invoices-by-tenantid/{tenantId}")]
+        public async Task<ActionResult<OpenInvoiceByTenantDto>> GetAllInvoicesByTenantId(int tenantId)
+        {
+            try
+            {
+                _logger.LogInformation("API Request: Retrieving all invoices");
+                var invoicesListByTenant = await _invoiceService.GetAllInvoicesByTenantIdAsync(tenantId);
+                _logger.LogInformation("Audit: Retrieved {InvoiceCount} invoice(s)", invoicesListByTenant);
+                return Ok(invoicesListByTenant);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving tenants invoices");
+                return StatusCode(500, "Failed to retrieve teanants invoices");
+            }
+        }
+
         // 🔹 Get invoice by ID
         [HttpGet("get-invoice-by-invoiceid/{invoiceId}")]
         public async Task<ActionResult<InvoiceDto>> GetInvoice(int invoiceId)

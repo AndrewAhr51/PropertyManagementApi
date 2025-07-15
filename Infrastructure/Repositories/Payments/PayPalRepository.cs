@@ -37,7 +37,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
 
             var idempotencyKey = $"paypal:{invoice.TenantId}:{dto.InvoiceId}:{DateTime.UtcNow:yyyyMMddHHmmssfff}";
 
-            var orderResult = await _paymentProcessor.CreatePayPalOrderAsync(invoice.Amount, "USD", invoice, idempotencyKey);
+            var orderResult = await _paymentProcessor.InitializePayPalOrderAsync(invoice.Amount, "USD", invoice, idempotencyKey);
 
             await _auditLogger.LogAsync(
                 action: "CreatePayPalOrder",

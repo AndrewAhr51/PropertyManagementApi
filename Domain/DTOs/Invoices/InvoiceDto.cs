@@ -36,7 +36,7 @@ namespace PropertyManagementAPI.Domain.DTOs.Invoices
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
 
-        public ICollection<Stripe.InvoiceLineItem> LineItemCollection { get; set; } = new List<Stripe.InvoiceLineItem>();
+        public ICollection<InvoiceLineItem> LineItemCollection { get; set; } = new List<InvoiceLineItem>();
       
         public List<InvoiceLineItemDto> LineItems { get; internal set; }
     }

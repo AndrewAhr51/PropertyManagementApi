@@ -7,7 +7,8 @@ namespace PropertyManagementAPI.Application.Services.Invoices
     public interface IInvoiceService
     {
         Task<InvoiceDto?> GetInvoiceByIdAsync(int invoiceId);
-        Task<List<InvoiceDto>> GetAllInvoicesAsync();        
+        Task<List<InvoiceDto>> GetAllInvoicesAsync();
+        Task<IEnumerable<OpenInvoiceByTenantDto>> GetAllInvoicesByTenantIdAsync(int tenantId);
         Task<bool> CreateInvoiceAsync(CreateInvoiceDto invoiceDto);
         Task<bool> UpdateInvoiceAsync(InvoiceDto invoiceDto);
         Task<bool> DeleteInvoiceAsync(int invoiceId);    

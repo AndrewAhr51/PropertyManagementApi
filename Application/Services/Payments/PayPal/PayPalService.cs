@@ -31,13 +31,13 @@ namespace PropertyManagementAPI.Application.Services.Payments.PayPal
         }
 
         //Step 1: Initialize PayPal Order
-        public async Task<PayPalPaymentResponseDto> InitializePayPalOrderAsync(CreatePayPalDto dto)
+        public async Task<PayPalPaymentResponseDto> InitializePayPalAsync(CreatePayPalDto dto)
         {
             Invoice invoice = new Invoice(); // Initialize to avoid null reference in case of exception
             try
             {
                 if (dto == null)
-                    throw new ArgumentNullException(nameof(dto), "CreatePayPalDto cannot be null");
+                    throw new ArgumentNullException(nameof(dto), "InitializePayPalAsync cannot be null");
                 if (dto.InvoiceId <= 0)
                     throw new ArgumentException("Invalid InvoiceId", nameof(dto.InvoiceId));
 
@@ -48,7 +48,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.PayPal
 
                 var idempotencyKey = HashHelper.Sha256($"paypal:{invoice.TenantId}:{dto.InvoiceId}");
 
-                var orderResult = await _payPalPaymentProcessor.CreatePayPalOrderAsync(invoice.Amount, "USD", invoice, idempotencyKey);
+                var orderResult = await _payPalPaymentProcessor.InitializePayPalOrderAsync(invoice.Amount, "USD", invoice, idempotencyKey);
 
                 var responseDto = new PayPalPaymentResponseDto
                 {
@@ -120,7 +120,7 @@ namespace PropertyManagementAPI.Application.Services.Payments.PayPal
         {
             try
             {
-                return await _payPalPaymentProcessor.CreatePayPalOrderAsync(amount, currency, invoice, idempotencyKey);
+                return await _payPalPaymentProcessor.InitializePayPalOrderAsync(amount, currency, invoice, idempotencyKey);
             }
             catch (Exception ex)
             {

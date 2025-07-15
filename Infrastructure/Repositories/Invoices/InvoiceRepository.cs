@@ -65,7 +65,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return null;
             }
         }
-  
+
         public async Task<InvoiceDto?> GetInvoiceAsync(int invoiceId)
         {
             try
@@ -132,6 +132,33 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             {
                 _logger.LogError(ex, "Error occurred while retrieving all invoices.");
                 return new List<Invoice>();
+            }
+        }
+
+        public async Task<IEnumerable<OpenInvoiceByTenantDto>> GetAllInvoicesByTenantIdAsync(int tenantId)
+        {
+            try
+            {
+                _logger.LogInformation("Retrieving all invoices for the {tenantId} from database...", tenantId);
+
+                var invoices = await _context.Invoices
+                    .Include(i => i.LineItems)
+                        .ThenInclude(li => li.Metadata)
+                    .Where(i => i.TenantId == tenantId)
+                    .ToListAsync();
+
+                var invoiceByTenantList = InvoiceMapper.OpenInvoiceByTenantList(tenantId, invoices);
+
+                _logger.LogInformation("Retrieved {InvoiceCount} invoice(s).", invoices.Count);
+
+                // Fix: Wrap single object in a collection for correct return type
+                return new List<OpenInvoiceByTenantDto> { invoiceByTenantList };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving all invoices.");
+                // Fix: Return an empty collection for correct return type
+                return Enumerable.Empty<OpenInvoiceByTenantDto>();
             }
         }
 
@@ -673,7 +700,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             }
         }
 
-    
+
         private async Task UpdateInvoiceTotalAsync(int invoiceId)
         {
             try

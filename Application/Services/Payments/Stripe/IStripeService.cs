@@ -9,6 +9,6 @@ namespace PropertyManagementAPI.Application.Services.Payments.Stripe
 
         Task<StripePaymentResponseDto> CreateStripePaymentIntentAsync(CreateStripeDto dto);
 
-        Task<StripePaymentResponseDto> ProcessStripePaymentIntentAsync(CreateStripeDto dto);
+        Task<StripePaymentResponseDto> ProcessStripePaymentAsync(CreateStripeDto dto);
     }
 }
