@@ -635,13 +635,24 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
         {
             try
             {
-                var lease = await _context.Leases
-                    .AsNoTracking()
-                    .Where(l => l.PropertyId == invoice.PropertyId && l.IsActive)
-                    .OrderByDescending(l => l.StartDate)
-                    .FirstOrDefaultAsync();
+                var leaseWithPricing = await (
+                    from lease in _context.Leases.AsNoTracking()
+                    join pricing in _context.Pricing.AsNoTracking()
+                        on lease.PropertyId equals pricing.PropertyId
+                    where lease.PropertyId == invoice.PropertyId && lease.IsActive
+                    orderby lease.StartDate descending
+                    select new
+                    {
+                        lease.LeaseId,
+                        lease.StartDate,
+                        lease.EndDate,
+                        lease.IsActive,
+                        lease.Discount,
+                        pricing.RentalAmount
+                    }
+                ).FirstOrDefaultAsync();
 
-                if (lease == null)
+                if (leaseWithPricing == null)
                 {
                     _logger.LogWarning("No active lease found for PropertyId: {PropertyId}", invoice.PropertyId);
                     return new InvoiceInfoDto
@@ -653,21 +664,19 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     };
                 }
 
-                var discount = lease.Amount * (lease.Discount / 100m);
-                var baseRent = lease.Amount - discount;
+                var discount = leaseWithPricing.RentalAmount * (leaseWithPricing.Discount / 100m);
+                var baseRent = leaseWithPricing.RentalAmount - discount;
 
                 var previous = await _context.Invoices
-                    .Where(r => r.PropertyId == invoice.PropertyId &&
-                                r.Status != "Paid" &&
-                                r.DueDate.Month == invoice.DueDate.Month &&
-                                r.DueDate.Year == invoice.DueDate.Year)
+                    .Where(r => r.PropertyId == invoice.PropertyId)
+                    .OrderByDescending(r => r.CreatedDate) // or .InvoiceDate
                     .FirstOrDefaultAsync();
 
-                decimal previousAmount = previous?.Amount ?? 0m;
+                decimal previousAmount = previous?.LastMonthDue ?? 0m;
                 decimal lastMonthDue = previous?.LastMonthDue ?? 0m;
                 decimal lastMonthPaid = previous?.LastMonthPaid ?? 0m;
 
-                if (previous != null)
+                if (previous != null && lastMonthPaid < lastMonthDue)
                 {
                     previousAmount += 50; // Fixed late fee, adjust as needed
                     _logger.LogInformation("Applied late fee to InvoiceId: {InvoiceId}. Total now: {Balance}",
@@ -676,7 +685,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
                 var result = new InvoiceInfoDto
                 {
-                    Amount = lease.Amount,
+                    Amount = leaseWithPricing.RentalAmount,
                     CurrentBalance = previousAmount,
                     LastMonthDue = lastMonthDue,
                     LastMonthPaid = lastMonthPaid
