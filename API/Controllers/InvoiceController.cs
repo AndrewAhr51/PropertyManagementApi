@@ -58,7 +58,7 @@ namespace PropertyManagementAPI.API.Controllers
             }
         }
 
-        // 🔹 Get all invoices for a tenant
+        // 🔹 Get invoices for a tenant/invoice id
         [HttpGet("get-all-invoices-by-tenantid-invoiceid/{tenantId}/{invoiceId}")]
         public async Task<ActionResult<OpenInvoiceByTenantDto>> GetInvoiceByTenantIdandInvoiceId(int tenantId, int invoiceId)
         {
