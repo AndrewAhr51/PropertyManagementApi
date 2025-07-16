@@ -460,8 +460,10 @@ builder.Services.Configure<QuickBooksAuthSettings>(
 builder.Services.Configure<PayPalSettings>(
     builder.Configuration.GetSection("PayPal"));
 
-builder.Services.Configure<StripeSettings>(
-    builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<StripeOptions>(builder.Configuration.GetSection("Stripe"));
+
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IOptions<StripeOptions>>().Value);
 
 builder.Services.Configure<EncryptionDocSettings>(
     builder.Configuration.GetSection("EncryptionDocSettings"));

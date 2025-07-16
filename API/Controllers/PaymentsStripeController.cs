@@ -7,6 +7,7 @@ using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.DTOs.Stripe;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
+using PropertyManagementAPI.Infrastructure.Payments;
 using Stripe;
 using Stripe.Checkout;
 
@@ -35,6 +36,13 @@ namespace PropertyManagementAPI.API.Controllers
             _stripeService = stripeService;
             _stripeOptions = stripeOptions;
         }
+
+        [HttpGet("ping")]
+        public IActionResult Ping()
+        {
+            return Ok("Stripe controller is alive");
+        }
+
         [HttpPost("stripe-payment")]
         public async Task<IActionResult> ProcessStripePaymentAsync([FromBody] CreateStripeDto dto)
         {
@@ -53,47 +61,71 @@ namespace PropertyManagementAPI.API.Controllers
         [HttpPost("create-checkout-session")]
         public IActionResult CreateCheckoutSession([FromBody] CreateStripeDto dto)
         {
-            var options = new SessionCreateOptions
+            _logger.LogInformation("🔄 Incoming Stripe DTO: {@Dto}", dto);
+
+            try
             {
-                PaymentMethodTypes = new List<string> { "card" },
-                Mode = "payment",
-                LineItems = new List<SessionLineItemOptions>
-        {
-            new SessionLineItemOptions
-            {
-                PriceData = new SessionLineItemPriceDataOptions
+                if (dto.Amount <= 0)
                 {
-                    Currency = "usd",
-                    UnitAmount = (long)(dto.Amount * 100), // Convert dollars to cents
-                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    _logger.LogWarning("❌ Invalid amount provided: {Amount}", dto.Amount);
+                    return BadRequest("Amount must be greater than zero.");
+                }
+
+                var options = new SessionCreateOptions
+                {
+                    PaymentMethodTypes = new List<string> { "card" },
+                    Mode = "payment",
+                    LineItems = new List<SessionLineItemOptions>
+            {
+                new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
                     {
-                        Name = $"Invoice #{dto.InvoiceId}",
-                        Description = $"Tenant: {dto.TenantId}, Property: {dto.PropertyId}"
-                    }
-                },
-                Quantity = 1
+                        Currency = "usd",
+                        UnitAmount = (long)(dto.Amount * 100), // Stripe expects cents
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = $"Invoice #{dto.InvoiceId}",
+                            Description = $"Tenant: {dto.TenantId}, Property: {dto.PropertyId}"
+                        }
+                    },
+                    Quantity = 1
+                }
+            },
+                    SuccessUrl = "https://localhost:4200/payment-success",
+                    CancelUrl = "https://localhost:4200/payment-cancel",
+                    Metadata = new Dictionary<string, string>
+            {
+                { "invoiceId", dto.InvoiceId.ToString() },
+                { "tenantId", dto.TenantId.ToString() },
+                { "propertyId", dto.PropertyId.ToString() }
             }
-        },
-                SuccessUrl = "https://yourapp.com/payment-success",
-                CancelUrl = "https://yourapp.com/payment-cancel",
-                Metadata = new Dictionary<string, string>
-        {
-            { "invoiceId", dto.InvoiceId.ToString() },
-            { "tenantId", dto.TenantId.ToString() },
-            { "propertyId", dto.PropertyId.ToString() }
-        }
-            };
+                };
 
-            var service = new SessionService();
-            Session session = service.Create(options);
+                var service = new SessionService();
+                var session = service.Create(options);
 
-            return Ok(new { checkoutUrl = session.Url });
+                return Ok(new CheckoutUrlDto
+                {
+                    checkoutUrl = session.Url
+                });
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "💥 Stripe API error during checkout session creation.");
+                return StatusCode(500, $"Stripe error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "💥 Unexpected error during Stripe checkout session.");
+                return StatusCode(500, "Internal server error");
+            }
         }
-                
+
         [HttpPost("stripe-webhook")]
         public async Task<IActionResult> StripeWebhook()
         {
-           
+
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
             var stripeEvent = EventUtility.ConstructEvent(
                 json, Request.Headers["Stripe-Signature"], _stripeOptions.ClientSecret
@@ -102,7 +134,7 @@ namespace PropertyManagementAPI.API.Controllers
             var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
             var metadata = paymentIntent?.Metadata;
 
-            
+
 
             if (stripeEvent.Type == "payment_intent.succeeded")
             {
