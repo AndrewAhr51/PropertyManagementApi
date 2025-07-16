@@ -6,6 +6,8 @@ namespace PropertyManagementAPI.Infrastructure.Payments
 
 public class StripeOptions
 {
+    public  string ClientSecret { get; set; }
+
     [Required]
     public string SecretKey { get; set; }
 
