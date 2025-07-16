@@ -1,9 +1,11 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
 using Intuit.Ipp.Data;
 using Intuit.Ipp.WebhooksService;
+using Microsoft.AspNetCore.SignalR;
 using PropertyManagementAPI.Domain.DTOs.Invoices;
 using PropertyManagementAPI.Domain.DTOs.Invoices.Mappers;
 using PropertyManagementAPI.Domain.Entities.Invoices;
+using PropertyManagementAPI.Hubs;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using Stripe;
 using Invoice = PropertyManagementAPI.Domain.Entities.Invoices.Invoice;
@@ -14,9 +16,14 @@ namespace PropertyManagementAPI.Application.Services.Invoices
     public class InvoiceService : IInvoiceService
     {
         private readonly IInvoiceRepository _inventoryRepository;
+        private readonly IHubContext<PaymentsHub> _hubContext;
 
-        public InvoiceService(IInvoiceRepository repo) => _inventoryRepository = repo;
-
+        public InvoiceService(IHubContext<PaymentsHub> hubContext, IInvoiceRepository repo)
+        {
+            _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
+            _inventoryRepository = repo ?? throw new ArgumentNullException(nameof(repo));
+        }
+       
         public async Task<InvoiceDto> GetInvoiceByIdAsync(int id)
         {
             var invoice = await _inventoryRepository.GetInvoiceByIdAsync(id);
@@ -52,48 +59,24 @@ namespace PropertyManagementAPI.Application.Services.Invoices
             return dto;
         }
 
+        public async Task<InvoiceDto?> GetInvoiceByTenantIdandInvoiceIdIdAsync(int tenant, int invoiceId)
+        {
+            var invoice = await _inventoryRepository.GetInvoiceByTenantIdandInvoiceIdAsync(tenant, invoiceId);
+            if (invoice == null)
+            { 
+                return null;
+            }
+           
+            return invoice;
+        }
+
         public async Task<List<InvoiceDto>> GetAllInvoicesAsync()
         {
             var invoices = await _inventoryRepository.GetAllInvoicesAsync();
 
-            return invoices.Select(invoice => new InvoiceDto
-            {
-                InvoiceId = invoice.InvoiceId,
-                TenantName = invoice.TenantName,
-                Email = invoice.Email,
-                Amount = invoice.Amount,
-                LastMonthDue = invoice.LastMonthDue,
-                LastMonthPaid = invoice.LastMonthPaid,
-                RentMonth = invoice.RentMonth,
-                RentYear = invoice.RentYear,
-                PropertyId = invoice.PropertyId,
-                PropertyName = invoice.PropertyName,
-                TenantId = invoice.TenantId,
-                OwnerId = invoice.OwnerId,
-                DueDate = invoice.DueDate,
-                IsPaid = invoice.IsPaid,
-                Status = invoice.Status,
-                Notes = invoice.Notes,
-                CreatedBy = invoice.CreatedBy,
-                CreatedDate = invoice.CreatedDate,
-                ModifiedDate = invoice.ModifiedDate,
-
-                LineItems = invoice.LineItems?.Select(li => new InvoiceLineItemDto
-                {
-                    LineItemId = li.LineItemId,
-                    InvoiceId = li.InvoiceId,
-                    LineItemTypeId = li.LineItemTypeId,
-                    Description = li.Description,
-                    Amount = li.Amount,
-                    Metadata = (li.Metadata ?? new List<InvoiceLineItemMetadata>())
-                        .Select(m => new InvoiceLineItemMetadataDto
-                        {
-                            MetaKey = m.MetaKey,
-                            MetaValue = m.MetaValue
-                        }).ToList()
-                }).ToList() ?? new List<InvoiceLineItemDto>()
-            }).ToList();
+            return invoices;
         }
+   
 
         public async Task<IEnumerable<OpenInvoiceByTenantDto>> GetAllInvoicesByTenantIdAsync(int tenantId)
         {

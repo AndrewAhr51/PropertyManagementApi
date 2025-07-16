@@ -5,9 +5,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 {
     public interface IInvoiceRepository
     {
-        Task<Invoice?> GetInvoiceByIdAsync(int invoiceId);
-        Task<List<Invoice>> GetAllInvoicesAsync();
-
+        Task<Invoice> GetInvoiceByIdAsync(int invoiceId);
+        Task<InvoiceDto?> GetInvoiceByTenantIdandInvoiceIdAsync(int tenant, int invoiceId);
+        Task<List<InvoiceDto>> GetAllInvoicesAsync();
         Task<IEnumerable<OpenInvoiceByTenantDto>> GetAllInvoicesByTenantIdAsync(int TenantId);
         Task<bool> CreateInvoiceAsync(CreateInvoiceDto invoice);
         Task<bool>UpdateInvoiceAsync(InvoiceDto invoice);

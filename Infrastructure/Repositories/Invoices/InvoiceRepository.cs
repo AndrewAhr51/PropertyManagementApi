@@ -34,7 +34,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             _emailService = emailService;
         }
 
-        public async Task<Invoice?> GetInvoiceByIdAsync(int invoiceId)
+        public async Task<Invoice> GetInvoiceByIdAsync(int invoiceId)
         {
             try
             {
@@ -58,6 +58,56 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                     invoiceId, invoice.LineItems?.Count ?? 0);
 
                 return invoice;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ An error occurred while retrieving invoice ID {InvoiceId}", invoiceId);
+                return null;
+            }
+        }
+
+        public async Task<InvoiceDto> GetInvoiceByTenantIdandInvoiceIdAsync(int tenantId, int invoiceId)
+        {
+            try
+            {
+                _logger.LogInformation("🔎 Attempting to fetch invoice with ID {InvoiceId}", invoiceId);
+
+                var invoice = await _context.Invoices
+                   .Include(i => i.LineItems)
+                   .ThenInclude(li => li.InvoiceType)
+                   .Include(i => i.LineItems)
+                   .ThenInclude(li => li.Metadata)
+                  .AsNoTracking()
+                  .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId && i.TenantId == tenantId);
+
+                if (invoice is null)
+                {
+                    _logger.LogWarning("⚠️ Invoice with ID {InvoiceId} not found", invoiceId);
+                    return null;
+                }
+
+                _logger.LogInformation("✅ Invoice {InvoiceId} retrieved. LineItems: {LineItemCount}",
+                    invoiceId, invoice.LineItems?.Count ?? 0);
+
+                // Convert Invoice to InvoiceDto
+                var invoiceDto = new InvoiceDto
+                {
+                    InvoiceId = invoice.InvoiceId,
+                    TenantName = invoice.TenantName,
+                    Email = invoice.Email,
+                    Amount = invoice.Amount,
+                    DueDate = invoice.DueDate,
+                    IsPaid = invoice.IsPaid,
+                    Status = invoice.Status,
+                    LineItems = invoice.LineItems.Select(li => new InvoiceLineItemDto
+                    {
+                        LineItemId = li.LineItemId,
+                        Description = li.Description,
+                        Amount = li.Amount
+                    }).ToList()
+                };
+
+                return invoiceDto;
             }
             catch (Exception ex)
             {
@@ -116,22 +166,47 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             }
         }
 
-        public async Task<List<Invoice>> GetAllInvoicesAsync()
+        public async Task<List<InvoiceDto>> GetAllInvoicesAsync()
         {
             try
             {
-                _logger.LogInformation("Retrieving all invoices from database...");
+                _logger.LogInformation("Retrieving all invoices from the database...");
 
-                var invoices = await _context.Set<Invoice>().ToListAsync();
+                var invoices = await _context.Invoices
+                    .Include(i => i.LineItems)
+                    .ThenInclude(li => li.Metadata)
+                    .ToListAsync();
 
                 _logger.LogInformation("Retrieved {InvoiceCount} invoice(s).", invoices.Count);
 
-                return invoices;
+                // Fix: Return the invoices list  
+                return invoices.Select(invoice => new InvoiceDto
+                {
+                    InvoiceId = invoice.InvoiceId,
+                    TenantName = invoice.TenantName,
+                    Email = invoice.Email,
+                    Amount = invoice.Amount,
+                    DueDate = invoice.DueDate,
+                    IsPaid = invoice.IsPaid,
+                    Status = invoice.Status,
+                    LineItems = invoice.LineItems.Select(li => new InvoiceLineItemDto
+                    {
+                        LineItemId = li.LineItemId,
+                        Description = li.Description,
+                        Amount = li.Amount,
+                        Metadata = li.Metadata?.Select(m => new InvoiceLineItemMetadataDto
+                        {
+                            MetaKey = m.MetaKey,
+                            MetaValue = m.MetaValue
+                        }).ToList()
+                    }).ToList()
+                }).ToList();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while retrieving all invoices.");
-                return new List<Invoice>();
+                // Fix: Return an empty list for correct return type  
+                return new List<InvoiceDto>();
             }
         }
 
@@ -440,15 +515,15 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
 
             try
             {
-                var invoiceTypeId = await GetLineItemTypeIdAsync(dto.LineItemTypeName);
+                var invoiceTypeId = await GetLineItemTypeIdAsync(dto.lineItemTypeName);
 
                 var entity = new InvoiceLineItem
                 {
-                    InvoiceId = dto.InvoiceId,
+                    InvoiceId = dto.invoiceId,
                     LineItemTypeId = invoiceTypeId,
-                    Description = dto.Description ?? string.Empty,
-                    Amount = dto.Amount,
-                    SortOrder = dto.SortOrder ?? 0,
+                    Description = dto.description ?? string.Empty,
+                    Amount = dto.amount,
+                    SortOrder = dto.sortOrder ?? 0,
                     IsDeleted = false,
                     CreatedDate = DateTime.UtcNow,
                     ModifiedDate = DateTime.UtcNow,
@@ -483,7 +558,7 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating LineItem for InvoiceId: {InvoiceId}", dto.InvoiceId);
+                _logger.LogError(ex, "Error creating LineItem for InvoiceId: {InvoiceId}", dto.invoiceId);
                 throw; // optional: rethrow or handle gracefully depending on your design
             }
         }
@@ -501,9 +576,9 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Invoices
                 return false;
 
             // 🔧 Update fields
-            entity.LineItemTypeId = await GetLineItemTypeIdAsync(dto.LineItemTypeName);
-            entity.Description = dto.Description ?? string.Empty;
-            entity.Amount = dto.Amount;
+            entity.LineItemTypeId = await GetLineItemTypeIdAsync(dto.lineItemTypeName);
+            entity.Description = dto.description ?? string.Empty;
+            entity.Amount = dto.amount;
 
             // 🔁 Replace metadata
             entity.Metadata = dto.Metadata?.Select(m => new InvoiceLineItemMetadata

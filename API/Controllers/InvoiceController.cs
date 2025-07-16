@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PropertyManagementAPI.Application.Services.Invoices;
 using PropertyManagementAPI.Domain.DTOs.Invoices;
 using PropertyManagementAPI.Domain.DTOs.Invoices.Mappers;
-using PropertyManagementAPI.Application.Services.Invoices;
+using PropertyManagementAPI.Domain.Entities.User;
 
 namespace PropertyManagementAPI.API.Controllers
 {
@@ -47,6 +48,24 @@ namespace PropertyManagementAPI.API.Controllers
             {
                 _logger.LogInformation("API Request: Retrieving all invoices");
                 var invoicesListByTenant = await _invoiceService.GetAllInvoicesByTenantIdAsync(tenantId);
+                _logger.LogInformation("Audit: Retrieved {InvoiceCount} invoice(s)", invoicesListByTenant);
+                return Ok(invoicesListByTenant);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving tenants invoices");
+                return StatusCode(500, "Failed to retrieve teanants invoices");
+            }
+        }
+
+        // 🔹 Get all invoices for a tenant
+        [HttpGet("get-all-invoices-by-tenantid-invoiceid/{tenantId}/{invoiceId}")]
+        public async Task<ActionResult<OpenInvoiceByTenantDto>> GetInvoiceByTenantIdandInvoiceId(int tenantId, int invoiceId)
+        {
+            try
+            {
+                _logger.LogInformation("API Request: Retrieving invoice for tenant with invoiceid");
+                var invoicesListByTenant = await _invoiceService.GetInvoiceByTenantIdandInvoiceIdIdAsync(tenantId, invoiceId);
                 _logger.LogInformation("Audit: Retrieved {InvoiceCount} invoice(s)", invoicesListByTenant);
                 return Ok(invoicesListByTenant);
             }
@@ -172,7 +191,7 @@ namespace PropertyManagementAPI.API.Controllers
         public async Task<IActionResult> CreateLineItem([FromBody] CreateInvoiceLineItemDto dto)
         {
            
-            _logger.LogInformation("API Request: Creating line item for InvoiceId {InvoiceId}", dto.InvoiceId);
+            _logger.LogInformation("API Request: Creating line item for InvoiceId {InvoiceId}", dto.invoiceId);
 
             try
             {
@@ -182,7 +201,7 @@ namespace PropertyManagementAPI.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating line item for InvoiceId {InvoiceId}", dto.InvoiceId);
+                _logger.LogError(ex, "Error creating line item for InvoiceId {InvoiceId}", dto.invoiceId);
                 return StatusCode(500, "Failed to create line item");
             }
         }

@@ -39,6 +39,7 @@ using PropertyManagementAPI.Application.Services.Users;
 using PropertyManagementAPI.Application.Services.Vendors;
 using PropertyManagementAPI.Common.Helpers;
 using PropertyManagementAPI.Domain.DTOs.Invoices;
+using PropertyManagementAPI.Hubs;
 using PropertyManagementAPI.Infrastructure.Auditing;
 //
 using PropertyManagementAPI.Infrastructure.Data;
@@ -437,6 +438,19 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", builder =>
+    {
+        builder
+            .WithOrigins("http://localhost:4200") // or your frontend URL
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // 👈 Needed for SignalR (allows cookies/WebSockets)
+    });
+});
+
 builder.Services.Configure<PlaidSettings>(
     builder.Configuration.GetSection("Plaid"));
 
@@ -451,6 +465,8 @@ builder.Services.Configure<StripeSettings>(
 
 builder.Services.Configure<EncryptionDocSettings>(
     builder.Configuration.GetSection("EncryptionDocSettings"));
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -476,6 +492,8 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Main API");
     });
 }
+
+app.MapHub<PaymentsHub>("/paymentsHub");
 
 app.MapControllers();
 app.Run();
