@@ -52,5 +52,6 @@ namespace PropertyManagementAPI.Common.Helpers
                 }).ToList()
             };
         }
+
     }
 }

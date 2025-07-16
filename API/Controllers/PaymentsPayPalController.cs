@@ -34,7 +34,7 @@ namespace PropertyManagementAPI.API.Controllers
         }
 
         // 1️⃣ Step 1: Initialize the order (CreatePayPalOrderAsync)
-        [HttpPost("initialize")]
+        [HttpPost("initializePayPal")]
         public async Task<ActionResult<PayPalPaymentResponseDto>> InitializePayPal([FromBody] CreatePayPalDto dto)
         {
             var result = await _payPalService.InitializePayPalAsync(dto);

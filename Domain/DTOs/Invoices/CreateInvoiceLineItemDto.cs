@@ -2,11 +2,11 @@
 {
     public class CreateInvoiceLineItemDto
     {
-        public int InvoiceId { get; set; }
-        public string LineItemTypeName { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public decimal Amount { get; set; }
-        public int? SortOrder { get; set; } // ✅ Add this
+        public int invoiceId { get; set; }
+        public string lineItemTypeName { get; set; } = string.Empty;
+        public string? description { get; set; }
+        public decimal amount { get; set; }
+        public int? sortOrder { get; set; } // ✅ Add this
         public List<InvoiceLineItemMetadataDto>? Metadata { get; set; }
     }
 

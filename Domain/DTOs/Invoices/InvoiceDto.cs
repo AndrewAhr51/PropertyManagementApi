@@ -6,6 +6,8 @@ namespace PropertyManagementAPI.Domain.DTOs.Invoices
     public class InvoiceDto
     {
         public int InvoiceId { get; set; }
+
+        public string InvoiceType { get; set; } // e.g. Rent, Maintenance, etc.
         public int PropertyId { get; set; }
         public int TenantId { get; set; }
         public string? TenantName { get; set; }
@@ -31,13 +33,10 @@ namespace PropertyManagementAPI.Domain.DTOs.Invoices
         public bool IsPaid { get; set; }
         public string Status { get; set; } = "Pending";
         public string? Notes { get; set; }
-
         public string CreatedBy { get; set; } = "Web";
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
 
-        public ICollection<InvoiceLineItem> LineItemCollection { get; set; } = new List<InvoiceLineItem>();
-      
         public List<InvoiceLineItemDto> LineItems { get; internal set; }
     }
 }
