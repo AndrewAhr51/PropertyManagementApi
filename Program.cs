@@ -62,6 +62,7 @@ using PropertyManagementAPI.Infrastructure.Repositories.TenantAnnouncements;
 using PropertyManagementAPI.Infrastructure.Repositories.Tenants;
 using PropertyManagementAPI.Infrastructure.Repositories.Users;
 using PropertyManagementAPI.Infrastructure.Repositories.Vendors;
+using PropertyManagementAPI.Infrastructure.Webhooks;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -93,6 +94,7 @@ if (string.IsNullOrWhiteSpace(plaidEnvironment))
 
 var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
 var stripePublishableKey = builder.Configuration["Stripe:PublishableKey"];
+var stripeWebhookSecret = builder.Configuration["Stripe:WebhookSecret"];
 if (string.IsNullOrWhiteSpace(stripeSecretKey) || string.IsNullOrWhiteSpace(stripePublishableKey))
 {
     throw new InvalidOperationException("Missing Stripe credentials from environment.");
@@ -266,6 +268,7 @@ builder.Services.AddScoped<IStripeService, StripeService>(provider =>
         auditLogger
     );
 });
+builder.Services.AddScoped<IStripeWebhookQueue, StripeWebhookQueue>();
 
 builder.Services.AddSingleton<IOptions<PlaidOptions>>(
     Options.Create(new PlaidOptions

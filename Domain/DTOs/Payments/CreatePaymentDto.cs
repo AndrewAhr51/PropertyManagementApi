@@ -9,7 +9,7 @@ namespace PropertyManagementAPI.Domain.DTOs.Payments
         public decimal Amount { get; set; }
 
         [Required(ErrorMessage = "Payment date is required.")]
-        public DateTime PaidOn { get; set; }
+        public DateTime PaidOn { get; set; } = DateTime.Now;
 
         [Required(ErrorMessage = "Invoice ID is required.")]
         public int InvoiceId { get; set; }

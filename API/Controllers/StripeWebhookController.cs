@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using Stripe;
 using System.IO;
 using System.Threading.Tasks;
+using PropertyManagementAPI.Infrastructure.Webhooks;
 
 [ApiController]
 [Route("api/webhooks/stripe")]
@@ -27,11 +27,36 @@ public class StripeWebhookController : ControllerBase
         _webhookQueue = webhookQueue;
     }
 
+    [ApiController]
+    [Route("api/webhook-test")]
+    public class StripeWebhookTestController : ControllerBase
+    {
+        [HttpPost]
+        public async Task<IActionResult> Post()
+        {
+            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            //var secret = _config["Stripe:WebhookSecret"];
+            var secret = "whsec_09568ce978fc7dde1d1ab44e327e4b70f491b09c7a990e4b365082bcdfdf4f6e5";
+            var signature = Request.Headers["Stripe-Signature"];
+
+            try
+            {
+                var stripeEvent = EventUtility.ConstructEvent(json, signature, secret);
+                return Ok("✅ Event verified: " + stripeEvent.Type);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("❌ Verification failed: " + ex.Message);
+            }
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> HandleWebhook()
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
         var secret = _config["Stripe:WebhookSecret"];
+
         Event stripeEvent;
 
         try
