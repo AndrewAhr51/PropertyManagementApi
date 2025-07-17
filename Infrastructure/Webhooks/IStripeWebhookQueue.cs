@@ -1,9 +1,9 @@
 ﻿using Stripe;
-namespace PropertyManagementAPI.Application.Services.Payments.Stripe
+namespace PropertyManagementAPI.Infrastructure.Webhooks
 {
     public interface IStripeWebhookQueue
     {
         Task EnqueueAsync(Event stripeEvent, string rawJson);
-    }
 
+    }
 }
