@@ -103,8 +103,10 @@ namespace PropertyManagementAPI.API.Controllers
                             Quantity = 1
                         }
                     },
-                    SuccessUrl = $"{baseUrl}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
-                    CancelUrl = $"{baseUrl}/payment-cancel",
+                    SuccessUrl = "http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}",
+                    //SuccessUrl = $"{baseUrl}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+                    CancelUrl = "http://localhost:4200/payment-cancel",
+                    //CancelUrl = $"{baseUrl}/payment-cancel",
                     Metadata = new Dictionary<string, string>
                     {
                         { "invoiceId", dto.InvoiceId.ToString() },
@@ -116,9 +118,6 @@ namespace PropertyManagementAPI.API.Controllers
                 var service = new SessionService();
                 var session = service.Create(options);
 
-
-                Console.WriteLine($"SuccessUrl: {options.SuccessUrl} ");
-                Console.WriteLine($"CancelUrl: {options.CancelUrl} ");
                 return Ok(new CheckoutUrlDto { checkoutUrl = session.Url });
             }
             catch (StripeException ex)
