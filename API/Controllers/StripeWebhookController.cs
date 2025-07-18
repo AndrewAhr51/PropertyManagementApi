@@ -28,7 +28,6 @@ public class StripeWebhookController : ControllerBase
         _webhookQueue = webhookQueue;
     }
 
-
     [HttpPost]
     public async Task<IActionResult> HandleWebhook()
     {
@@ -73,12 +72,12 @@ public class StripeWebhookController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
 
-        // Optional: Skip irrelevant event types
-        var relevantEvents = new[] {
-        Events.CheckoutSessionCompleted,
-        Events.InvoicePaid,
-        Events.PaymentIntentSucceeded
-    };
+        var relevantEvents = new[]
+        {
+            Events.CheckoutSessionCompleted,
+            Events.InvoicePaid,
+            Events.PaymentIntentSucceeded
+        };
 
         if (!relevantEvents.Contains(stripeEvent.Type))
         {
@@ -86,9 +85,30 @@ public class StripeWebhookController : ControllerBase
             return Ok();
         }
 
-        // 📨 Dispatch to background queue
         await _webhookQueue.EnqueueAsync(stripeEvent, json);
 
+        // 🌐 Return redirect URL for Checkout Session Completed
+        if (stripeEvent.Type == Events.CheckoutSessionCompleted &&
+            stripeEvent.Data.Object is Stripe.Checkout.Session session &&
+            !string.IsNullOrEmpty(session.Id))
+        {
+            var redirectUrl = GetRedirectUrl(session.Id);
+            return Ok(new { redirectUrl });
+        }
+
         return Ok();
+    }
+
+    private string GetRedirectUrl(string sessionId)
+    {
+        var env = _config["ASPNETCORE_ENVIRONMENT"] ?? "Development";
+        var baseUrl = env switch
+        {
+            "Production" => "https://app.omnitenant.com",
+            "Staging" => "https://staging.omnitenant.com",
+            _ => "http://localhost:4200"
+        };
+
+        return $"{baseUrl}/payment-success?session_id={sessionId}";
     }
 }
