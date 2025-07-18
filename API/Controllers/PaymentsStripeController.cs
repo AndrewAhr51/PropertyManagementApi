@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Common.Helpers;
-using PropertyManagementAPI.Domain.DTOs.Invoices;
-using PropertyManagementAPI.Domain.DTOs.Payments;
 using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.DTOs.Stripe;
+using PropertyManagementAPI.Infrastructure.Payments;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
-using PropertyManagementAPI.Infrastructure.Payments;
 using Stripe;
 using Stripe.Checkout;
 
@@ -18,16 +16,24 @@ namespace PropertyManagementAPI.API.Controllers
     [Tags("Stripe-Payments")]
     [ApiExplorerSettings(GroupName = "v1")]
     [Produces("application/json")]
-    public class PaymentsStripeController : Controller
+    public class PaymentsStripeController : ControllerBase
     {
         private readonly IInvoiceRepository _invoiceRepository;
-        private readonly ILogger<StripeService> _logger;
+        private readonly ILogger<PaymentsStripeController> _logger;
         private readonly IPaymentRepository _paymentRepository;
         private readonly PaymentAuditLogger _auditLogger;
         private readonly IStripeService _stripeService;
         private readonly StripeOptions _stripeOptions;
-        public PaymentsStripeController(IInvoiceRepository invoiceRepository, ILogger<StripeService> logger,
-            IPaymentRepository paymentRepository, PaymentAuditLogger auditLogger, IStripeService stripeService, StripeOptions stripeOptions)
+        private readonly IConfiguration _config; // ✅ Added config
+
+        public PaymentsStripeController(
+            IInvoiceRepository invoiceRepository,
+            ILogger<PaymentsStripeController> logger,
+            IPaymentRepository paymentRepository,
+            PaymentAuditLogger auditLogger,
+            IStripeService stripeService,
+            StripeOptions stripeOptions,
+            IConfiguration config)
         {
             _invoiceRepository = invoiceRepository;
             _logger = logger;
@@ -35,13 +41,11 @@ namespace PropertyManagementAPI.API.Controllers
             _auditLogger = auditLogger;
             _stripeService = stripeService;
             _stripeOptions = stripeOptions;
+            _config = config;
         }
 
         [HttpGet("ping")]
-        public IActionResult Ping()
-        {
-            return Ok("Stripe controller is alive");
-        }
+        public IActionResult Ping() => Ok("Stripe controller is alive");
 
         [HttpPost("stripe-payment")]
         public async Task<IActionResult> ProcessStripePaymentAsync([FromBody] CreateStripeDto dto)
@@ -71,44 +75,48 @@ namespace PropertyManagementAPI.API.Controllers
                     return BadRequest("Amount must be greater than zero.");
                 }
 
+                var baseUrl = _config["AppSettings:PublicUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    _logger.LogError("❌ PublicUrl not configured.");
+                    return StatusCode(500, "Missing public redirect URL");
+                }
+
                 var options = new SessionCreateOptions
                 {
                     PaymentMethodTypes = new List<string> { "card" },
                     Mode = "payment",
                     LineItems = new List<SessionLineItemOptions>
-            {
-                new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
                     {
-                        Currency = "usd",
-                        UnitAmount = (long)(dto.Amount * 100), // Stripe expects cents
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        new SessionLineItemOptions
                         {
-                            Name = $"Invoice #{dto.InvoiceId}",
-                            Description = $"Tenant: {dto.TenantId}, Property: {dto.PropertyId}"
+                            PriceData = new SessionLineItemPriceDataOptions
+                            {
+                                Currency = "usd",
+                                UnitAmount = (long)(dto.Amount * 100), // Stripe expects cents
+                                ProductData = new SessionLineItemPriceDataProductDataOptions
+                                {
+                                    Name = $"Invoice #{dto.InvoiceId}",
+                                    Description = $"Tenant: {dto.TenantId}, Property: {dto.PropertyId}"
+                                }
+                            },
+                            Quantity = 1
                         }
                     },
-                    Quantity = 1
-                }
-            },
-                    SuccessUrl = "https://localhost:4200/payment-success",
-                    CancelUrl = "https://localhost:4200/payment-cancel",
+                    SuccessUrl = $"{baseUrl}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+                    CancelUrl = $"{baseUrl}/payment-cancel",
                     Metadata = new Dictionary<string, string>
-            {
-                { "invoiceId", dto.InvoiceId.ToString() },
-                { "tenantId", dto.TenantId.ToString() },
-                { "propertyId", dto.PropertyId.ToString() }
-            }
+                    {
+                        { "invoiceId", dto.InvoiceId.ToString() },
+                        { "tenantId", dto.TenantId.ToString() },
+                        { "propertyId", dto.PropertyId.ToString() }
+                    }
                 };
 
                 var service = new SessionService();
                 var session = service.Create(options);
 
-                return Ok(new CheckoutUrlDto
-                {
-                    checkoutUrl = session.Url
-                });
+                return Ok(new CheckoutUrlDto { checkoutUrl = session.Url });
             }
             catch (StripeException ex)
             {
@@ -120,49 +128,6 @@ namespace PropertyManagementAPI.API.Controllers
                 _logger.LogError(ex, "💥 Unexpected error during Stripe checkout session.");
                 return StatusCode(500, "Internal server error");
             }
-        }
-
-        [HttpPost("stripe-webhook")]
-        public async Task<IActionResult> StripeWebhook()
-        {
-
-            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-            var stripeEvent = EventUtility.ConstructEvent(
-                json, Request.Headers["Stripe-Signature"], _stripeOptions.ClientSecret
-            );
-
-            var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-            var metadata = paymentIntent?.Metadata;
-
-
-
-            if (stripeEvent.Type == "payment_intent.succeeded")
-            {
-                if (metadata != null && metadata.TryGetValue("invoiceId", out string invoiceIdStr) && int.TryParse(invoiceIdStr, out int invoiceId))
-                {
-                    // 🔧 Now you can query your database directly by invoiceId
-                    var invoice = await _invoiceRepository.GetInvoiceByIdAsync(invoiceId);
-                    if (invoice == null)
-                    {
-                        _logger.LogError("Invoice with ID {InvoiceId} not found.", invoiceId);
-                        return NotFound(new { message = "Invoice not found." });
-                    }
-                    // Update the invoice status to paid
-                    invoice.IsPaid = true;
-                    invoice.ModifiedDate = DateTime.UtcNow;
-                    await _paymentRepository.ProcessPaymentAsync(new CreatePaymentDto
-                    {
-                        InvoiceId = invoiceId,
-                        Amount = paymentIntent.AmountReceived / 100m, // Convert cents to dollars
-                        Currency = paymentIntent.Currency,
-                        PaidOn = DateTime.UtcNow,
-                        PaymentMethod = "Stripe",
-                        Metadata = metadata
-                    });
-                }
-            }
-
-            return Ok();
         }
     }
 }
