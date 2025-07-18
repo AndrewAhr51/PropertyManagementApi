@@ -5,6 +5,7 @@ using Stripe;
 using System.IO;
 using System.Threading.Tasks;
 using PropertyManagementAPI.Infrastructure.Webhooks;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
 
 [ApiController]
 [Route("api/webhooks/stripe")]
@@ -27,59 +28,67 @@ public class StripeWebhookController : ControllerBase
         _webhookQueue = webhookQueue;
     }
 
-    [ApiController]
-    [Route("api/webhook-test")]
-    public class StripeWebhookTestController : ControllerBase
-    {
-        [HttpPost]
-        public async Task<IActionResult> Post()
-        {
-            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-            //var secret = _config["Stripe:WebhookSecret"];
-            var secret = "whsec_09568ce978fc7dde1d1ab44e327e4b70f491b09c7a990e4b365082bcdfdf4f6e5";
-            var signature = Request.Headers["Stripe-Signature"];
-
-            try
-            {
-                var stripeEvent = EventUtility.ConstructEvent(json, signature, secret);
-                return Ok("✅ Event verified: " + stripeEvent.Type);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("❌ Verification failed: " + ex.Message);
-            }
-        }
-    }
 
     [HttpPost]
     public async Task<IActionResult> HandleWebhook()
     {
-        var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+        HttpContext.Request.EnableBuffering();
+
+        string json;
+        using (var reader = new StreamReader(HttpContext.Request.Body, leaveOpen: true))
+        {
+            json = await reader.ReadToEndAsync();
+            HttpContext.Request.Body.Position = 0;
+        }
+
+        var signature = Request.Headers["Stripe-Signature"];
         var secret = _config["Stripe:WebhookSecret"];
 
-        Event stripeEvent;
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            _logger.LogWarning("⚠️ Stripe webhook received empty payload.");
+            return BadRequest("Empty payload");
+        }
 
+        if (string.IsNullOrWhiteSpace(signature))
+        {
+            _logger.LogWarning("⚠️ Missing Stripe-Signature header.");
+            return BadRequest("Missing signature");
+        }
+
+        Event stripeEvent;
         try
         {
-            stripeEvent = EventUtility.ConstructEvent(
-                json,
-                Request.Headers["Stripe-Signature"],
-                secret
-            );
+            stripeEvent = EventUtility.ConstructEvent(json, signature, secret, throwOnApiVersionMismatch: false);
+            _logger.LogInformation("✅ Stripe event verified: {Type} ({Id})", stripeEvent.Type, stripeEvent.Id);
         }
         catch (StripeException ex)
         {
-            _logger.LogWarning(ex, "⚠️ Stripe signature verification failed.");
-            return BadRequest();
+            _logger.LogWarning(ex, "❌ Stripe signature verification failed.");
+            return BadRequest("Invalid signature");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "🔥 Unexpected error during Stripe webhook processing.");
-            return StatusCode(500);
+            _logger.LogError(ex, "🔥 Error processing Stripe webhook.");
+            return StatusCode(500, "Internal server error");
         }
 
-        // 🚀 Enqueue for async processing
+        // Optional: Skip irrelevant event types
+        var relevantEvents = new[] {
+        Events.CheckoutSessionCompleted,
+        Events.InvoicePaid,
+        Events.PaymentIntentSucceeded
+    };
+
+        if (!relevantEvents.Contains(stripeEvent.Type))
+        {
+            _logger.LogInformation("⏭️ Ignoring non-critical event: {Type}", stripeEvent.Type);
+            return Ok();
+        }
+
+        // 📨 Dispatch to background queue
         await _webhookQueue.EnqueueAsync(stripeEvent, json);
+
         return Ok();
     }
 }
