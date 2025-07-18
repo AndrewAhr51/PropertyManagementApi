@@ -116,6 +116,9 @@ namespace PropertyManagementAPI.API.Controllers
                 var service = new SessionService();
                 var session = service.Create(options);
 
+
+                Console.WriteLine($"SuccessUrl: {options.SuccessUrl} ");
+                Console.WriteLine($"CancelUrl: {options.CancelUrl} ");
                 return Ok(new CheckoutUrlDto { checkoutUrl = session.Url });
             }
             catch (StripeException ex)

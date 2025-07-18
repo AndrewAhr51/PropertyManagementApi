@@ -29,7 +29,7 @@ public class StripeWebhookController : ControllerBase
     }
 
 
-    [HttpPost("api/webhooks/stripe")]
+    [HttpPost]
     public async Task<IActionResult> HandleWebhook()
     {
         HttpContext.Request.EnableBuffering();

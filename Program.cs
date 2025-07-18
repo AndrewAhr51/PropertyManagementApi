@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PayPalCheckoutSdk.Core;
 using PdfSharp.Fonts;
+
 using PropertyManagementAPI.Application.Configuration;
 using PropertyManagementAPI.Application.Services.Accounting.Quickbooks;
 using PropertyManagementAPI.Application.Services.Auth;
@@ -478,6 +479,13 @@ var app = builder.Build();
 app.UseCors("AllowFrontend"); // ✅ Apply the specific CORS policy
 
 app.UseRouting();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers(); // your API routes
+});
+
+
 app.UseCorrelationId();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
