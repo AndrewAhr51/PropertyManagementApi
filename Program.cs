@@ -254,6 +254,7 @@ builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddScoped<IStripeWebhookService, StripeWebhookService>();
 builder.Services.AddScoped<IStripeRepository, StripeRepository>();
 builder.Services.AddSingleton<IStripeWebhookQueue, InMemoryStripeWebhookQueue>();
+builder.Services.AddSingleton<IWebhookDiagnosticsStore, InMemoryWebhookDiagnosticsStore>();
 builder.Services.AddHostedService<StripeWebhookWorker>();
 builder.Services.AddScoped<IStripeService, StripeService>(provider =>
 {
