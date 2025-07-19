@@ -3,6 +3,7 @@ using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 using Stripe;
+using Stripe.Checkout;
 
 namespace PropertyManagementAPI.Application.Services.Payments.Stripe
 {
@@ -122,6 +123,40 @@ namespace PropertyManagementAPI.Application.Services.Payments.Stripe
             return stripeDto;
 
         }
+
+        public async Task<StripeSessionDto?> GetSessionAsync(string sessionId)
+        {
+            try
+            {
+                var service = new SessionService();
+                var session = await service.GetAsync(sessionId);
+
+                return new StripeSessionDto
+                {
+                    SessionId = session.Id,
+                    AmountTotal = session.AmountTotal ?? 0,
+                    Currency = session.Currency,
+                    Metadata = new StripeSessionMetadata
+                    {
+                        InvoiceId = session.Metadata.TryGetValue("invoiceId", out var invoice) ? invoice : "—",
+                        TenantId = session.Metadata.TryGetValue("tenantId", out var tenant) ? tenant : "—",
+                        PropertyId = session.Metadata.TryGetValue("propertyId", out var property) ? property : "—",
+                        OwnerId = session.Metadata.TryGetValue("ownerId", out var owner) ? owner : "—"
+                    }
+                };
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "❌ Stripe error while fetching session: {SessionId}", sessionId);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "💥 Unexpected error while fetching session: {SessionId}", sessionId);
+                return null;
+            }
+        }
+
 
     }
 }

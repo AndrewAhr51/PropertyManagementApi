@@ -279,10 +279,12 @@ VALUES
 -- John Doe (exact match for $2200)
 INSERT INTO Payments (
     Amount, PaidOn, ReferenceNumber, InvoiceId, TenantId, OwnerId, PaymentType,
-    CardType, Last4Digits, AuthorizationCode, CheckNumber, CheckBankName, TransactionId
+    CardType, Last4Digits, AuthorizationCode, CheckNumber, CheckBankName, TransactionId,
+    StripeSessionId
 ) VALUES (
     2200.00, '2025-07-10', 'PAY-001', @InvoiceId1, 6, NULL, 'Card',
-    'Visa', '4242', 'AUTH1001', NULL, NULL, 'TXN1001'
+    'Visa', '4242', 'AUTH1001', NULL, NULL, 'TXN1001',
+    NULL -- or use a test session ID like 'cs_test_xyz123'
 );
 
 UPDATE InvoiceDocuments SET ispaid = TRUE WHERE invoiceid = 1;
