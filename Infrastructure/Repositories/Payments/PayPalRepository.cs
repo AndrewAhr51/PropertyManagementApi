@@ -98,56 +98,6 @@ namespace PropertyManagementAPI.Infrastructure.Repositories.Payments
             };
         }
 
-        public async Task<PayPalPaymentResponseDto> ProcessPayPalPaymentAsync(CreatePayPalDto dto)
-        {
-            PayPalPaymentResponseDto payPalResponse = new PayPalPaymentResponseDto();
-
-            try
-            {
-                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
-                if (invoice == null || invoice.TenantId != dto.TenantId)
-                    throw new InvalidOperationException("Invalid invoice or tenant mismatch.");
-
-                var cardPayment = await CapturePayPalCardPaymentAsync(dto);
-
-                if (invoice.OwnerId == 0) invoice.OwnerId = null;
-
-                payPalResponse.OrderId = cardPayment.OrderId;
-                payPalResponse.Status = cardPayment.Status;
-                payPalResponse.Amount = invoice.Amount;
-                payPalResponse.CurrencyCode = "USD";
-                payPalResponse.InvoiceId = dto.InvoiceId;
-                payPalResponse.InvoiceReference = invoice.ReferenceNumber;
-                
-                Payment payment = new CardPayment
-                {
-                    OrderId = cardPayment.OrderId,
-                    Status = cardPayment.Status,
-                    CardType = cardPayment.CardType,
-                    Last4Digits = cardPayment.Last4Digits,
-                    AuthorizationCode = cardPayment.AuthorizationCode,
-                    Amount = invoice.Amount,
-                    PaidOn = dto.PaymentDate,
-                    InvoiceId = dto.InvoiceId,
-                    TenantId = dto.TenantId,
-                    OwnerId = dto.OwnerId,
-                    PaymentType = "PayPal",
-                    ReferenceNumber = ReferenceNumberHelper.Generate("REF", invoice.PropertyId)
-                };
-
-                await FinalizePaymentAsync(payment, dto.Metadata);
-
-                _logger.LogInformation("Payment created successfully: {ReferenceNumber}", payment.ReferenceNumber);
-
-                return payPalResponse;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating payment for InvoiceId {InvoiceId}, TenantId {TenantId}", dto.InvoiceId, dto.TenantId);
-                throw;
-            }
-        }
-
         public async Task FinalizePaymentAsync(Payment payment, Dictionary<string, string> metadata)
         {
             await AddPaymentAsync(payment);
