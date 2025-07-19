@@ -8,6 +8,7 @@ using PropertyManagementAPI.Infrastructure.Repositories.Invoices;
 using PropertyManagementAPI.Infrastructure.Repositories.Payments;
 using Stripe;
 using Stripe.Checkout;
+using System.Threading.Tasks;
 
 namespace PropertyManagementAPI.API.Controllers
 {
@@ -63,7 +64,7 @@ namespace PropertyManagementAPI.API.Controllers
         }
 
         [HttpPost("create-checkout-session")]
-        public IActionResult CreateCheckoutSession([FromBody] CreateStripeDto dto)
+        public async Task<IActionResult> CreateCheckoutSession([FromBody] CreateStripeDto dto)
         {
             _logger.LogInformation("🔄 Incoming Stripe DTO: {@Dto}", dto);
 
@@ -80,6 +81,13 @@ namespace PropertyManagementAPI.API.Controllers
                 {
                     _logger.LogError("❌ PublicUrl not configured.");
                     return StatusCode(500, "Missing public redirect URL");
+                }
+
+                var invoice = await _invoiceRepository.GetInvoiceByIdAsync(dto.InvoiceId);
+                if (invoice == null)
+                {
+                    _logger.LogWarning("⚠️ Invoice not found for ID: {InvoiceId}", dto.InvoiceId);
+                    return NotFound(new { error = "Invoice not found." });
                 }
 
                 var options = new SessionCreateOptions
@@ -107,9 +115,12 @@ namespace PropertyManagementAPI.API.Controllers
                     CancelUrl = $"{baseUrl}/payment-cancel",
                     Metadata = new Dictionary<string, string>
                     {
-                        { "invoiceId", dto.InvoiceId.ToString() },
-                        { "tenantId", dto.TenantId.ToString() },
-                        { "propertyId", dto.PropertyId.ToString() }
+                        { "invoiceId", invoice.InvoiceId.ToString() },
+                        { "tenantId", invoice.TenantId.ToString() },
+                        { "tenantName", invoice.TenantName ?? string.Empty },
+                        { "propertyId", invoice.PropertyId.ToString() },
+                        { "propertyName", invoice.PropertyName ?? string.Empty },
+                        { "ownerId", invoice.OwnerId.ToString() } // optional
                     }
                 };
 

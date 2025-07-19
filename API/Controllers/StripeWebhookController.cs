@@ -17,15 +17,19 @@ public class StripeWebhookController : ControllerBase
     private readonly ILogger<StripeWebhookController> _logger;
     private readonly IConfiguration _config;
     private readonly IStripeWebhookQueue _webhookQueue;
+    private readonly IWebhookDiagnosticsStore _diagnosticsStore;
+
 
     public StripeWebhookController(
-        ILogger<StripeWebhookController> logger,
-        IConfiguration config,
-        IStripeWebhookQueue webhookQueue)
+    ILogger<StripeWebhookController> logger,
+    IConfiguration config,
+    IStripeWebhookQueue webhookQueue,
+    IWebhookDiagnosticsStore diagnosticsStore)
     {
         _logger = logger;
         _config = config;
         _webhookQueue = webhookQueue;
+        _diagnosticsStore = diagnosticsStore;
     }
 
     [HttpPost]
@@ -56,28 +60,90 @@ public class StripeWebhookController : ControllerBase
         }
 
         Event stripeEvent;
+        Stripe.Checkout.Session session = null;
+
         try
         {
             stripeEvent = EventUtility.ConstructEvent(json, signature, secret, throwOnApiVersionMismatch: false);
-            _logger.LogInformation("✅ Stripe event verified: {Type} ({Id})", stripeEvent.Type, stripeEvent.Id);
+
+            _logger.LogInformation("[🔔 Webhook Received] Type: {Type} | ID: {Id} | Time: {Time}",
+                stripeEvent.Type, stripeEvent.Id, DateTime.UtcNow);
+
+            if (stripeEvent.Type == Events.CheckoutSessionCompleted &&
+                stripeEvent.Data.Object is Stripe.Checkout.Session s)
+            {
+                session = s;
+
+                _logger.LogInformation("[📦 Checkout Session Metadata] ID: {SessionId} | InvoiceID: {InvoiceId} | TenantID: {TenantId} | TenantName: {TenantName} | PropertyName: {PropertyName}",
+                    session.Id,
+                    session.Metadata?["invoiceId"],
+                    session.Metadata?["tenantId"],
+                    session.Metadata?["tenantName"],
+                    session.Metadata?["propertyName"]
+                );
+
+                _diagnosticsStore.Log(new WebhookEventRecord
+                {
+                    EventId = stripeEvent.Id,
+                    SessionId = session.Id,
+                    EventType = stripeEvent.Type,
+                    Outcome = "Received",
+                    ReceivedAt = DateTime.UtcNow,
+                    ErrorDetails = ""
+                });
+            }
+            else
+            {
+                _diagnosticsStore.Log(new WebhookEventRecord
+                {
+                    EventId = stripeEvent.Id,
+                    SessionId = "unknown",
+                    EventType = stripeEvent.Type,
+                    Outcome = "Received",
+                    ReceivedAt = DateTime.UtcNow,
+                    ErrorDetails = ""
+                });
+            }
         }
         catch (StripeException ex)
         {
             _logger.LogWarning(ex, "❌ Stripe signature verification failed.");
+
+            _diagnosticsStore.Log(new WebhookEventRecord
+            {
+                EventId = Guid.NewGuid().ToString(),
+                SessionId = "unknown",
+                EventType = "Invalid",
+                Outcome = "Error",
+                ReceivedAt = DateTime.UtcNow,
+                ErrorDetails = ex.Message
+            });
+
             return BadRequest("Invalid signature");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "🔥 Error processing Stripe webhook.");
+
+            _diagnosticsStore.Log(new WebhookEventRecord
+            {
+                EventId = Guid.NewGuid().ToString(),
+                SessionId = "unknown",
+                EventType = "Error",
+                Outcome = "Exception",
+                ReceivedAt = DateTime.UtcNow,
+                ErrorDetails = ex.Message
+            });
+
             return StatusCode(500, "Internal server error");
         }
 
         var relevantEvents = new[]
         {
-            Events.CheckoutSessionCompleted,
-            Events.InvoicePaid,
-            Events.PaymentIntentSucceeded
-        };
+        Events.CheckoutSessionCompleted,
+        Events.InvoicePaid,
+        Events.PaymentIntentSucceeded
+    };
 
         if (!relevantEvents.Contains(stripeEvent.Type))
         {
@@ -87,10 +153,8 @@ public class StripeWebhookController : ControllerBase
 
         await _webhookQueue.EnqueueAsync(stripeEvent, json);
 
-        // 🌐 Return redirect URL for Checkout Session Completed
         if (stripeEvent.Type == Events.CheckoutSessionCompleted &&
-            stripeEvent.Data.Object is Stripe.Checkout.Session session &&
-            !string.IsNullOrEmpty(session.Id))
+            session != null && !string.IsNullOrEmpty(session.Id))
         {
             var redirectUrl = GetRedirectUrl(session.Id);
             return Ok(new { redirectUrl });

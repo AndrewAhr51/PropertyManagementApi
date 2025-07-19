@@ -128,20 +128,65 @@ namespace PropertyManagementAPI.Application.Services.Payments.Stripe
         {
             try
             {
-                var service = new SessionService();
-                var session = await service.GetAsync(sessionId);
+                var sessionService = new SessionService();
+                var sessionOptions = new SessionGetOptions
+                {
+                    Expand = new List<string>
+            {
+                "payment_intent",
+                "customer"
+            }
+                };
+
+                var session = await sessionService.GetAsync(sessionId, sessionOptions);
+                var paymentIntentId = session.PaymentIntent?.Id;
+
+                if (string.IsNullOrEmpty(paymentIntentId))
+                {
+                    _logger.LogWarning("⚠️ No PaymentIntent ID found for session: {SessionId}", sessionId);
+                    return null;
+                }
+
+                // 🔍 Retrieve charges manually using ChargeService
+                var chargeService = new ChargeService();
+                var chargeList = await chargeService.ListAsync(new ChargeListOptions
+                {
+                    PaymentIntent = paymentIntentId
+                });
+
+                var charge = chargeList?.Data?.FirstOrDefault();
+                var card = charge?.PaymentMethodDetails?.Card;
+                var address = session.CustomerDetails?.Address;
 
                 return new StripeSessionDto
                 {
                     SessionId = session.Id,
                     AmountTotal = session.AmountTotal ?? 0,
-                    Currency = session.Currency,
+                    Currency = session.Currency ?? "USD",
+                    ReceiptUrl = charge?.ReceiptUrl ?? string.Empty,
+                    CardBrand = card?.Brand ?? string.Empty,
+                    CardLast4 = card?.Last4 ?? string.Empty,
+                    ExpMonth = card?.ExpMonth.ToString() ?? string.Empty,
+                    ExpYear = card?.ExpYear.ToString() ?? string.Empty,
+                    ChargeStatus = charge?.Status ?? string.Empty,
+                    StripeChargeId = charge?.Id ?? string.Empty,
                     Metadata = new StripeSessionMetadata
                     {
                         InvoiceId = session.Metadata.TryGetValue("invoiceId", out var invoice) ? invoice : "—",
                         TenantId = session.Metadata.TryGetValue("tenantId", out var tenant) ? tenant : "—",
+                        TenantName = session.Metadata.TryGetValue("tenantName", out var tenantName) ? tenantName : "—",
                         PropertyId = session.Metadata.TryGetValue("propertyId", out var property) ? property : "—",
+                        PropertyName = session.Metadata.TryGetValue("propertyName", out var propertyName) ? propertyName : "—",
                         OwnerId = session.Metadata.TryGetValue("ownerId", out var owner) ? owner : "—"
+                    },
+                    Address = new StripeBillingAddress
+                    {
+                        Line1 = address?.Line1 ?? string.Empty,
+                        Line2 = address?.Line2 ?? string.Empty,
+                        City = address?.City ?? string.Empty,
+                        State = address?.State ?? string.Empty,
+                        PostalCode = address?.PostalCode ?? string.Empty,
+                        Country = address?.Country ?? string.Empty
                     }
                 };
             }
