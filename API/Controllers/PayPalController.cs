@@ -18,14 +18,14 @@ namespace PropertyManagementAPI.API.Controllers
     [Tags("PayPal-Payments")]
     [ApiExplorerSettings(GroupName = "v1")]
     [Produces("application/json")]
-    public class PaymentsPayPalController : ControllerBase
+    public class PayPalController : ControllerBase
     {
         private readonly IPayPalService _payPalService;
         private readonly IInvoiceService _invoiceService;
-        private readonly ILogger<PaymentsPayPalController> _logger;
+        private readonly ILogger<PayPalController> _logger;
         private readonly PayPalHttpClient _payPalClient;
 
-        public PaymentsPayPalController(IPayPalService payPalService, IInvoiceService invoiceService, ILogger<PaymentsPayPalController> logger, PayPalClient payPalClient)
+        public PayPalController(IPayPalService payPalService, IInvoiceService invoiceService, ILogger<PayPalController> logger, PayPalClient payPalClient)
         {
             _payPalService = payPalService;
             _invoiceService = invoiceService;
