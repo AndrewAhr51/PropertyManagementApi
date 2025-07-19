@@ -22,6 +22,11 @@ namespace PropertyManagementAPI.Domain.Entities.Payments
         public string? CheckNumber { get; set; }
         public string? CheckBankName { get; set; }
         public string? TransactionId { get; set; }
+
+        // ✅ NEW: Stripe session tracking for idempotency
+        [MaxLength(255)]
+        public string? StripeSessionId { get; set; }
+
         public Invoice Invoice { get; set; } = default!;
         public Tenant Tenant { get; set; } = default!;
         public Owner Owner { get; set; } = default!;

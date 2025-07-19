@@ -72,11 +72,15 @@ public class StripeWebhookService : IStripeWebhookService
                         InvoiceId = invoiceId
                     };
 
-                    // IPaymentRepository does not have CreatePaymentAsync, so this line is commented out.
-                    // await _PaymentRepository.CreatePaymentAsync(createPaymentDto);
-                    _logger.LogInformation("✅ Payment recorded for invoice: {InvoiceId}", invoiceId);
+                    var payment = await _PaymentRepository.ProcessPaymentAsync(createPaymentDto);
+                    
+                    if (payment == null)
+                    {
+                        _logger.LogWarning("❌ Failed to process payment for session: {Id}", session.Id);
+                        return;
+                    }
 
-                    // TODO: SignalR notify, mark invoice paid, etc.
+                    _logger.LogInformation("✅ Payment recorded for invoice: {InvoiceId}", invoiceId);
                 }
                 else
                 {
@@ -90,6 +94,7 @@ public class StripeWebhookService : IStripeWebhookService
                 {
                     _logger.LogInformation("✅ Payment succeeded: {Id}", succeededIntent.Id);
                 }
+
                 break;
             case StripeEvents.PaymentIntentFailed:
                 var failedIntent = stripeEvent.Data.Object as PaymentIntent;

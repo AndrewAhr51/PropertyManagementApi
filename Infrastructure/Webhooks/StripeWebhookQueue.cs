@@ -1,44 +1,59 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
+using PropertyManagementAPI.Domain.DTOs.Stripe;
 using Stripe;
-using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace PropertyManagementAPI.Infrastructure.Webhooks
 {
     public class StripeWebhookQueue : IStripeWebhookQueue
     {
-        private readonly ILogger<StripeWebhookQueue> _logger;
+        private readonly Channel<(Event StripeEvent, string RawJson)> _channel;
 
-        public StripeWebhookQueue(ILogger<StripeWebhookQueue> logger)
+        public StripeWebhookQueue()
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            var options = new UnboundedChannelOptions
+            {
+                SingleReader = false,
+                SingleWriter = false
+            };
+            _channel = Channel.CreateUnbounded<(Event, string)>(options);
         }
 
         public async Task EnqueueAsync(Event stripeEvent, string rawJson)
         {
-            _logger.LogInformation("📨 EnqueueAsync called with event: {Id}", stripeEvent?.Id);
-            try
+            if (stripeEvent == null || string.IsNullOrWhiteSpace(rawJson))
+                return;
+
+            await _channel.Writer.WriteAsync((stripeEvent, rawJson));
+        }
+
+        public bool TryDequeue(out (Event StripeEvent, string RawJson) item)
+        {
+            return _channel.Reader.TryRead(out item);
+        }
+
+        public async IAsyncEnumerable<(Event StripeEvent, string RawJson)> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            while (await _channel.Reader.WaitToReadAsync(cancellationToken))
             {
-                if (stripeEvent == null)
+                while (_channel.Reader.TryRead(out var item))
                 {
-                    _logger.LogWarning("🚫 Null Stripe event passed to queue.");
-                    return;
+                    yield return item;
                 }
-
-                _logger.LogInformation(
-                    "📬 Webhook received: {Type} for ID {Id}",
-                    stripeEvent.Type,
-                    stripeEvent.Id
-                );
-
-                // TODO: dispatch to background processor, persist, etc.
-                await Task.CompletedTask;
             }
-            catch (Exception ex)
+        }
+
+        public StripeQueueHealthDto GetHealth()
+        {
+            return new StripeQueueHealthDto
             {
-                _logger.LogError(ex, "🔥 Exception while enqueuing Stripe webhook event {Id}", stripeEvent?.Id);
-                throw; // Optional: rethrow or suppress depending on context
-            }
+                FallbackQueueCount = -1, // Channel<T> doesn't expose count directly
+                ChannelReady = !_channel.Reader.Completion.IsCompleted,
+            };
         }
     }
 }

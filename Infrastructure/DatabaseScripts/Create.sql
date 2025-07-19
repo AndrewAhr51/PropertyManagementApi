@@ -432,24 +432,24 @@ CREATE TABLE BankAccounts (
 
 CREATE TABLE Payments (
     PaymentId INT AUTO_INCREMENT PRIMARY KEY,
-    Amount DECIMAL(10,2) NOT NULL,
-    PaidOn DATETIME NULL,
-    ReferenceNumber VARCHAR(50) NOT NULL,
+    Amount DECIMAL(10, 2) NOT NULL,
+    PaidOn DATETIME NOT NULL,
+    ReferenceNumber VARCHAR(255) NOT NULL,
     InvoiceId INT NOT NULL,
-    TenantId INT NULL,  -- ✅ Now nullable
-    OwnerId INT NULL,   -- ✅ Now nullable
-    PaymentType VARCHAR(20) NOT NULL, -- "Card", "Check", "Transfer"
+    TenantId INT NULL,
+    OwnerId INT NULL,
+    PaymentType VARCHAR(100) NOT NULL,
+    CardType VARCHAR(100),
+    Last4Digits VARCHAR(10),
+    AuthorizationCode VARCHAR(100),
+    CheckNumber VARCHAR(100),
+    CheckBankName VARCHAR(255),
+    TransactionId VARCHAR(255),
+    
+    -- 🆕 Stripe session ID for idempotency
+    StripeSessionId VARCHAR(255),
 
-    -- Card fields
-    CardType VARCHAR(20),
-    Last4Digits VARCHAR(4),
-    AuthorizationCode VARCHAR(50),
-
-    -- Check fields
-    CheckNumber VARCHAR(30),
-    CheckBankName VARCHAR(50),
-    TransactionId VARCHAR(50),
-
+    -- Optional foreign key constraints if Invoice, Tenant, Owner tables exist
     FOREIGN KEY (InvoiceId) REFERENCES Invoices(InvoiceId),
     FOREIGN KEY (TenantId) REFERENCES Tenants(TenantId),
     FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)

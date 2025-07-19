@@ -103,10 +103,8 @@ namespace PropertyManagementAPI.API.Controllers
                             Quantity = 1
                         }
                     },
-                    SuccessUrl = "http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}",
-                    //SuccessUrl = $"{baseUrl}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
-                    CancelUrl = "http://localhost:4200/payment-cancel",
-                    //CancelUrl = $"{baseUrl}/payment-cancel",
+                    SuccessUrl = $"{baseUrl}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+                    CancelUrl = $"{baseUrl}/payment-cancel",
                     Metadata = new Dictionary<string, string>
                     {
                         { "invoiceId", dto.InvoiceId.ToString() },

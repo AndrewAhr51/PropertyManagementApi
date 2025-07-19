@@ -1,4 +1,5 @@
-﻿using CorrelationId;
+﻿using Stripe;
+using CorrelationId;
 using CorrelationId.DependencyInjection;
 using Going.Plaid;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -70,6 +71,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Environment = System.Environment;
 using PlaidOptions = PropertyManagementAPI.Infrastructure.Payments.PlaidOptions;
+using InvoiceService = PropertyManagementAPI.Application.Services.Invoices.InvoiceService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -231,6 +233,7 @@ builder.Services.AddScoped<IPayPalService, PayPalService>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<IPlaidLinkService, PlaidLinkService>();
 builder.Services.AddScoped<PaymentAuditLogger>();
+builder.Services.AddScoped<PlaidPaymentAuditLogger>();
 
 //Quickbooks
 builder.Services.AddHttpClient<QuickBooksTokenClient>();
@@ -249,8 +252,9 @@ builder.Services.AddSingleton<EncryptionJwtHelper>();
 builder.Services.AddScoped<AuditEventBuilder>();
 builder.Services.AddScoped<PaymentAuditLogger>();
 builder.Services.AddScoped<IStripeWebhookService, StripeWebhookService>();
-builder.Services.AddScoped<PlaidPaymentAuditLogger>();
 builder.Services.AddScoped<IStripeRepository, StripeRepository>();
+builder.Services.AddSingleton<IStripeWebhookQueue, InMemoryStripeWebhookQueue>();
+builder.Services.AddHostedService<StripeWebhookWorker>();
 builder.Services.AddScoped<IStripeService, StripeService>(provider =>
 {
     var opts = provider.GetRequiredService<IOptions<StripeOptions>>().Value;
@@ -408,6 +412,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+
+var stripeOptions = builder.Configuration.GetSection("Stripe").Get<StripeOptions>();
+StripeConfiguration.ApiKey = stripeOptions?.SecretKey ?? throw new InvalidOperationException("Stripe SecretKey is missing.");
+
+
 // ✅ Add Controllers & API Documentation (Swagger)
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -480,12 +490,6 @@ app.UseCors("AllowFrontend"); // ✅ Apply the specific CORS policy
 
 app.UseRouting();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers(); // your API routes
-});
-
-
 app.UseCorrelationId();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
@@ -495,6 +499,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<RoleMiddleware>();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers(); // your API routes
+});
+
 
 // ✅ Configure Middleware Pipeline
 if (app.Environment.IsDevelopment())

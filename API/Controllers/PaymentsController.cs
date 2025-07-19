@@ -1,7 +1,10 @@
 ﻿using DocumentFormat.OpenXml.Drawing.Charts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using PropertyManagementAPI.Application.Services.Payments;
+using PropertyManagementAPI.Application.Services.Payments.Stripe;
 using PropertyManagementAPI.Domain.DTOs.Payments;
+using PropertyManagementAPI.Domain.DTOs.Payments.Stripe;
 using PropertyManagementAPI.Domain.Entities.Payments.Banking;
 using PropertyManagementAPI.Domain.Entities.Payments.CreditCard;
 
@@ -15,16 +18,21 @@ namespace PropertyManagementAPI.API.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
-        private readonly ILogger<PaymentsController> _logger; 
+        private readonly ILogger<PaymentsController> _logger;
+        private readonly IStripeService _stripeService;
 
-        public PaymentsController(IPaymentService paymentService, ILogger<PaymentsController> logger)
+        public PaymentsController(IPaymentService paymentService, ILogger<PaymentsController> logger, IStripeService stripeService)
         {
             _paymentService = paymentService;
             _logger = logger;
+            _stripeService = stripeService;
+
+            _logger.LogInformation("✅ PaymentsController constructor hit");
+
         }
 
         // POST: api/payments
-        [HttpPost("standard")]
+        [HttpPost("process-payment")]
         public async Task<ActionResult<PaymentResponseDto>> ProcessPayment([FromBody] CreatePaymentDto dto)
         {
             if (!ModelState.IsValid)
@@ -124,6 +132,40 @@ namespace PropertyManagementAPI.API.Controllers
             });
 
             return Ok(response);
+        }
+
+        [HttpGet("session/{sessionId}")]
+        [ProducesResponseType(typeof(StripeSessionDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<StripeSessionDto>> GetStripeSession(string sessionId)
+        {
+            _logger.LogInformation("🚀 Entered GetStripeSession with ID: {SessionId}", sessionId);
+
+            if (string.IsNullOrWhiteSpace(sessionId))
+                return BadRequest(new ApiErrorDto { Error = "Missing or invalid session ID." });
+            try
+            {
+                var session = await _stripeService.GetSessionAsync(sessionId);
+
+                if (session == null)
+                {
+                    _logger.LogWarning("⚠️ Stripe session not found: {SessionId}", sessionId);
+                    return NotFound(new { error = "Session not found." });
+                }
+
+                return Ok(session);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "🔥 Error retrieving Stripe session: {SessionId}", sessionId);
+                return StatusCode(500, new { error = "Internal server error." });
+            }
+        }
+
+        public class ApiErrorDto
+        {
+            public string Error { get; set; } = string.Empty;
         }
 
     }
